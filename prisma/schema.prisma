@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and role-based access
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  dealership    Dealership? @relation(fields: [dealershipId], references: [id])
+  dealershipId  String?
+  
+  // Auth relations
+  accounts      Account[]
+  sessions      Session[]
+}
+
+// Dealership model for car dealerships
+model Dealership {
+  id          String   @id @default(cuid())
+  name        String
+  address     String?
+  city        String?
+  state       String?
+  zipCode     String?
+  phone       String?
+  email       String?
+  website     String?
+  logo        String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  users       User[]
+  vehicles    Vehicle[]
+}
+
+// Vehicle model for car listings
+model Vehicle {
+  id           String   @id @default(cuid())
+  make         String
+  model        String
+  year         Int
+  price        Float
+  mileage      Int
+  color        String?
+  vin          String?  @unique
+  description  String?
+  transmission String?
+  fuelType     String?
+  bodyType     String?
+  isPrivate    Boolean  @default(false)
+  status       VehicleStatus @default(AVAILABLE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  dealership   Dealership @relation(fields: [dealershipId], references: [id])
+  dealershipId String
+  images       VehicleImage[]
+}
+
+// VehicleImage model for car images
+model VehicleImage {
+  id        String   @id @default(cuid())
+  url       String
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  // Relations
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId String
+}
+
+// NextAuth.js models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  DEALER_PRINCIPAL
+  SALES_EXECUTIVE
+  USER
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  SOLD
+  PENDING
+  RESERVED
+}
