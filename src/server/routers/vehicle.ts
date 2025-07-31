@@ -87,7 +87,293 @@ const submitPrivateVehicleInput = z.object({
   images: z.array(z.string()).optional(),
 });
 
+// Input schema for showcase pagination
+const showcasePaginationInput = z.object({
+  limit: z.number().min(1).max(20).default(4), // Default to 4 items per showcase
+  cursor: z.string().nullish(),
+});
+
 export const vehicleRouter = router({
+  // SHOWCASE ENDPOINTS
+  
+  // Get top dealer picks (premium vehicles selected by dealers)
+  getTopDealerPicks: publicProcedure
+    .input(showcasePaginationInput)
+    .query(async ({ ctx, input }) => {
+      const { limit, cursor } = input;
+      
+      const items = await ctx.prisma.vehicle.findMany({
+        take: limit + 1,
+        where: {
+          isPrivate: false,
+          status: "AVAILABLE",
+          dealerPick: true, // Assuming we have this field in the schema
+        },
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: [
+          { dealerPick: "desc" },
+          { createdAt: "desc" }
+        ],
+        include: {
+          dealership: true,
+          images: {
+            where: { isPrimary: true },
+            take: 1,
+          },
+        },
+      });
+
+      let nextCursor: typeof cursor = undefined;
+      if (items.length > limit) {
+        const nextItem = items.pop();
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
+  // Get featured vehicles
+  getFeaturedVehicles: publicProcedure
+    .input(showcasePaginationInput)
+    .query(async ({ ctx, input }) => {
+      const { limit, cursor } = input;
+      
+      const items = await ctx.prisma.vehicle.findMany({
+        take: limit + 1,
+        where: {
+          isPrivate: false,
+          status: "AVAILABLE",
+          featured: true, // Assuming we have this field in the schema
+        },
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: [
+          { featured: "desc" },
+          { createdAt: "desc" }
+        ],
+        include: {
+          dealership: true,
+          images: {
+            where: { isPrimary: true },
+            take: 1,
+          },
+        },
+      });
+
+      let nextCursor: typeof cursor = undefined;
+      if (items.length > limit) {
+        const nextItem = items.pop();
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
+  // Get top deals (vehicles with discounts)
+  getTopDeals: publicProcedure
+    .input(showcasePaginationInput)
+    .query(async ({ ctx, input }) => {
+      const { limit, cursor } = input;
+      
+      const items = await ctx.prisma.vehicle.findMany({
+        take: limit + 1,
+        where: {
+          isPrivate: false,
+          status: "AVAILABLE",
+          originalPrice: { not: null }, // Vehicles with original price set (indicating a discount)
+        },
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: [
+          // Order by discount percentage (original - current) / original
+          { originalPrice: "desc" }, // Higher original price first
+          { price: "asc" }, // Lower current price first (for similar original prices)
+          { createdAt: "desc" }
+        ],
+        include: {
+          dealership: true,
+          images: {
+            where: { isPrimary: true },
+            take: 1,
+          },
+        },
+      });
+
+      let nextCursor: typeof cursor = undefined;
+      if (items.length > limit) {
+        const nextItem = items.pop();
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
+  // Get most viewed vehicles
+  getMostViewed: publicProcedure
+    .input(showcasePaginationInput)
+    .query(async ({ ctx, input }) => {
+      const { limit, cursor } = input;
+      
+      const items = await ctx.prisma.vehicle.findMany({
+        take: limit + 1,
+        where: {
+          isPrivate: false,
+          status: "AVAILABLE",
+        },
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: [
+          { viewCount: "desc" }, // Assuming we have this field in the schema
+          { createdAt: "desc" }
+        ],
+        include: {
+          dealership: true,
+          images: {
+            where: { isPrimary: true },
+            take: 1,
+          },
+        },
+      });
+
+      let nextCursor: typeof cursor = undefined;
+      if (items.length > limit) {
+        const nextItem = items.pop();
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
+  // Get new listings (recently added vehicles)
+  getNewListings: publicProcedure
+    .input(showcasePaginationInput)
+    .query(async ({ ctx, input }) => {
+      const { limit, cursor } = input;
+      
+      // Get vehicles added in the last 72 hours
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setHours(threeDaysAgo.getHours() - 72);
+      
+      const items = await ctx.prisma.vehicle.findMany({
+        take: limit + 1,
+        where: {
+          isPrivate: false,
+          status: "AVAILABLE",
+          createdAt: { gte: threeDaysAgo }
+        },
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: {
+          createdAt: "desc" // Newest first
+        },
+        include: {
+          dealership: true,
+          images: {
+            where: { isPrimary: true },
+            take: 1,
+          },
+        },
+      });
+
+      let nextCursor: typeof cursor = undefined;
+      if (items.length > limit) {
+        const nextItem = items.pop();
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
+  // Get top new cars (brand new vehicles)
+  getTopNewCars: publicProcedure
+    .input(showcasePaginationInput)
+    .query(async ({ ctx, input }) => {
+      const { limit, cursor } = input;
+      
+      const items = await ctx.prisma.vehicle.findMany({
+        take: limit + 1,
+        where: {
+          isPrivate: false,
+          status: "AVAILABLE",
+          isNew: true, // Assuming we have this field in the schema
+        },
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: [
+          { viewCount: "desc" }, // Most viewed first
+          { createdAt: "desc" } // Then by newest
+        ],
+        include: {
+          dealership: true,
+          images: {
+            where: { isPrimary: true },
+            take: 1,
+          },
+        },
+      });
+
+      let nextCursor: typeof cursor = undefined;
+      if (items.length > limit) {
+        const nextItem = items.pop();
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
+  // Get top used cars (pre-owned vehicles)
+  getTopUsedCars: publicProcedure
+    .input(showcasePaginationInput)
+    .query(async ({ ctx, input }) => {
+      const { limit, cursor } = input;
+      
+      const items = await ctx.prisma.vehicle.findMany({
+        take: limit + 1,
+        where: {
+          isPrivate: false,
+          status: "AVAILABLE",
+          isNew: false, // Assuming we have this field in the schema
+        },
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: [
+          { viewCount: "desc" }, // Most viewed first
+          { createdAt: "desc" } // Then by newest
+        ],
+        include: {
+          dealership: true,
+          images: {
+            where: { isPrimary: true },
+            take: 1,
+          },
+        },
+      });
+
+      let nextCursor: typeof cursor = undefined;
+      if (items.length > limit) {
+        const nextItem = items.pop();
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
+  // Get all public vehicles (public)
   // Get all public vehicles (public)
   getAll: publicProcedure
     .input(getAllVehiclesInput)

@@ -1,0 +1,430 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { VehicleCard } from '@/components/ui/VehicleCard';
+import { Button } from '@/components/ui/Button';
+import { Eye, Star, Zap, Clock, TrendingUp, ArrowRight } from 'lucide-react';
+
+// Mock data structure - will be replaced with tRPC calls
+interface Vehicle {
+  id: number;
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  originalPrice?: number;
+  mileage: number;
+  transmission: string;
+  fuelType: string;
+  color: string;
+  image: string;
+  dealer: string;
+  location: string;
+  isNew?: boolean;
+  viewsLast30Days?: number;
+  createdAt?: string;
+  popularityRank?: number;
+}
+
+interface BadgeProps {
+  variant: 'primary' | 'secondary' | 'success' | 'info' | 'warning';
+  label: string;
+  icon?: React.ReactNode;
+  pulse?: boolean;
+}
+
+interface ShowcaseSection {
+  id: string;
+  title: string;
+  description?: string;
+  headerColor: string;
+  vehicles: Vehicle[];
+  badge: BadgeProps;
+  ribbon?: {
+    text: string;
+    color: string;
+  };
+}
+
+// Mock data for development
+const mockVehicles: Vehicle[] = [
+  {
+    id: 1,
+    make: 'Toyota',
+    model: 'Hilux',
+    year: 2023,
+    price: 520000,
+    originalPrice: 580000,
+    mileage: 15000,
+    transmission: 'Manual',
+    fuelType: 'Diesel',
+    color: 'White',
+    image: 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=300&fit=crop&auto=format',
+    dealer: 'Windhoek Motors',
+    location: 'Windhoek',
+    isNew: false,
+    viewsLast30Days: 1250,
+    createdAt: '2024-01-20',
+    popularityRank: 1,
+  },
+  {
+    id: 2,
+    make: 'Ford',
+    model: 'Ranger',
+    year: 2024,
+    price: 650000,
+    mileage: 5000,
+    transmission: 'Automatic',
+    fuelType: 'Diesel',
+    color: 'Blue',
+    image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400&h=300&fit=crop&auto=format',
+    dealer: 'Swakopmund Auto',
+    location: 'Swakopmund',
+    isNew: true,
+    viewsLast30Days: 980,
+    createdAt: '2024-01-21',
+    popularityRank: 2,
+  },
+  {
+    id: 3,
+    make: 'BMW',
+    model: 'X3',
+    year: 2023,
+    price: 850000,
+    originalPrice: 920000,
+    mileage: 12000,
+    transmission: 'Automatic',
+    fuelType: 'Petrol',
+    color: 'Black',
+    image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=300&fit=crop&auto=format',
+    dealer: 'Premium Motors',
+    location: 'Windhoek',
+    isNew: false,
+    viewsLast30Days: 750,
+    createdAt: '2024-01-19',
+    popularityRank: 3,
+  },
+  {
+    id: 4,
+    make: 'Mercedes-Benz',
+    model: 'C-Class',
+    year: 2024,
+    price: 780000,
+    mileage: 2000,
+    transmission: 'Automatic',
+    fuelType: 'Petrol',
+    color: 'Silver',
+    image: 'https://images.unsplash.com/photo-1563720223185-11003d516935?w=400&h=300&fit=crop&auto=format',
+    dealer: 'Luxury Cars Namibia',
+    location: 'Windhoek',
+    isNew: true,
+    viewsLast30Days: 650,
+    createdAt: '2024-01-22',
+    popularityRank: 4,
+  },
+];
+
+const showcaseSections: ShowcaseSection[] = [
+  {
+    id: 'top-dealer-picks',
+    title: 'Top Dealer Picks',
+    description: 'Hand-picked premium vehicles from our top dealers',
+    headerColor: 'bg-[#1F3469]',
+    vehicles: mockVehicles.slice(0, 4),
+    badge: {
+      variant: 'primary',
+      label: 'Dealer Pick',
+      icon: <Star className="w-3 h-3" />,
+    },
+  },
+  {
+    id: 'featured-vehicles',
+    title: 'Featured Vehicles',
+    description: 'Specially selected vehicles with premium features',
+    headerColor: 'bg-white border-b-2 border-[#CB2030]',
+    vehicles: mockVehicles.slice(0, 4),
+    badge: {
+      variant: 'secondary',
+      label: 'Featured',
+    },
+  },
+  {
+    id: 'top-deals',
+    title: 'Top Deals',
+    description: 'Best discounts and savings available now',
+    headerColor: 'bg-white border-b-4 border-[#109B4A]',
+    vehicles: mockVehicles.filter(v => v.originalPrice).slice(0, 4),
+    badge: {
+      variant: 'success',
+      label: 'Great Deal',
+    },
+    ribbon: {
+      text: 'Save 10%',
+      color: 'bg-[#109B4A]',
+    },
+  },
+  {
+    id: 'most-viewed',
+    title: 'Most Viewed',
+    description: 'Popular vehicles that buyers are interested in',
+    headerColor: 'bg-white border-b-4 border-sky-400',
+    vehicles: mockVehicles.sort((a, b) => (b.viewsLast30Days || 0) - (a.viewsLast30Days || 0)).slice(0, 4),
+    badge: {
+      variant: 'info',
+      label: 'Popular',
+      icon: <Eye className="w-3 h-3" />,
+    },
+  },
+  {
+    id: 'new-listings',
+    title: 'New Listings',
+    description: 'Fresh arrivals in the last 72 hours',
+    headerColor: 'bg-white',
+    vehicles: mockVehicles.slice(0, 4),
+    badge: {
+      variant: 'warning',
+      label: 'New',
+      pulse: true,
+    },
+  },
+];
+
+// Helper function to generate browse URL with filters
+const getBrowseUrl = (sectionId: string) => {
+  switch (sectionId) {
+    case 'top-dealer-picks':
+      return '/browse?filter=dealerPick=true';
+    case 'featured-vehicles':
+      return '/browse?filter=featured=true';
+    case 'top-deals':
+      return '/browse?filter=hasDiscount=true';
+    case 'most-viewed':
+      return '/browse?filter=sortBy=views';
+    case 'new-listings':
+      return '/browse?filter=sortBy=newest';
+    case 'top-new-cars':
+      return '/browse?filter=isNew=true&sortBy=popularity';
+    case 'top-used-cars':
+      return '/browse?filter=isNew=false&sortBy=popularity';
+    default:
+      return '/browse';
+  }
+};
+
+const BadgeComponent: React.FC<BadgeProps & { className?: string }> = ({ 
+  variant, 
+  label, 
+  icon, 
+  pulse, 
+  className = '' 
+}) => {
+  const baseClasses = 'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold';
+  const pulseClasses = pulse ? 'animate-pulse' : '';
+  
+  const variantClasses = {
+    primary: 'bg-[#1F3469] text-white',
+    secondary: 'bg-[#CB2030] text-white',
+    success: 'bg-[#109B4A] text-white',
+    info: 'bg-blue-500 text-white',
+    warning: 'bg-gray-500 text-white',
+  };
+
+  return (
+    <span 
+      className={`${baseClasses} ${variantClasses[variant]} ${pulseClasses} ${className}`}
+      aria-label={label}
+    >
+      {icon}
+      {label}
+    </span>
+  );
+};
+
+const SectionHeader: React.FC<{ 
+  title: string; 
+  description?: string; 
+  headerColor: string;
+  sectionId?: string;
+}> = ({ title, description, headerColor, sectionId }) => {
+  const isBlueHeader = headerColor.includes('bg-[#1F3469]');
+  const textColor = isBlueHeader ? 'text-white' : 'text-neutral-900';
+  const descriptionColor = isBlueHeader ? 'text-white/90' : 'text-neutral-600';
+  
+  return (
+    <div className={`p-4 rounded-t-lg ${headerColor} flex items-center justify-between`}>
+      <div>
+        <h2 className={`text-xl font-bold ${textColor}`} role="heading" aria-level={2}>
+          {title}
+        </h2>
+        {description && (
+          <p className={`text-sm ${descriptionColor} mt-1`}>{description}</p>
+        )}
+      </div>
+      {sectionId && (
+        <Link href={getBrowseUrl(sectionId)}>
+          <Button 
+            variant={isBlueHeader ? "secondary" : "outline"} 
+            size="sm" 
+            className={`flex items-center gap-2 transition-colors ${
+              isBlueHeader 
+                ? 'bg-white text-[#1F3469] hover:bg-neutral-100' 
+                : 'hover:bg-[#1F3469] hover:text-white'
+            }`}
+          >
+            Browse All
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </Link>
+      )}
+    </div>
+  );
+};
+
+const VehicleCarousel: React.FC<{ 
+  vehicles: Vehicle[]; 
+  badge: BadgeProps;
+  ribbon?: { text: string; color: string };
+  sectionId: string;
+}> = ({ vehicles, badge, ribbon, sectionId }) => (
+  <div className="vehicle-carousel flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible" data-testid={`${sectionId}-carousel`} style={{scrollSnapType: 'x mandatory'}}>
+    {vehicles.map((vehicle) => (
+      <div key={vehicle.id} className="vehicle-card relative flex-none w-72 snap-start md:w-auto" tabIndex={0}>
+        <VehicleCard {...vehicle} />
+        <div className="absolute top-3 left-3">
+          <BadgeComponent {...badge} />
+        </div>
+        {ribbon && (
+          <div 
+            className={`absolute top-0 right-0 ${ribbon.color} text-white px-3 py-1 text-xs font-bold transform rotate-12 translate-x-2 -translate-y-1`}
+            data-testid="discount-ribbon"
+            aria-label={ribbon.text}
+          >
+            {ribbon.text}
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+);
+
+const TopNewUsedSection: React.FC = () => {
+  const newCars = mockVehicles.filter(v => v.isNew).slice(0, 4);
+  const usedCars = mockVehicles.filter(v => !v.isNew).slice(0, 4);
+
+  return (
+    <div className="space-y-8 xl:space-y-0 xl:grid xl:grid-cols-2 xl:gap-8">
+      {/* Top New Cars */}
+      <div data-testid="top-new-cars" className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-white flex items-center gap-2" role="heading" aria-level={3}>
+              <TrendingUp className="w-5 h-5 text-white" />
+              Top New Cars
+            </h3>
+            <p className="text-sm text-blue-100 mt-1">Most popular brand-new vehicles</p>
+          </div>
+          <Link href={getBrowseUrl('top-new-cars')}>
+            <Button variant="secondary" size="sm" className="bg-white text-blue-600 hover:bg-blue-50 flex items-center gap-2 transition-colors">
+              Browse All
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {newCars.map((vehicle) => (
+              <div key={vehicle.id} className="relative">
+                <VehicleCard {...vehicle} />
+                <div className="absolute top-3 left-3">
+                  <BadgeComponent 
+                    variant="info" 
+                    label={`#${vehicle.popularityRank}`}
+                    className="bg-blue-500 text-white shadow-lg"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Top Used Cars */}
+      <div data-testid="top-used-cars" className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-white flex items-center gap-2" role="heading" aria-level={3}>
+              <TrendingUp className="w-5 h-5 text-white" />
+              Top Used Cars
+            </h3>
+            <p className="text-sm text-orange-100 mt-1">Most popular pre-owned vehicles</p>
+          </div>
+          <Link href={getBrowseUrl('top-used-cars')}>
+            <Button variant="secondary" size="sm" className="bg-white text-orange-600 hover:bg-orange-50 flex items-center gap-2 transition-colors">
+              Browse All
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {usedCars.map((vehicle) => (
+              <div key={vehicle.id} className="relative">
+                <VehicleCard {...vehicle} />
+                <div className="absolute top-3 left-3">
+                  <BadgeComponent 
+                    variant="warning" 
+                    label={`#${vehicle.popularityRank}`}
+                    className="bg-orange-500 text-white shadow-lg"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const HomeShowcase: React.FC = () => {
+  return (
+    <section className="py-16 bg-gradient-to-b from-white to-neutral-50" data-testid="home-showcase">
+      <div className="container mx-auto px-4">
+        <div className="max-w-7xl mx-auto space-y-12">
+          {showcaseSections.map((section) => (
+            <div key={section.id} className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden" data-testid={`showcase-${section.id}`}>
+              <SectionHeader 
+                title={section.title}
+                description={section.description}
+                headerColor={section.headerColor}
+                sectionId={section.id}
+              />
+              <div className="p-6">
+                <VehicleCarousel 
+                  vehicles={section.vehicles}
+                  badge={section.badge}
+                  ribbon={section.ribbon}
+                  sectionId={section.id}
+                />
+              </div>
+            </div>
+          ))}
+          
+          {/* Top New Cars & Top Used Cars Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden" data-testid="showcase-top-new-used">
+            <div className="bg-white p-4 rounded-t-lg">
+              <h2 className="text-xl font-bold text-neutral-900" role="heading" aria-level={2}>Popular by Category</h2>
+              <p className="text-sm text-neutral-600 mt-1">Top-ranked vehicles in new and used categories</p>
+            </div>
+            <div className="p-6">
+              <TopNewUsedSection />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default HomeShowcase;

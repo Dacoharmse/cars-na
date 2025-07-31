@@ -59,6 +59,7 @@ model Vehicle {
   model        String
   year         Int
   price        Float
+  originalPrice Float?   // For discounted vehicles
   mileage      Int
   color        String?
   vin          String?  @unique
@@ -68,6 +69,10 @@ model Vehicle {
   bodyType     String?
   isPrivate    Boolean  @default(false)
   status       VehicleStatus @default(AVAILABLE)
+  isNew        Boolean  @default(false) // Whether the vehicle is brand new or used
+  dealerPick   Boolean  @default(false) // Whether this is a dealer-selected premium vehicle
+  featured     Boolean  @default(false) // Whether this is a featured vehicle
+  viewCount    Int      @default(0)     // Number of times the vehicle listing was viewed
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   
