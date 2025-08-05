@@ -95,32 +95,41 @@ export default function CarFilterSearch({ open, onClose }: Props) {
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
                 <div className="flex items-center gap-3">
-                  <Car className="w-6 h-6 text-[#1F3469] dark:text-white" />
-                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                  <Car className="w-6 h-6 text-[#1F3469] dark:text-white" aria-hidden="true" />
+                  <Dialog.Title as="h2" className="text-lg font-semibold text-slate-900 dark:text-white">
                     Find Your Perfect Car
-                  </h2>
+                  </Dialog.Title>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  aria-label="Close search dialog"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
 
               {/* Search Input */}
               <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                <label htmlFor="search-input" className="sr-only">
+                  Search for cars by make, model, or keyword
+                </label>
                 <div className="relative">
-                  <Search className="absolute top-3 left-3 w-5 h-5 text-slate-400" />
+                  <Search className="absolute top-3 left-3 w-5 h-5 text-slate-400" aria-hidden="true" />
                   <input
+                    id="search-input"
                     type="text"
                     className="w-full pl-10 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#1F3469] focus:border-transparent"
                     placeholder="Search by make, model, or keyword..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     autoFocus
+                    aria-describedby="search-description"
                   />
                 </div>
+                <p id="search-description" className="sr-only">
+                  Enter keywords to search for vehicles matching your criteria
+                </p>
               </div>
 
               {/* Filters */}
@@ -128,11 +137,12 @@ export default function CarFilterSearch({ open, onClose }: Props) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Brand Filter */}
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      <Car className="w-4 h-4" />
+                    <label htmlFor="brand-select" className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      <Car className="w-4 h-4" aria-hidden="true" />
                       Brand
                     </label>
                     <select
+                      id="brand-select"
                       value={selectedBrand}
                       onChange={(e) => setSelectedBrand(e.target.value)}
                       className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1F3469] focus:border-transparent"
@@ -146,11 +156,12 @@ export default function CarFilterSearch({ open, onClose }: Props) {
 
                   {/* Price Range Filter */}
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      <DollarSign className="w-4 h-4" />
+                    <label htmlFor="price-select" className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      <DollarSign className="w-4 h-4" aria-hidden="true" />
                       Price Range
                     </label>
                     <select
+                      id="price-select"
                       value={selectedPriceRange}
                       onChange={(e) => setSelectedPriceRange(e.target.value)}
                       className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1F3469] focus:border-transparent"
@@ -164,11 +175,12 @@ export default function CarFilterSearch({ open, onClose }: Props) {
 
                   {/* Year Range Filter */}
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      <Calendar className="w-4 h-4" />
+                    <label htmlFor="year-select" className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      <Calendar className="w-4 h-4" aria-hidden="true" />
                       Year
                     </label>
                     <select
+                      id="year-select"
                       value={selectedYearRange}
                       onChange={(e) => setSelectedYearRange(e.target.value)}
                       className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1F3469] focus:border-transparent"
@@ -182,11 +194,12 @@ export default function CarFilterSearch({ open, onClose }: Props) {
 
                   {/* Fuel Type Filter */}
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      <Fuel className="w-4 h-4" />
+                    <label htmlFor="fuel-select" className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      <Fuel className="w-4 h-4" aria-hidden="true" />
                       Fuel Type
                     </label>
                     <select
+                      id="fuel-select"
                       value={selectedFuelType}
                       onChange={(e) => setSelectedFuelType(e.target.value)}
                       className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1F3469] focus:border-transparent"
@@ -201,11 +214,12 @@ export default function CarFilterSearch({ open, onClose }: Props) {
 
                 {/* Location Filter */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    <MapPin className="w-4 h-4" />
+                  <label htmlFor="location-select" className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    <MapPin className="w-4 h-4" aria-hidden="true" />
                     Location
                   </label>
                   <select
+                    id="location-select"
                     value={selectedLocation}
                     onChange={(e) => setSelectedLocation(e.target.value)}
                     className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1F3469] focus:border-transparent"
@@ -222,21 +236,23 @@ export default function CarFilterSearch({ open, onClose }: Props) {
               <div className="flex items-center justify-between p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 rounded-b-xl">
                 <button
                   onClick={clearFilters}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-md"
+                  aria-label="Clear all search filters"
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings className="w-4 h-4" aria-hidden="true" />
                   Clear Filters
                 </button>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={onClose}
-                    className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-md"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSearch}
                     className="px-6 py-2 bg-[#1F3469] hover:bg-[#1F3469]/90 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#1F3469] focus:ring-offset-2"
+                    aria-label="Search for cars with selected filters"
                   >
                     Search Cars
                   </button>

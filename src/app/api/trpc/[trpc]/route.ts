@@ -3,19 +3,18 @@
  */
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { appRouter } from '@/server/routers/_app';
-import { prisma } from '@/lib/prisma';
+import { createTRPCContext } from '@/server/trpc';
 
 const handler = (req: Request) =>
   fetchRequestHandler({
     endpoint: '/api/trpc',
     req,
     router: appRouter,
-    createContext: () => ({
-      prisma,
-      session: null, // We'll handle auth later
-      req: null as any,
-      res: null as any,
-    }),
+    createContext: ({ req, resHeaders }) => 
+      createTRPCContext({ 
+        req: req as any, 
+        res: { setHeader: (name: string, value: string) => resHeaders?.set(name, value) } as any 
+      }),
   });
 
 export { handler as GET, handler as POST };

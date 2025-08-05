@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { VehicleCard } from '@/components/ui/VehicleCard';
 import { Button } from '@/components/ui/Button';
 import { Eye, Star, Zap, Clock, TrendingUp, ArrowRight } from 'lucide-react';
+import { api } from '@/lib/api';
 
 // Mock data structure - will be replaced with tRPC calls
 interface Vehicle {
@@ -387,7 +388,120 @@ const TopNewUsedSection: React.FC = () => {
   );
 };
 
+// Transform API vehicle data to component format
+const transformVehicle = (apiVehicle: any): Vehicle => ({
+  id: parseInt(apiVehicle.id),
+  make: apiVehicle.make,
+  model: apiVehicle.model,
+  year: apiVehicle.year,
+  price: apiVehicle.price,
+  originalPrice: apiVehicle.originalPrice,
+  mileage: apiVehicle.mileage,
+  transmission: apiVehicle.transmission,
+  fuelType: apiVehicle.fuelType,
+  color: apiVehicle.color,
+  image: apiVehicle.images?.[0]?.url || '/placeholder-car.jpg',
+  dealer: apiVehicle.dealership?.name || 'Unknown Dealer',
+  location: apiVehicle.dealership?.city || 'Unknown Location',
+  isNew: apiVehicle.status === 'NEW',
+  viewsLast30Days: apiVehicle.viewCount || 0,
+  createdAt: apiVehicle.createdAt,
+  popularityRank: apiVehicle.popularityRank || 1,
+});
+
 export const HomeShowcase: React.FC = () => {
+  // Fetch featured vehicles using tRPC
+  const { data: featuredData, isLoading: featuredLoading } = api.showcase.getFeatured.useQuery({
+    limit: 4,
+  });
+
+  // Fetch top deals using tRPC  
+  const { data: dealsData, isLoading: dealsLoading } = api.showcase.getTopDeals.useQuery({
+    limit: 4,
+  });
+
+  // Fetch most viewed vehicles using tRPC
+  const { data: viewedData, isLoading: viewedLoading } = api.showcase.getMostViewed.useQuery({
+    limit: 4,
+  });
+
+  // Fetch new listings using tRPC
+  const { data: newData, isLoading: newLoading } = api.showcase.getNewListings.useQuery({
+    limit: 4,
+  });
+
+  // Create showcase sections with real data
+  const showcaseSections: ShowcaseSection[] = [
+    {
+      id: 'featured-vehicles',
+      title: 'Featured Vehicles',
+      description: 'Specially selected vehicles with premium features',
+      headerColor: 'bg-[#1F3469]',
+      vehicles: (featuredData?.vehicles || []).map(transformVehicle),
+      badge: {
+        variant: 'primary',
+        label: 'Featured',
+        icon: <Star className="w-3 h-3" />,
+      },
+    },
+    {
+      id: 'top-deals',
+      title: 'Top Deals',
+      description: 'Best discounts and savings available now',
+      headerColor: 'bg-white border-b-4 border-[#109B4A]',
+      vehicles: (dealsData?.vehicles || []).map(transformVehicle),
+      badge: {
+        variant: 'success',
+        label: 'Great Deal',
+      },
+      ribbon: {
+        text: 'Save Up to 15%',
+        color: 'bg-[#109B4A]',
+      },
+    },
+    {
+      id: 'most-viewed',
+      title: 'Most Viewed',
+      description: 'Popular vehicles that buyers are interested in',
+      headerColor: 'bg-white border-b-4 border-sky-400',
+      vehicles: (viewedData?.vehicles || []).map(transformVehicle),
+      badge: {
+        variant: 'info',
+        label: 'Popular',
+        icon: <Eye className="w-3 h-3" />,
+      },
+    },
+    {
+      id: 'new-listings',
+      title: 'New Listings',
+      description: 'Fresh arrivals in the last 72 hours',
+      headerColor: 'bg-white',
+      vehicles: (newData?.vehicles || []).map(transformVehicle),
+      badge: {
+        variant: 'warning',
+        label: 'New',
+        pulse: true,
+      },
+    },
+  ];
+
+  const isLoading = featuredLoading || dealsLoading || viewedLoading || newLoading;
+
+  if (isLoading) {
+    return (
+      <section className="py-16 bg-gradient-to-b from-white to-neutral-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">Loading showcase...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-16 bg-gradient-to-b from-white to-neutral-50" data-testid="home-showcase">
       <div className="container mx-auto px-4">
@@ -401,12 +515,18 @@ export const HomeShowcase: React.FC = () => {
                 sectionId={section.id}
               />
               <div className="p-6">
-                <VehicleCarousel 
-                  vehicles={section.vehicles}
-                  badge={section.badge}
-                  ribbon={section.ribbon}
-                  sectionId={section.id}
-                />
+                {section.vehicles.length > 0 ? (
+                  <VehicleCarousel 
+                    vehicles={section.vehicles}
+                    badge={section.badge}
+                    ribbon={section.ribbon}
+                    sectionId={section.id}
+                  />
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No vehicles available in this category</p>
+                  </div>
+                )}
               </div>
             </div>
           ))}

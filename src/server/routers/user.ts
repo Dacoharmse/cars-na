@@ -4,6 +4,7 @@
 import { z } from "zod";
 import { router, publicProcedure, protectedProcedure, adminProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
+import bcrypt from "bcrypt";
 
 export const userRouter = router({
   // Get the current logged in user
@@ -79,12 +80,14 @@ export const userRouter = router({
         });
       }
 
-      // In production, hash the password before storing
+      // Hash the password before storing
+      const hashedPassword = await bcrypt.hash(input.password, 12);
+      
       return await ctx.prisma.user.create({
         data: {
           name: input.name,
           email: input.email,
-          password: input.password, // In production, hash this password
+          password: hashedPassword,
           role: input.role,
           dealershipId: input.dealershipId,
         },
@@ -138,6 +141,54 @@ export const userRouter = router({
           dealershipId: input.dealershipId,
         },
       });
+    }),
+
+  // Change password (protected)
+  changePassword: protectedProcedure
+    .input(
+      z.object({
+        currentPassword: z.string(),
+        newPassword: z.string().min(8),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Get current user
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: ctx.session.user.id },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found",
+        });
+      }
+
+      // Verify current password
+      const passwordMatch = await bcrypt.compare(
+        input.currentPassword,
+        user.password
+      );
+
+      if (!passwordMatch) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Current password is incorrect",
+        });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(input.newPassword, 12);
+
+      // Update password
+      await ctx.prisma.user.update({
+        where: { id: ctx.session.user.id },
+        data: {
+          password: hashedPassword,
+        },
+      });
+
+      return { success: true };
     }),
 
   // Delete user (admin only)

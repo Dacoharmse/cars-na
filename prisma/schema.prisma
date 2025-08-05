@@ -50,6 +50,7 @@ model Dealership {
   // Relations
   users       User[]
   vehicles    Vehicle[]
+  leads       Lead[]
 }
 
 // Vehicle model for car listings
@@ -80,6 +81,7 @@ model Vehicle {
   dealership   Dealership @relation(fields: [dealershipId], references: [id])
   dealershipId String
   images       VehicleImage[]
+  leads        Lead[]
 }
 
 // VehicleImage model for car images
@@ -92,6 +94,25 @@ model VehicleImage {
   // Relations
   vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   vehicleId String
+}
+
+// Lead model for customer inquiries
+model Lead {
+  id              String     @id @default(cuid())
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
+  message         String?
+  source          LeadSource @default(CONTACT_FORM)
+  status          LeadStatus @default(NEW)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  
+  // Relations
+  vehicle         Vehicle    @relation(fields: [vehicleId], references: [id])
+  vehicleId       String
+  dealership      Dealership @relation(fields: [dealershipId], references: [id])
+  dealershipId    String
 }
 
 // NextAuth.js models
@@ -143,4 +164,22 @@ enum VehicleStatus {
   SOLD
   PENDING
   RESERVED
+}
+
+enum LeadSource {
+  CONTACT_FORM
+  WHATSAPP
+  PHONE_CALL
+  EMAIL
+  WALK_IN
+  WEBSITE
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  INTERESTED
+  QUALIFIED
+  CONVERTED
+  CLOSED
 }

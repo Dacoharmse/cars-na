@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -55,42 +56,23 @@ export default function VehicleDetailPage() {
   const [showFinanceCalculator, setShowFinanceCalculator] = useState(false);
   const [similarCarsFilter, setSimilarCarsFilter] = useState('All');
 
-  const [vehicle, setVehicle] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use tRPC to fetch vehicle data
+  const { data: vehicle, isLoading, error } = api.vehicle.getById.useQuery(
+    { id: vehicleId },
+    { enabled: !!vehicleId }
+  );
 
-  // Fetch vehicle data using REST API
+  // Initialize finance form when vehicle loads
   useEffect(() => {
-    if (!vehicleId) return;
-
-    const fetchVehicle = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`/api/vehicles/${vehicleId}`);
-        
-        if (!response.ok) {
-          throw new Error('Vehicle not found');
-        }
-        
-        const vehicleData = await response.json();
-        setVehicle(vehicleData);
-        
-        // Initialize finance form when vehicle loads
-        setFinanceForm(prev => ({
-          ...prev,
-          loanAmount: vehicleData.price * 0.9, // 90% financing
-          downPayment: vehicleData.price * 0.1, // 10% down payment
-          vehicleAge: vehicleData.year >= 2022 ? 'new' : 'used'
-        }));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch vehicle');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchVehicle();
-  }, [vehicleId]);
+    if (vehicle) {
+      setFinanceForm(prev => ({
+        ...prev,
+        loanAmount: vehicle.price * 0.9, // 90% financing
+        downPayment: vehicle.price * 0.1, // 10% down payment
+        vehicleAge: vehicle.year >= 2022 ? 'new' : 'used'
+      }));
+    }
+  }, [vehicle]);
 
   if (isLoading) {
     return (
@@ -112,7 +94,21 @@ export default function VehicleDetailPage() {
     );
   }
 
-  if (error || !vehicle) {
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Vehicle</h1>
+            <p className="text-gray-600 mb-6">{error.message}</p>
+            <Button onClick={() => window.history.back()}>Go Back</Button>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!isLoading && !vehicle) {
     return (
       <MainLayout>
         <div className="container mx-auto px-4 py-8">
@@ -138,10 +134,35 @@ export default function VehicleDetailPage() {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  // tRPC mutation for creating leads
+  const createLead = api.lead.create.useMutation({
+    onSuccess: () => {
+      alert('Thank you for your inquiry! We will contact you soon.');
+      setContactForm({
+        name: '',
+        email: '',
+        phone: '',
+        message: ''
+      });
+    },
+    onError: (error) => {
+      alert(`Error submitting inquiry: ${error.message}`);
+    }
+  });
+
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Contact form submitted:', contactForm);
-    alert('Thank you for your inquiry! We will contact you soon.');
+    
+    if (!vehicle) return;
+    
+    createLead.mutate({
+      vehicleId: vehicle.id,
+      customerName: contactForm.name,
+      customerEmail: contactForm.email,
+      customerPhone: contactForm.phone,
+      message: contactForm.message,
+      source: 'CONTACT_FORM'
+    });
   };
 
   // Social Sharing Functions
@@ -580,9 +601,19 @@ export default function VehicleDetailPage() {
                   <Button 
                     type="submit" 
                     className="w-full bg-[#CB2030] hover:bg-[#CB2030]/90 text-white"
+                    disabled={createLead.isLoading}
                   >
-                    <Send className="h-4 w-4 mr-2" />
-                    Submit
+                    {createLead.isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Submit
+                      </>
+                    )}
                   </Button>
                 </form>
                 

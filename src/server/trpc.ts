@@ -7,6 +7,7 @@ import superjson from 'superjson';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { rateLimit } from '@/lib/rate-limit';
 
 /**
  * Context for tRPC requests

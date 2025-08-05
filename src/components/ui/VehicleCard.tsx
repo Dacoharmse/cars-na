@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from './Card';
 import { Button } from './Button';
-import { Heart, Star } from 'lucide-react';
+import { Heart, Star, Gauge, Settings, Fuel, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface VehicleCardProps {
@@ -72,14 +72,14 @@ const VehicleCard = React.forwardRef<HTMLDivElement, VehicleCardProps>(
         <div className="relative">
           <img
             src={image}
-            alt={`${year} ${make} ${model}`}
+            alt={`${year} ${make} ${model} - ${color} color, ${formatMileage(mileage)}`}
             className="w-full h-48 object-cover"
           />
           
           {/* Featured/Dealer Boost Badge */}
           {dealerBoost && (
             <div className="absolute top-2 left-2 bg-primary-600 text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-              <Star className="w-3 h-3 fill-current" />
+              <Star className="w-3 h-3 fill-current" aria-hidden="true" />
               Top Pick
             </div>
           )}
@@ -91,24 +91,30 @@ const VehicleCard = React.forwardRef<HTMLDivElement, VehicleCardProps>(
           )}
 
           {/* Favorite Button */}
-          <button className="absolute top-2 right-2 p-2 bg-white/80 hover:bg-white rounded-full transition-colors">
-            <Heart className="w-4 h-4 text-neutral-600 hover:text-red-500" />
+          <button 
+            className="absolute top-2 right-2 p-2 bg-white/80 hover:bg-white rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            aria-label={`Add ${year} ${make} ${model} to favorites`}
+          >
+            <Heart className="w-4 h-4 text-neutral-600 hover:text-red-500" aria-hidden="true" />
           </button>
         </div>
 
         <div className="p-4">
           {/* Vehicle Title */}
           <h3 className="font-semibold text-lg text-neutral-900 mb-2">
+            <span className="sr-only">Vehicle:</span>
             {year} {make} {model}
           </h3>
 
           {/* Price */}
           <div className="mb-3">
             <div className="text-2xl font-bold text-primary-600">
+              <span className="sr-only">Current price:</span>
               {formatPrice(price)}
             </div>
             {originalPrice && originalPrice > price && (
               <div className="text-sm text-neutral-500 line-through">
+                <span className="sr-only">Original price:</span>
                 {formatPrice(originalPrice)}
               </div>
             )}
@@ -116,20 +122,24 @@ const VehicleCard = React.forwardRef<HTMLDivElement, VehicleCardProps>(
 
           {/* Vehicle Details */}
           <div className="grid grid-cols-2 gap-2 text-sm text-neutral-600 mb-4">
-            <div className="flex items-center gap-1">
-              <span className="font-medium">📊</span>
+            <div className="flex items-center gap-2">
+              <Gauge className="w-4 h-4 text-neutral-500" aria-hidden="true" />
+              <span className="sr-only">Mileage:</span>
               {formatMileage(mileage)}
             </div>
-            <div className="flex items-center gap-1">
-              <span className="font-medium">⚙️</span>
+            <div className="flex items-center gap-2">
+              <Settings className="w-4 h-4 text-neutral-500" aria-hidden="true" />
+              <span className="sr-only">Transmission:</span>
               {transmission}
             </div>
-            <div className="flex items-center gap-1">
-              <span className="font-medium">⛽</span>
+            <div className="flex items-center gap-2">
+              <Fuel className="w-4 h-4 text-neutral-500" aria-hidden="true" />
+              <span className="sr-only">Fuel type:</span>
               {fuelType}
             </div>
-            <div className="flex items-center gap-1">
-              <span className="font-medium">🎨</span>
+            <div className="flex items-center gap-2">
+              <Palette className="w-4 h-4 text-neutral-500" aria-hidden="true" />
+              <span className="sr-only">Color:</span>
               {color}
             </div>
           </div>
@@ -142,10 +152,19 @@ const VehicleCard = React.forwardRef<HTMLDivElement, VehicleCardProps>(
 
           {/* Action Buttons */}
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="flex-1">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              aria-label={`View details for ${year} ${make} ${model}`}
+            >
               View Details
             </Button>
-            <Button size="sm" className="flex-1">
+            <Button 
+              size="sm" 
+              className="flex-1"
+              aria-label={`Contact dealer about ${year} ${make} ${model}`}
+            >
               Contact Dealer
             </Button>
           </div>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { Card, CardContent } from '@/components/ui/Card';
 import { VehicleCard } from '@/components/examples/VehicleCard';
+import { api } from '@/lib/api';
 
 export default function VehiclesPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,80 +22,53 @@ export default function VehiclesPage() {
   const [sortBy, setSortBy] = useState('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const vehicles = [
-    {
-      id: 'v1',
-      make: 'Toyota',
-      model: 'Camry',
-      year: 2023,
-      price: 32000,
-      mileage: 8500,
-      imageUrl: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&q=80',
-      exteriorColor: 'Silver',
-      transmission: 'Automatic',
-      fuelType: 'Gasoline',
+  // Use tRPC query to fetch vehicles
+  const { data: vehicleData, isLoading, error, refetch } = api.vehicle.getAll.useQuery({
+    limit: 20,
+    filters: {
+      make: filters.make || undefined,
+      minPrice: filters.priceMin ? parseInt(filters.priceMin) : undefined,
+      maxPrice: filters.priceMax ? parseInt(filters.priceMax) : undefined,
+      minYear: filters.year ? parseInt(filters.year) : undefined,
+      maxYear: filters.year ? parseInt(filters.year) : undefined,
+      maxMileage: filters.mileage ? parseInt(filters.mileage) : undefined,
     },
-    {
-      id: 'v2',
-      make: 'Honda',
-      model: 'CR-V',
-      year: 2022,
-      price: 29500,
-      mileage: 12000,
-      imageUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&q=80',
-      exteriorColor: 'Blue',
-      transmission: 'Automatic',
-      fuelType: 'Hybrid',
-    },
-    {
-      id: 'v3',
-      make: 'Ford',
-      model: 'F-150',
-      year: 2023,
-      price: 48000,
-      mileage: 5200,
-      imageUrl: 'https://images.unsplash.com/photo-1584345604476-8ec5f82d661c?w=800&q=80',
-      exteriorColor: 'Red',
-      transmission: 'Automatic',
-      fuelType: 'Gasoline',
-    },
-    {
-      id: 'v4',
-      make: 'BMW',
-      model: '3 Series',
-      year: 2021,
-      price: 42000,
-      mileage: 18000,
-      imageUrl: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80',
-      exteriorColor: 'Black',
-      transmission: 'Automatic',
-      fuelType: 'Gasoline',
-    },
-    {
-      id: 'v5',
-      make: 'Tesla',
-      model: 'Model 3',
-      year: 2022,
-      price: 45000,
-      mileage: 15000,
-      imageUrl: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&q=80',
-      exteriorColor: 'White',
-      transmission: 'Automatic',
-      fuelType: 'Electric',
-    },
-    {
-      id: 'v6',
-      make: 'Chevrolet',
-      model: 'Silverado',
-      year: 2023,
-      price: 52000,
-      mileage: 3000,
-      imageUrl: 'https://images.unsplash.com/photo-1563720223185-11003d516935?w=800&q=80',
-      exteriorColor: 'Gray',
-      transmission: 'Automatic',
-      fuelType: 'Gasoline',
-    },
-  ];
+  });
+
+  const vehicles = vehicleData?.items || [];
+
+  // Handle filter changes to refetch data
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setFilters({
+      make: '',
+      priceMin: '',
+      priceMax: '',
+      year: '',
+      mileage: '',
+      transmission: '',
+      fuelType: '',
+    });
+    setSearchQuery('');
+  };
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Vehicles</h1>
+            <p className="text-gray-600 mb-6">{error.message}</p>
+            <Button onClick={() => refetch()}>Try Again</Button>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -132,7 +106,7 @@ export default function VehiclesPage() {
                       { value: 'chevrolet', label: 'Chevrolet' },
                     ]}
                     value={filters.make}
-                    onChange={(e) => setFilters({...filters, make: e.target.value})}
+                    onChange={(e) => handleFilterChange('make', e.target.value)}
                   />
                   
                   <div className="grid grid-cols-2 gap-2">
@@ -140,13 +114,13 @@ export default function VehiclesPage() {
                       label="Min Price"
                       placeholder="$0"
                       value={filters.priceMin}
-                      onChange={(e) => setFilters({...filters, priceMin: e.target.value})}
+                      onChange={(e) => handleFilterChange('priceMin', e.target.value)}
                     />
                     <Input
                       label="Max Price"
                       placeholder="$100,000"
                       value={filters.priceMax}
-                      onChange={(e) => setFilters({...filters, priceMax: e.target.value})}
+                      onChange={(e) => handleFilterChange('priceMax', e.target.value)}
                     />
                   </div>
                   
@@ -161,7 +135,7 @@ export default function VehiclesPage() {
                       { value: '2020', label: '2020' },
                     ]}
                     value={filters.year}
-                    onChange={(e) => setFilters({...filters, year: e.target.value})}
+                    onChange={(e) => handleFilterChange('year', e.target.value)}
                   />
                   
                   <Select
@@ -174,7 +148,7 @@ export default function VehiclesPage() {
                       { value: '100000', label: 'Under 100,000 mi' },
                     ]}
                     value={filters.mileage}
-                    onChange={(e) => setFilters({...filters, mileage: e.target.value})}
+                    onChange={(e) => handleFilterChange('mileage', e.target.value)}
                   />
                   
                   <Select
@@ -185,7 +159,7 @@ export default function VehiclesPage() {
                       { value: 'manual', label: 'Manual' },
                     ]}
                     value={filters.transmission}
-                    onChange={(e) => setFilters({...filters, transmission: e.target.value})}
+                    onChange={(e) => handleFilterChange('transmission', e.target.value)}
                   />
                   
                   <Select
@@ -198,11 +172,11 @@ export default function VehiclesPage() {
                       { value: 'diesel', label: 'Diesel' },
                     ]}
                     value={filters.fuelType}
-                    onChange={(e) => setFilters({...filters, fuelType: e.target.value})}
+                    onChange={(e) => handleFilterChange('fuelType', e.target.value)}
                   />
                   
                   <div className="pt-4 border-t">
-                    <Button variant="outline" fullWidth>
+                    <Button variant="outline" fullWidth onClick={clearFilters}>
                       Clear All Filters
                     </Button>
                   </div>
@@ -216,7 +190,11 @@ export default function VehiclesPage() {
             {/* Controls */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div className="text-sm text-neutral-600">
-                Showing {vehicles.length} of {vehicles.length} vehicles
+                {isLoading ? (
+                  'Loading vehicles...'
+                ) : (
+                  `Showing ${vehicles.length} ${vehicles.length === 1 ? 'vehicle' : 'vehicles'}`
+                )}
               </div>
               
               <div className="flex items-center gap-4">
@@ -253,15 +231,48 @@ export default function VehiclesPage() {
               </div>
             </div>
 
+            {/* Loading State */}
+            {isLoading && (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <span className="ml-3 text-gray-600">Loading vehicles...</span>
+              </div>
+            )}
+
+            {/* No Results */}
+            {!isLoading && vehicles.length === 0 && (
+              <div className="text-center py-12">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No vehicles found</h3>
+                <p className="text-gray-600 mb-4">Try adjusting your search criteria</p>
+                <Button onClick={clearFilters} variant="outline">
+                  Clear Filters
+                </Button>
+              </div>
+            )}
+
             {/* Vehicle Grid */}
-            <div className={viewMode === 'grid' 
-              ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' 
-              : 'space-y-4'
-            }>
-              {vehicles.map((vehicle) => (
-                <VehicleCard key={vehicle.id} {...vehicle} />
-              ))}
-            </div>
+            {!isLoading && vehicles.length > 0 && (
+              <div className={viewMode === 'grid' 
+                ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' 
+                : 'space-y-4'
+              }>
+                {vehicles.map((vehicle) => (
+                  <VehicleCard 
+                    key={vehicle.id} 
+                    id={vehicle.id}
+                    make={vehicle.make}
+                    model={vehicle.model}
+                    year={vehicle.year}
+                    price={vehicle.price}
+                    mileage={vehicle.mileage}
+                    imageUrl={vehicle.images?.[0]?.url || '/placeholder-car.jpg'}
+                    exteriorColor={vehicle.color}
+                    transmission={vehicle.transmission}
+                    fuelType={vehicle.fuelType}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Pagination */}
             <div className="flex justify-center items-center mt-12 gap-2">

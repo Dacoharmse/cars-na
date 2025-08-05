@@ -100,12 +100,16 @@ export default function Home() {
                 {/* Hero Search Field - Desktop Only */}
                 <div className="hidden lg:block animate-fade-in" style={{animationDelay: '280ms'}}>
                   <div className="relative max-w-md">
+                    <label htmlFor="hero-search" className="sr-only">
+                      Search for cars by make, model, or keyword
+                    </label>
                     <input
+                      id="hero-search"
                       type="text"
                       placeholder="Search 5,000+ verified listings..."
                       className="w-full px-4 py-3 pl-12 rounded-lg border border-slate-200 focus:border-[#1F3469] focus:ring-2 focus:ring-[#1F3469]/20 outline-none transition-all duration-200 text-sm"
                     />
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
                   </div>
                 </div>
                 
@@ -360,11 +364,12 @@ export default function Home() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="space-y-3">
-                  <label className="text-sm font-semibold text-neutral-800 flex items-center gap-2">
-                    <Search className="w-4 h-4 text-[#1F3469]" />
+                  <label htmlFor="main-search" className="text-sm font-semibold text-neutral-800 flex items-center gap-2">
+                    <Search className="w-4 h-4 text-[#1F3469]" aria-hidden="true" />
                     What are you looking for?
                   </label>
                   <Input
+                    id="main-search"
                     type="text"
                     placeholder="e.g., Toyota Hilux, BMW X3..."
                     value={searchQuery}
@@ -374,11 +379,12 @@ export default function Home() {
                 </div>
                 
                 <div className="space-y-3">
-                  <label className="text-sm font-semibold text-neutral-800 flex items-center gap-2">
-                    <Car className="w-4 h-4 text-[#1F3469]" />
+                  <label htmlFor="make-select" className="text-sm font-semibold text-neutral-800 flex items-center gap-2">
+                    <Car className="w-4 h-4 text-[#1F3469]" aria-hidden="true" />
                     Make
                   </label>
                   <select
+                    id="make-select"
                     value={selectedMake}
                     onChange={(e) => setSelectedMake(e.target.value)}
                     className="w-full h-14 text-neutral-900 border-2 border-neutral-200 focus:border-[#1F3469] focus:ring-[#1F3469] rounded-xl text-base font-medium bg-white"
@@ -397,11 +403,12 @@ export default function Home() {
                 </div>
                 
                 <div className="space-y-3">
-                  <label className="text-sm font-semibold text-neutral-800 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#1F3469]" />
+                  <label htmlFor="location-select-main" className="text-sm font-semibold text-neutral-800 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#1F3469]" aria-hidden="true" />
                     Location
                   </label>
                   <select
+                    id="location-select-main"
                     value={selectedLocation}
                     onChange={(e) => setSelectedLocation(e.target.value)}
                     className="w-full h-14 text-neutral-900 border-2 border-neutral-200 focus:border-[#1F3469] focus:ring-[#1F3469] rounded-xl text-base font-medium bg-white"
@@ -436,7 +443,8 @@ export default function Home() {
                       {['Toyota Hilux', 'Ford Ranger', 'VW Amarok', 'BMW X3', 'Mercedes C-Class', 'Land Cruiser'].map((tag) => (
                         <button
                           key={tag}
-                          className="px-4 py-2 bg-gradient-to-r from-neutral-100 to-neutral-50 hover:from-[#1F3469]/10 hover:to-[#1F3469]/5 hover:text-[#1F3469] text-neutral-700 rounded-full text-sm font-medium transition-all duration-200 border border-neutral-200 hover:border-[#1F3469]/20"
+                          className="px-4 py-2 bg-gradient-to-r from-neutral-100 to-neutral-50 hover:from-[#1F3469]/10 hover:to-[#1F3469]/5 hover:text-[#1F3469] text-neutral-700 rounded-full text-sm font-medium transition-all duration-200 border border-neutral-200 hover:border-[#1F3469]/20 focus:outline-none focus:ring-2 focus:ring-[#1F3469] focus:ring-offset-2"
+                          aria-label={`Search for ${tag}`}
                         >
                           {tag}
                         </button>

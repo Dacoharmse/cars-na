@@ -421,6 +421,64 @@ export const vehicleRouter = router({
       };
     }),
 
+  // Get vehicles by dealership (dealer only)
+  getByDealership: dealerProcedure
+    .input(
+      z.object({
+        dealershipId: z.string().optional(),
+        limit: z.number().min(1).max(100).default(50),
+        cursor: z.string().optional(),
+        status: z.enum(["AVAILABLE", "SOLD", "PENDING", "RESERVED"]).optional(),
+      })
+    )
+    .query(async ({ ctx, input }: { ctx: Context; input: any }) => {
+      // Get user's dealership ID if not provided
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: ctx.session.user.id },
+      });
+
+      const dealershipId = input.dealershipId || user?.dealershipId;
+
+      if (!dealershipId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Dealership ID is required",
+        });
+      }
+
+      const items = await ctx.prisma.vehicle.findMany({
+        take: input.limit + 1,
+        where: {
+          dealershipId,
+          ...(input.status && { status: input.status }),
+        },
+        cursor: input.cursor ? { id: input.cursor } : undefined,
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          dealership: true,
+          images: {
+            where: {
+              isPrimary: true,
+            },
+            take: 1,
+          },
+        },
+      });
+
+      let nextCursor: typeof input.cursor = undefined;
+      if (items.length > input.limit) {
+        const nextItem = items.pop();
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
   // Get vehicle by ID (public)
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
