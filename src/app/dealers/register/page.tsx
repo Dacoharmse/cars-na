@@ -149,15 +149,27 @@ export default function DealerRegisterPage() {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
       
       // Success - redirect to login with success message
-      alert('Registration successful! Please check your email to verify your account.');
+      alert(data.message || 'Registration successful! Please check your email to verify your account.');
       window.location.href = '/auth/login?registered=true';
       
     } catch (error) {
-      alert('Registration failed. Please try again.');
+      console.error('Registration error:', error);
+      alert(error instanceof Error ? error.message : 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

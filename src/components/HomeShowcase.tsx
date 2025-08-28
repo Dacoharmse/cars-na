@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { VehicleCard } from '@/components/ui/VehicleCard';
 import { Button } from '@/components/ui/Button';
-import { Eye, Star, Zap, Clock, TrendingUp, ArrowRight } from 'lucide-react';
+import { Eye, Star, Zap, Clock, TrendingUp, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
 
 // Mock data structure - will be replaced with tRPC calls
@@ -195,21 +195,21 @@ const showcaseSections: ShowcaseSection[] = [
 const getBrowseUrl = (sectionId: string) => {
   switch (sectionId) {
     case 'top-dealer-picks':
-      return '/browse?filter=dealerPick=true';
+      return '/vehicles?dealerPick=true';
     case 'featured-vehicles':
-      return '/browse?filter=featured=true';
+      return '/vehicles?featured=true';
     case 'top-deals':
-      return '/browse?filter=hasDiscount=true';
+      return '/vehicles?hasDiscount=true';
     case 'most-viewed':
-      return '/browse?filter=sortBy=views';
+      return '/vehicles?sortBy=views';
     case 'new-listings':
-      return '/browse?filter=sortBy=newest';
+      return '/vehicles?sortBy=newest';
     case 'top-new-cars':
-      return '/browse?filter=isNew=true&sortBy=popularity';
+      return '/vehicles?isNew=true&sortBy=popularity';
     case 'top-used-cars':
-      return '/browse?filter=isNew=false&sortBy=popularity';
+      return '/vehicles?isNew=false&sortBy=popularity';
     default:
-      return '/browse';
+      return '/vehicles';
   }
 };
 
@@ -310,8 +310,69 @@ const VehicleCarousel: React.FC<{
 );
 
 const TopNewUsedSection: React.FC = () => {
-  const newCars = mockVehicles.filter(v => v.isNew).slice(0, 4);
-  const usedCars = mockVehicles.filter(v => !v.isNew).slice(0, 4);
+  const [newCarsIndex, setNewCarsIndex] = React.useState(0);
+  const [usedCarsIndex, setUsedCarsIndex] = React.useState(0);
+  
+  // Fetch top new cars using API
+  const { data: newCarsData, isLoading: newCarsLoading } = api.showcase.getTopNewCars.useQuery({
+    limit: 10,
+  });
+  
+  // Fetch top used cars using API
+  const { data: usedCarsData, isLoading: usedCarsLoading } = api.showcase.getTopUsedCars.useQuery({
+    limit: 10,
+  });
+
+  const newCars = (newCarsData?.vehicles || []).map(transformVehicle);
+  const usedCars = (usedCarsData?.vehicles || []).map(transformVehicle);
+  
+  // Navigation functions
+  const nextNewCars = () => {
+    if (newCarsIndex + 2 < newCars.length) {
+      setNewCarsIndex(newCarsIndex + 2);
+    }
+  };
+  
+  const prevNewCars = () => {
+    if (newCarsIndex > 0) {
+      setNewCarsIndex(Math.max(0, newCarsIndex - 2));
+    }
+  };
+  
+  const nextUsedCars = () => {
+    if (usedCarsIndex + 2 < usedCars.length) {
+      setUsedCarsIndex(usedCarsIndex + 2);
+    }
+  };
+  
+  const prevUsedCars = () => {
+    if (usedCarsIndex > 0) {
+      setUsedCarsIndex(Math.max(0, usedCarsIndex - 2));
+    }
+  };
+  
+  // Get current visible cars
+  const visibleNewCars = newCars.slice(newCarsIndex, newCarsIndex + 2);
+  const visibleUsedCars = usedCars.slice(usedCarsIndex, usedCarsIndex + 2);
+
+  if (newCarsLoading || usedCarsLoading) {
+    return (
+      <div className="space-y-8 xl:space-y-0 xl:grid xl:grid-cols-2 xl:gap-8">
+        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden p-8">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden p-8">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 xl:space-y-0 xl:grid xl:grid-cols-2 xl:gap-8">
@@ -333,20 +394,58 @@ const TopNewUsedSection: React.FC = () => {
           </Link>
         </div>
         <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {newCars.map((vehicle) => (
-              <div key={vehicle.id} className="relative">
-                <VehicleCard {...vehicle} />
-                <div className="absolute top-3 left-3">
-                  <BadgeComponent 
-                    variant="info" 
-                    label={`#${vehicle.popularityRank}`}
-                    className="bg-blue-500 text-white shadow-lg"
-                  />
+          {newCars.length > 0 ? (
+            <div className="relative">
+              {/* Navigation Controls */}
+              {newCars.length > 2 && (
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={prevNewCars}
+                      disabled={newCarsIndex === 0}
+                      className="p-2 h-8 w-8"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <span className="text-sm text-gray-600">
+                      {newCarsIndex + 1}-{Math.min(newCarsIndex + 2, newCars.length)} of {newCars.length}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={nextNewCars}
+                      disabled={newCarsIndex + 2 >= newCars.length}
+                      className="p-2 h-8 w-8"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
+              )}
+              
+              {/* Cars Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {visibleNewCars.map((vehicle, idx) => (
+                  <div key={vehicle.id} className="relative">
+                    <VehicleCard {...vehicle} />
+                    <div className="absolute top-3 left-3">
+                      <BadgeComponent 
+                        variant="info" 
+                        label={`#${newCarsIndex + idx + 1}`}
+                        className="bg-blue-500 text-white shadow-lg"
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>No new cars available</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -368,20 +467,58 @@ const TopNewUsedSection: React.FC = () => {
           </Link>
         </div>
         <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {usedCars.map((vehicle) => (
-              <div key={vehicle.id} className="relative">
-                <VehicleCard {...vehicle} />
-                <div className="absolute top-3 left-3">
-                  <BadgeComponent 
-                    variant="warning" 
-                    label={`#${vehicle.popularityRank}`}
-                    className="bg-orange-500 text-white shadow-lg"
-                  />
+          {usedCars.length > 0 ? (
+            <div className="relative">
+              {/* Navigation Controls */}
+              {usedCars.length > 2 && (
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={prevUsedCars}
+                      disabled={usedCarsIndex === 0}
+                      className="p-2 h-8 w-8"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <span className="text-sm text-gray-600">
+                      {usedCarsIndex + 1}-{Math.min(usedCarsIndex + 2, usedCars.length)} of {usedCars.length}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={nextUsedCars}
+                      disabled={usedCarsIndex + 2 >= usedCars.length}
+                      className="p-2 h-8 w-8"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
+              )}
+              
+              {/* Cars Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {visibleUsedCars.map((vehicle, idx) => (
+                  <div key={vehicle.id} className="relative">
+                    <VehicleCard {...vehicle} />
+                    <div className="absolute top-3 left-3">
+                      <BadgeComponent 
+                        variant="warning" 
+                        label={`#${usedCarsIndex + idx + 1}`}
+                        className="bg-orange-500 text-white shadow-lg"
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>No used cars available</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

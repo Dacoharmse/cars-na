@@ -5,6 +5,7 @@ import { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { prisma } from "./prisma";
+import { emailService } from "./email";
 
 export const authOptions: NextAuthOptions = {
   // adapter: PrismaAdapter(prisma), // Disabled for development
@@ -68,6 +69,29 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }) {
+      // Send login notification email when user successfully signs in
+      if (user && user.email) {
+        try {
+          await emailService.sendLoginNotification(
+            {
+              name: user.name || 'User',
+              email: user.email,
+            },
+            {
+              // In production, you can get these from the request headers
+              ip: 'N/A', // req.ip in production
+              location: 'N/A', // Can be determined from IP
+              device: 'N/A', // Can be parsed from user-agent
+            }
+          );
+        } catch (error) {
+          console.error('Failed to send login notification:', error);
+          // Don't block login if email fails
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;

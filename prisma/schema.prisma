@@ -13,45 +13,61 @@ datasource db {
 
 // User model for authentication and role-based access
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          UserRole  @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                   String    @id @default(cuid())
+  name                 String?
+  email                String    @unique
+  emailVerified        DateTime?
+  image                String?
+  password             String?
+  role                 UserRole  @default(USER)
+  
+  // Email verification fields
+  verificationToken    String?
+  verificationExpires  DateTime?
+  
+  // Password reset fields
+  resetToken           String?
+  resetExpires         DateTime?
+  
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
   
   // Relations
-  dealership    Dealership? @relation(fields: [dealershipId], references: [id])
-  dealershipId  String?
+  dealership           Dealership? @relation(fields: [dealershipId], references: [id])
+  dealershipId         String?
   
   // Auth relations
-  accounts      Account[]
-  sessions      Session[]
+  accounts             Account[]
+  sessions             Session[]
 }
 
 // Dealership model for car dealerships
 model Dealership {
-  id          String   @id @default(cuid())
-  name        String
-  address     String?
-  city        String?
-  state       String?
-  zipCode     String?
-  phone       String?
-  email       String?
-  website     String?
-  logo        String?
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String            @id @default(cuid())
+  name               String
+  businessType       String?
+  registrationNumber String?
+  taxNumber          String?
+  contactPerson      String?
+  phone              String?
+  alternatePhone     String?
+  streetAddress      String?
+  city               String?
+  region             String?
+  postalCode         String?
+  googleMapsUrl      String?
+  website            String?
+  logo               String?
+  description        String?
+  status             DealershipStatus  @default(PENDING)
+  isVerified         Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
   
   // Relations
-  users       User[]
-  vehicles    Vehicle[]
-  leads       Lead[]
+  users              User[]
+  vehicles           Vehicle[]
+  leads              Lead[]
 }
 
 // Vehicle model for car listings
@@ -155,8 +171,7 @@ model VerificationToken {
 // Enums
 enum UserRole {
   ADMIN
-  DEALER_PRINCIPAL
-  SALES_EXECUTIVE
+  DEALER
   USER
 }
 
@@ -183,4 +198,11 @@ enum LeadStatus {
   QUALIFIED
   CONVERTED
   CLOSED
+}
+
+enum DealershipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
 }

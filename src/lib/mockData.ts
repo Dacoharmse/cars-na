@@ -131,19 +131,19 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     id: 'vehicle-1',
     make: 'Mercedes-Benz',
     model: 'E-Class E220d',
-    year: 2023,
+    year: 2024,
     price: 899000,
     originalPrice: 950000,
-    mileage: 12000,
+    mileage: 500,
     color: 'Obsidian Black',
     vin: 'WDD2130461A123456',
-    description: 'Pristine Mercedes-Benz E220d with full service history. Executive sedan with premium comfort features.',
+    description: 'Brand new Mercedes-Benz E220d. Executive sedan with premium comfort features and latest technology.',
     transmission: 'Automatic',
     fuelType: 'Diesel',
     bodyType: 'Sedan',
     isPrivate: false,
     status: 'AVAILABLE',
-    isNew: false,
+    isNew: true,
     dealerPick: true,
     featured: true,
     viewCount: 234,
@@ -151,27 +151,27 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-25'),
     dealershipId: 'premium-motors-id',
     images: [
-      { id: 'img-1-1', url: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-1-2', url: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&h=600&fit=crop', isPrimary: false },
-      { id: 'img-1-3', url: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-1-1', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWYyOTM3Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyOCIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+TWVyY2VkZXMtQmVueg==', isPrimary: true },
+      { id: 'img-1-2', url: 'https://via.placeholder.com/800x600/374151/ffffff?text=Mercedes+Interior', isPrimary: false },
+      { id: 'img-1-3', url: 'https://via.placeholder.com/800x600/4b5563/ffffff?text=Mercedes+Side+View', isPrimary: false },
     ],
   },
   {
     id: 'vehicle-2',
     make: 'BMW',
     model: 'X5 xDrive40d',
-    year: 2022,
+    year: 2024,
     price: 1250000,
-    mileage: 25000,
+    mileage: 200,
     color: 'Alpine White',
     vin: 'WBAJA7C50NCE12345',
-    description: 'Powerful BMW X5 with intelligent all-wheel drive. Perfect for Namibian roads and family adventures.',
+    description: 'Brand new BMW X5 with intelligent all-wheel drive. Perfect for Namibian roads and family adventures.',
     transmission: 'Automatic',
     fuelType: 'Diesel',
     bodyType: 'SUV',
     isPrivate: false,
     status: 'AVAILABLE',
-    isNew: false,
+    isNew: true,
     dealerPick: false,
     featured: true,
     viewCount: 189,
@@ -179,9 +179,9 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-20'),
     dealershipId: 'premium-motors-id',
     images: [
-      { id: 'img-2-1', url: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-2-2', url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop', isPrimary: false },
-      { id: 'img-2-3', url: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-2-1', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWUzYThhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMiIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Qk1XIFg1PC90ZXh0Pjwvc3ZnPg==', isPrimary: true },
+      { id: 'img-2-2', url: 'https://via.placeholder.com/800x600/1e40af/ffffff?text=BMW+Interior', isPrimary: false },
+      { id: 'img-2-3', url: 'https://via.placeholder.com/800x600/3730a3/ffffff?text=BMW+Side+View', isPrimary: false },
     ],
   },
   {
@@ -207,8 +207,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-15'),
     dealershipId: 'premium-motors-id',
     images: [
-      { id: 'img-3-1', url: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-3-2', url: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-3-1', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjN2MyZDEyIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMiIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+QXVkaSBBNDwvdGV4dD48L3N2Zz4=', isPrimary: true },
+      { id: 'img-3-2', url: 'https://via.placeholder.com/800x600/92400e/ffffff?text=Audi+Interior', isPrimary: false },
     ],
   },
 
@@ -236,8 +236,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-10'),
     dealershipId: 'city-cars-namibia-id',
     images: [
-      { id: 'img-4-1', url: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-4-2', url: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-4-1', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGMyNjI2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMiIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VG95b3RhPC90ZXh0Pjwvc3ZnPg==', isPrimary: true },
+      { id: 'img-4-2', url: 'https://via.placeholder.com/800x600/b91c1c/ffffff?text=Toyota+Interior', isPrimary: false },
     ],
   },
   {
@@ -263,8 +263,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-05'),
     dealershipId: 'city-cars-namibia-id',
     images: [
-      { id: 'img-5-1', url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-5-2', url: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-5-1', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDU5NjY5Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMiIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+SG9uZGE8L3RleHQ+PC9zdmc+', isPrimary: true },
+      { id: 'img-5-2', url: 'https://via.placeholder.com/800x600/047857/ffffff?text=Honda+Interior', isPrimary: false },
     ],
   },
 
@@ -292,8 +292,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-07-30'),
     dealershipId: 'auto-palace-id',
     images: [
-      { id: 'img-6-1', url: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-6-2', url: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-6-1', url: 'https://via.placeholder.com/800x600/0f766e/ffffff?text=Ford+Ranger+3.2+XLT', isPrimary: true },
+      { id: 'img-6-2', url: 'https://via.placeholder.com/800x600/0d9488/ffffff?text=Ford+Interior', isPrimary: false },
     ],
   },
   {
@@ -319,8 +319,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-01'),
     dealershipId: 'auto-palace-id',
     images: [
-      { id: 'img-7-1', url: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-7-2', url: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-7-1', url: 'https://via.placeholder.com/800x600/ea580c/ffffff?text=Toyota+Hilux+2.8+GD-6', isPrimary: true },
+      { id: 'img-7-2', url: 'https://via.placeholder.com/800x600/c2410c/ffffff?text=Toyota+Interior', isPrimary: false },
     ],
   },
 
@@ -329,18 +329,18 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     id: 'vehicle-8',
     make: 'BMW',
     model: 'M3 Competition',
-    year: 2023,
+    year: 2024,
     price: 1650000,
-    mileage: 3500,
+    mileage: 150,
     color: 'BMW Individual Frozen Dark Grey',
     vin: 'WBSMW9C0PEE123456',
-    description: 'Ultimate driving machine. BMW M3 Competition with track-focused performance and luxury.',
+    description: 'Brand new ultimate driving machine. BMW M3 Competition with track-focused performance and luxury.',
     transmission: 'Automatic',
     fuelType: 'Petrol',
     bodyType: 'Sedan',
     isPrivate: false,
     status: 'AVAILABLE',
-    isNew: false,
+    isNew: true,
     dealerPick: true,
     featured: true,
     viewCount: 412,
@@ -348,26 +348,26 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-22'),
     dealershipId: 'elite-autos-id',
     images: [
-      { id: 'img-8-1', url: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-8-2', url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-8-1', url: 'https://via.placeholder.com/800x600/7c3aed/ffffff?text=BMW+M3+Competition', isPrimary: true },
+      { id: 'img-8-2', url: 'https://via.placeholder.com/800x600/6d28d9/ffffff?text=BMW+Interior', isPrimary: false },
     ],
   },
   {
     id: 'vehicle-9',
     make: 'Porsche',
     model: '911 Carrera S',
-    year: 2022,
+    year: 2024,
     price: 1950000,
-    mileage: 6500,
+    mileage: 300,
     color: 'Guards Red',
     vin: 'WP0AB2A99NS123456',
-    description: 'Iconic Porsche 911 Carrera S. Timeless design meets cutting-edge performance technology.',
+    description: 'Brand new Porsche 911 Carrera S. Timeless design meets cutting-edge performance technology.',
     transmission: 'Automatic',
     fuelType: 'Petrol',
     bodyType: 'Sports Car',
     isPrivate: false,
     status: 'AVAILABLE',
-    isNew: false,
+    isNew: true,
     dealerPick: true,
     featured: true,
     viewCount: 523,
@@ -375,8 +375,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-18'),
     dealershipId: 'elite-autos-id',
     images: [
-      { id: 'img-9-1', url: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-9-2', url: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-9-1', url: 'https://via.placeholder.com/800x600/ef4444/ffffff?text=Porsche+911+Carrera+S', isPrimary: true },
+      { id: 'img-9-2', url: 'https://via.placeholder.com/800x600/dc2626/ffffff?text=Porsche+Interior', isPrimary: false },
     ],
   },
 
@@ -385,18 +385,18 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     id: 'vehicle-10',
     make: 'Toyota',
     model: 'Camry 2.5 XS',
-    year: 2023,
+    year: 2024,
     price: 580000,
-    mileage: 15000,
+    mileage: 250,
     color: 'Pearl White',
     vin: 'JTNK4RBE3P3123456',
-    description: 'Executive sedan with hybrid efficiency. Toyota Camry combining luxury with environmental consciousness.',
+    description: 'Brand new executive sedan with hybrid efficiency. Toyota Camry combining luxury with environmental consciousness.',
     transmission: 'CVT',
     fuelType: 'Hybrid',
     bodyType: 'Sedan',
     isPrivate: false,
     status: 'AVAILABLE',
-    isNew: false,
+    isNew: true,
     dealerPick: false,
     featured: true,
     viewCount: 47,
@@ -404,8 +404,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-25'),
     dealershipId: 'namibia-motors-id',
     images: [
-      { id: 'img-10-1', url: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-10-2', url: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-10-1', url: 'https://via.placeholder.com/800x600/6366f1/ffffff?text=Car+Image', isPrimary: true },
+      { id: 'img-10-2', url: 'https://via.placeholder.com/800x600/8b5cf6/ffffff?text=Vehicle+Photo', isPrimary: false },
     ],
   },
   {
@@ -431,8 +431,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-12'),
     dealershipId: 'namibia-motors-id',
     images: [
-      { id: 'img-11-1', url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-11-2', url: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-11-1', url: 'https://via.placeholder.com/800x600/f59e0b/ffffff?text=Auto+Photo', isPrimary: true },
+      { id: 'img-11-2', url: 'https://via.placeholder.com/800x600/10b981/ffffff?text=Car+View', isPrimary: false },
     ],
   },
   {
@@ -458,8 +458,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-08'),
     dealershipId: 'namibia-motors-id',
     images: [
-      { id: 'img-12-1', url: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-12-2', url: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-12-1', url: 'https://via.placeholder.com/800x600/ef4444/ffffff?text=Vehicle+Image', isPrimary: true },
+      { id: 'img-12-2', url: 'https://via.placeholder.com/800x600/6366f1/ffffff?text=Car+Image', isPrimary: false },
     ],
   },
   {
@@ -485,8 +485,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-07-28'),
     dealershipId: 'namibia-motors-id',
     images: [
-      { id: 'img-13-1', url: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-13-2', url: 'https://images.unsplash.com/photo-1616422285623-13ff0162193c?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-13-1', url: 'https://via.placeholder.com/800x600/8b5cf6/ffffff?text=Vehicle+Photo', isPrimary: true },
+      { id: 'img-13-2', url: 'https://via.placeholder.com/800x600/10b981/ffffff?text=Car+View', isPrimary: false },
     ],
   },
   {
@@ -495,16 +495,16 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     model: 'Corolla Cross 1.8 XS',
     year: 2024,
     price: 499995,
-    mileage: 5000,
+    mileage: 100,
     color: 'Red Mica Metallic',
     vin: 'MZEA12L0PMA123460',
-    description: 'Latest Toyota Corolla Cross with modern technology. Compact SUV with big capabilities.',
+    description: 'Brand new Toyota Corolla Cross with modern technology. Compact SUV with big capabilities.',
     transmission: 'CVT',
     fuelType: 'Petrol',
     bodyType: 'SUV',
     isPrivate: false,
     status: 'AVAILABLE',
-    isNew: false,
+    isNew: true,
     dealerPick: false,
     featured: true,
     viewCount: 201,
@@ -512,8 +512,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-20'),
     dealershipId: 'namibia-motors-id',
     images: [
-      { id: 'img-14-1', url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop', isPrimary: true },
-      { id: 'img-14-2', url: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&h=600&fit=crop', isPrimary: false },
+      { id: 'img-14-1', url: 'https://via.placeholder.com/800x600/f59e0b/ffffff?text=Auto+Photo', isPrimary: true },
+      { id: 'img-14-2', url: 'https://via.placeholder.com/800x600/ef4444/ffffff?text=Vehicle+Image', isPrimary: false },
     ],
   },
 ];
@@ -578,6 +578,11 @@ export const filterVehicles = (filters: {
   dealershipId?: string;
   search?: string;
   location?: string;
+  featured?: boolean;
+  dealerPick?: boolean;
+  hasDiscount?: boolean;
+  isNew?: boolean;
+  sortBy?: string;
 }): MockVehicle[] => {
   let filtered = getVehiclesWithDealership();
 
@@ -649,6 +654,46 @@ export const filterVehicles = (filters: {
 
   if (filters.dealershipId) {
     filtered = filtered.filter(v => v.dealershipId === filters.dealershipId!);
+  }
+
+  // New filters for showcase sections
+  if (filters.featured) {
+    filtered = filtered.filter(v => v.featured);
+  }
+
+  if (filters.dealerPick) {
+    filtered = filtered.filter(v => v.dealerPick);
+  }
+
+  if (filters.hasDiscount) {
+    filtered = filtered.filter(v => v.originalPrice && v.originalPrice > v.price);
+  }
+
+  if (filters.isNew !== undefined) {
+    filtered = filtered.filter(v => v.isNew === filters.isNew);
+  }
+
+  // Apply sorting
+  if (filters.sortBy) {
+    switch (filters.sortBy) {
+      case 'views':
+        filtered = filtered.sort((a, b) => b.viewCount - a.viewCount);
+        break;
+      case 'newest':
+        filtered = filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        break;
+      case 'popularity':
+        filtered = filtered.sort((a, b) => b.viewCount - a.viewCount);
+        break;
+      case 'price-low':
+        filtered = filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        filtered = filtered.sort((a, b) => b.price - a.price);
+        break;
+      default:
+        filtered = filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    }
   }
 
   return filtered;

@@ -600,12 +600,15 @@ export default function Home() {
                   </div>
                   <h3 className="text-2xl font-bold text-neutral-900 mb-4 group-hover:text-[#1F3469] transition-colors">Search & Browse</h3>
                   <p className="text-neutral-600 leading-relaxed mb-6">Use our advanced search filters to find vehicles that match your needs, budget, and location across Namibia.</p>
-                  <div className="text-sm text-[#1F3469] font-medium flex items-center justify-center gap-2 group-hover:gap-3 transition-all">
+                  <button 
+                    onClick={() => setSearchDialogOpen(true)}
+                    className="text-sm text-[#1F3469] font-medium flex items-center justify-center gap-2 group-hover:gap-3 transition-all hover:underline"
+                  >
                     <span>Start searching</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-1">
                       <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
-                  </div>
+                  </button>
                 </CardContent>
               </Card>
               {/* Connector Line */}
@@ -631,12 +634,15 @@ export default function Home() {
                   </div>
                   <h3 className="text-2xl font-bold text-neutral-900 mb-4 group-hover:text-[#CB2030] transition-colors">View & Compare</h3>
                   <p className="text-neutral-600 leading-relaxed mb-6">View detailed listings with high-quality images, 360° views, and vehicle history reports. Compare different models side by side.</p>
-                  <div className="text-sm text-[#CB2030] font-medium flex items-center justify-center gap-2 group-hover:gap-3 transition-all">
+                  <button 
+                    onClick={() => router.push('/vehicles')}
+                    className="text-sm text-[#CB2030] font-medium flex items-center justify-center gap-2 group-hover:gap-3 transition-all hover:underline"
+                  >
                     <span>Explore vehicles</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-1">
                       <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
-                  </div>
+                  </button>
                 </CardContent>
               </Card>
               {/* Connector Line */}
@@ -663,14 +669,17 @@ export default function Home() {
                       3
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-neutral-900 mb-4 group-hover:text-[#109B4A] transition-colors">Purchase with Confidence</h3>
-                  <p className="text-neutral-600 leading-relaxed mb-6">Complete your purchase with secure payment options and enjoy nationwide delivery or pickup at your convenience.</p>
-                  <div className="text-sm text-[#109B4A] font-medium flex items-center justify-center gap-2 group-hover:gap-3 transition-all">
-                    <span>Get started</span>
+                  <h3 className="text-2xl font-bold text-neutral-900 mb-4 group-hover:text-[#109B4A] transition-colors">Wide Range of Dealerships</h3>
+                  <p className="text-neutral-600 leading-relaxed mb-6">Browse through our network of trusted dealerships across Namibia, each offering quality vehicles and professional service.</p>
+                  <button 
+                    onClick={() => router.push('/dealers')}
+                    className="text-sm text-[#109B4A] font-medium flex items-center justify-center gap-2 group-hover:gap-3 transition-all hover:underline"
+                  >
+                    <span>View dealerships</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-1">
                       <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
-                  </div>
+                  </button>
                 </CardContent>
               </Card>
             </div>
@@ -683,7 +692,11 @@ export default function Home() {
                 <h3 className="text-2xl font-bold text-white mb-2">Ready to find your perfect car?</h3>
                 <p className="text-neutral-200 max-w-2xl">Join thousands of satisfied customers who found their dream car through our platform.</p>
               </div>
-              <Button size="lg" className="bg-white text-[#1F3469] hover:bg-neutral-100 font-semibold text-base px-8 py-6 whitespace-nowrap">
+              <Button 
+                size="lg" 
+                onClick={() => router.push('/vehicles')}
+                className="bg-white text-[#1F3469] hover:bg-neutral-100 font-semibold text-base px-8 py-6 whitespace-nowrap"
+              >
                 Browse All Vehicles
               </Button>
             </div>
@@ -735,68 +748,108 @@ export default function Home() {
           
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 items-center justify-items-center">
             {/* BMW Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=BMW')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <Image src="/brands/bmw.png" alt="BMW" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
             
             {/* Mercedes Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=Mercedes-Benz')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <img src="/brands/merc.png" alt="Mercedes-Benz" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
             
             {/* Toyota Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=Toyota')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <img src="/brands/toyota.png" alt="Toyota" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
             
             {/* Ford Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=Ford')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <Image src="/brands/ford.png" alt="Ford" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
             
             {/* Volkswagen Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=Volkswagen')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <Image src="/brands/vw.png" alt="Volkswagen" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
             
             {/* Audi Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=Audi')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <Image src="/brands/audi.png" alt="Audi" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
             
             {/* Nissan Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=Nissan')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <Image src="/brands/nissan.png" alt="Nissan" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
             
             {/* Jeep Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=Jeep')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <Image src="/brands/jeep.png" alt="Jeep" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
             
             {/* Hyundai Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=Hyundai')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <Image src="/brands/hyundai.png" alt="Hyundai" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
             
             {/* Kia Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=Kia')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <Image src="/brands/kia.png" alt="Kia" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
             
             {/* Mazda Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=Mazda')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <Image src="/brands/mazda.png" alt="Mazda" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
             
             {/* Subaru Logo */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105">
+            <button 
+              onClick={() => router.push('/vehicles?make=Subaru')}
+              className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 w-full h-28 flex items-center justify-center group hover:scale-105 cursor-pointer"
+            >
               <Image src="/brands/subaru.png" alt="Subaru" width={64} height={64} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
-            </div>
+            </button>
           </div>
           
           <div className="text-center mt-8">
-            <Button variant="outline" size="lg">
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => router.push('/vehicles')}
+            >
               Browse All Brands
             </Button>
           </div>

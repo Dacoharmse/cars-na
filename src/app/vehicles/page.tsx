@@ -15,6 +15,11 @@ export default function VehiclesPage() {
   const searchParam = searchParams.get('search');
   const makeParam = searchParams.get('make');
   const locationParam = searchParams.get('location');
+  const featuredParam = searchParams.get('featured');
+  const dealerPickParam = searchParams.get('dealerPick');
+  const hasDiscountParam = searchParams.get('hasDiscount');
+  const isNewParam = searchParams.get('isNew');
+  const sortByParam = searchParams.get('sortBy');
   
   const [searchQuery, setSearchQuery] = useState(searchParam || '');
   const [filters, setFilters] = useState({
@@ -25,8 +30,12 @@ export default function VehiclesPage() {
     mileage: '',
     transmission: '',
     fuelType: '',
+    featured: featuredParam === 'true',
+    dealerPick: dealerPickParam === 'true',
+    hasDiscount: hasDiscountParam === 'true',
+    isNew: isNewParam ? isNewParam === 'true' : undefined,
   });
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState(sortByParam || 'newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   // Map dealer slug to dealership ID 
@@ -65,6 +74,11 @@ export default function VehiclesPage() {
       dealershipId: dealershipId,
       search: searchQuery || undefined,
       location: locationParam || undefined,
+      featured: filters.featured || undefined,
+      dealerPick: filters.dealerPick || undefined,
+      hasDiscount: filters.hasDiscount || undefined,
+      isNew: filters.isNew !== undefined ? filters.isNew : undefined,
+      sortBy: sortBy || undefined,
     },
   });
 
@@ -85,8 +99,13 @@ export default function VehiclesPage() {
       mileage: '',
       transmission: '',
       fuelType: '',
+      featured: false,
+      dealerPick: false,
+      hasDiscount: false,
+      isNew: undefined,
     });
     setSearchQuery('');
+    setSortBy('newest');
   };
 
   if (error) {
