@@ -3,22 +3,76 @@
  * This is a mock implementation to avoid tRPC setup issues during development
  */
 
-// Mock API client that returns empty data to prevent errors
+import { 
+  getVehiclesWithDealership, 
+  filterVehicles, 
+  getVehicleById as getMockVehicleById,
+  getVehiclesByDealership
+} from './mockData';
+
+// Use our comprehensive mock data
+const mockVehicles = getVehiclesWithDealership();
+
+// Mock API client that returns comprehensive demo data
 export const api = {
   vehicle: {
+    getAll: {
+      useQuery: (params: any, options?: any) => {
+        const { limit = 20, filters } = params || {};
+        
+        // Apply filters if provided
+        const filteredVehicles = filters ? filterVehicles({
+          make: filters.make,
+          model: filters.model,
+          minYear: filters.minYear,
+          maxYear: filters.maxYear,
+          minPrice: filters.minPrice,
+          maxPrice: filters.maxPrice,
+          minMileage: filters.minMileage,
+          maxMileage: filters.maxMileage,
+          dealershipId: filters.dealershipId,
+          search: filters.search,
+          location: filters.location,
+        }) : mockVehicles;
+
+        // Sort by newest first
+        const sortedVehicles = filteredVehicles.sort((a, b) => 
+          b.createdAt.getTime() - a.createdAt.getTime()
+        );
+
+        // Limit results
+        const limitedVehicles = sortedVehicles.slice(0, limit);
+
+        return {
+          data: { 
+            items: limitedVehicles, 
+            nextCursor: limitedVehicles.length === limit ? limitedVehicles[limitedVehicles.length - 1]?.id : undefined,
+            total: filteredVehicles.length 
+          },
+          isLoading: false,
+          error: null,
+          refetch: () => Promise.resolve()
+        };
+      }
+    },
     getById: {
       useQuery: (params: any, options?: any) => ({
-        data: null,
+        data: getMockVehicleById(params.id) || null,
         isLoading: false,
         error: null
       })
     },
     getByDealership: {
-      useQuery: (params: any, options?: any) => ({
-        data: { items: [] },
-        isLoading: false,
-        error: null
-      })
+      useQuery: (params: any, options?: any) => {
+        const { dealershipId } = params || {};
+        const dealerVehicles = dealershipId ? getVehiclesByDealership(dealershipId) : mockVehicles;
+        
+        return {
+          data: { items: dealerVehicles },
+          isLoading: false,
+          error: null
+        };
+      }
     },
     create: {
       useMutation: (options?: any) => ({

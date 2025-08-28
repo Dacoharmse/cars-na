@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { api } from '@/lib/api';
@@ -35,6 +35,7 @@ import {
 
 export default function VehicleDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const vehicleId = params.id as string;
   
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -64,7 +65,7 @@ export default function VehicleDetailPage() {
 
   // Initialize finance form when vehicle loads
   useEffect(() => {
-    if (vehicle) {
+    if (vehicle && vehicle.price) {
       setFinanceForm(prev => ({
         ...prev,
         loanAmount: vehicle.price * 0.9, // 90% financing
@@ -72,7 +73,7 @@ export default function VehicleDetailPage() {
         vehicleAge: vehicle.year >= 2022 ? 'new' : 'used'
       }));
     }
-  }, [vehicle]);
+  }, [vehicle?.price, vehicle?.year]); // Only depend on the specific properties we need
 
   if (isLoading) {
     return (
@@ -761,7 +762,10 @@ export default function VehicleDetailPage() {
                     
                     {/* Dealer Actions */}
                     <div className="pt-4 border-t">
-                      <Button className="w-full bg-[#CB2030] hover:bg-[#CB2030]/90 text-white mb-3">
+                      <Button 
+                        onClick={() => router.push(`/vehicles?dealer=${vehicle.dealership?.name?.toLowerCase().replace(/\s+/g, '-') || 'dealership'}`)} 
+                        className="w-full bg-[#CB2030] hover:bg-[#CB2030]/90 text-white mb-3"
+                      >
                         <Car className="h-4 w-4 mr-2" />
                         View All Our Inventory
                       </Button>

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
@@ -9,9 +10,15 @@ import { VehicleCard } from '@/components/examples/VehicleCard';
 import { api } from '@/lib/api';
 
 export default function VehiclesPage() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchParams = useSearchParams();
+  const dealerParam = searchParams.get('dealer');
+  const searchParam = searchParams.get('search');
+  const makeParam = searchParams.get('make');
+  const locationParam = searchParams.get('location');
+  
+  const [searchQuery, setSearchQuery] = useState(searchParam || '');
   const [filters, setFilters] = useState({
-    make: '',
+    make: makeParam || '',
     priceMin: '',
     priceMax: '',
     year: '',
@@ -21,6 +28,29 @@ export default function VehiclesPage() {
   });
   const [sortBy, setSortBy] = useState('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // Map dealer slug to dealership ID 
+  const dealershipMap: Record<string, string> = {
+    'namibia-motors': 'namibia-motors-id',
+    'premium-motors': 'premium-motors-id',
+    'city-cars-namibia': 'city-cars-namibia-id',
+    'auto-palace': 'auto-palace-id',
+    'elite-autos': 'elite-autos-id',
+  };
+  
+  const dealershipId = dealerParam ? dealershipMap[dealerParam] : undefined;
+
+  // Helper function to get dealership display name
+  const getDealershipDisplayName = (slug: string): string => {
+    const displayNames: Record<string, string> = {
+      'namibia-motors': 'Namibia Motors Inventory',
+      'premium-motors': 'Premium Motors Inventory',
+      'city-cars-namibia': 'City Cars Namibia Inventory',
+      'auto-palace': 'Auto Palace Inventory',
+      'elite-autos': 'Elite Autos Inventory',
+    };
+    return displayNames[slug] || 'Dealership Inventory';
+  };
 
   // Use tRPC query to fetch vehicles
   const { data: vehicleData, isLoading, error, refetch } = api.vehicle.getAll.useQuery({
@@ -32,6 +62,9 @@ export default function VehiclesPage() {
       minYear: filters.year ? parseInt(filters.year) : undefined,
       maxYear: filters.year ? parseInt(filters.year) : undefined,
       maxMileage: filters.mileage ? parseInt(filters.mileage) : undefined,
+      dealershipId: dealershipId,
+      search: searchQuery || undefined,
+      location: locationParam || undefined,
     },
   });
 
@@ -75,8 +108,15 @@ export default function VehiclesPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">Browse Vehicles</h1>
-          <p className="text-neutral-600">Find your perfect car from our extensive inventory</p>
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2">
+            {dealerParam ? getDealershipDisplayName(dealerParam) : 'Browse Vehicles'}
+          </h1>
+          <p className="text-neutral-600">
+            {dealerParam 
+              ? `Premium vehicles from ${getDealershipDisplayName(dealerParam).replace(' Inventory', '')}` 
+              : 'Find your perfect car from our extensive inventory'
+            }
+          </p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">

@@ -1,0 +1,587 @@
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log('🌱 Starting database seeding...');
+
+  // Create dealerships
+  const premiumMotors = await prisma.dealership.upsert({
+    where: { id: 'premium-motors-id' },
+    update: {},
+    create: {
+      id: 'premium-motors-id',
+      name: 'Premium Motors',
+      address: '123 Independence Avenue',
+      city: 'Windhoek',
+      state: 'Khomas',
+      zipCode: '9000',
+      phone: '+264 61 123 4567',
+      email: 'info@premiummotors.na',
+      website: 'https://premiummotors.na',
+      description: 'Windhoek\'s premier luxury vehicle dealership specializing in German brands and high-end SUVs.',
+    },
+  });
+
+  const cityCarsNamibia = await prisma.dealership.upsert({
+    where: { id: 'city-cars-namibia-id' },
+    update: {},
+    create: {
+      id: 'city-cars-namibia-id',
+      name: 'City Cars Namibia',
+      address: '456 Sam Nujoma Avenue',
+      city: 'Swakopmund',
+      state: 'Erongo',
+      zipCode: '9000',
+      phone: '+264 64 234 5678',
+      email: 'sales@citycars.na',
+      website: 'https://citycars.na',
+      description: 'Family-focused dealership offering reliable, economical vehicles perfect for first-time buyers.',
+    },
+  });
+
+  const autoPalace = await prisma.dealership.upsert({
+    where: { id: 'auto-palace-id' },
+    update: {},
+    create: {
+      id: 'auto-palace-id',
+      name: 'Auto Palace',
+      address: '789 Theo-Ben Gurirab Street',
+      city: 'Walvis Bay',
+      state: 'Erongo',
+      zipCode: '9000',
+      phone: '+264 64 345 6789',
+      email: 'contact@autopalace.na',
+      website: 'https://autopalace.na',
+      description: 'Specialized in trucks, commercial vehicles, and off-road vehicles for businesses and adventure seekers.',
+    },
+  });
+
+  const eliteAutos = await prisma.dealership.upsert({
+    where: { id: 'elite-autos-id' },
+    update: {},
+    create: {
+      id: 'elite-autos-id',
+      name: 'Elite Autos',
+      address: '321 Oshakati Main Road',
+      city: 'Oshakati',
+      state: 'Oshana',
+      zipCode: '9000',
+      phone: '+264 65 456 7890',
+      email: 'info@eliteautos.na',
+      website: 'https://eliteautos.na',
+      description: 'Performance and luxury vehicle specialists importing high-end sports cars and premium imports.',
+    },
+  });
+
+  const namibiaMotors = await prisma.dealership.upsert({
+    where: { id: 'namibia-motors-id' },
+    update: {},
+    create: {
+      id: 'namibia-motors-id',
+      name: 'Namibia Motors',
+      address: '101 Robert Mugabe Avenue',
+      city: 'Windhoek',
+      state: 'Khomas',
+      zipCode: '9000',
+      phone: '+264 61 123 456',
+      email: 'info@namibiamotors.na',
+      website: 'https://namibiamotors.na',
+      description: 'Premium automotive dealer serving Windhoek and surrounding areas since 1995',
+    },
+  });
+
+  console.log('✅ Dealerships created successfully!');
+
+  // Premium Motors - Luxury & German Brands
+  const premiumVehicles = [
+    {
+      make: 'Mercedes-Benz',
+      model: 'E-Class E220d',
+      year: 2023,
+      price: 899000,
+      originalPrice: 950000,
+      mileage: 12000,
+      color: 'Obsidian Black',
+      vin: 'WDD2130461A123456',
+      description: 'Pristine Mercedes-Benz E220d with full service history. Executive sedan with premium comfort features.',
+      transmission: 'Automatic',
+      fuelType: 'Diesel',
+      bodyType: 'Sedan',
+      isNew: false,
+      dealerPick: true,
+      featured: true,
+      dealershipId: premiumMotors.id,
+    },
+    {
+      make: 'BMW',
+      model: 'X5 xDrive40d',
+      year: 2022,
+      price: 1250000,
+      mileage: 25000,
+      color: 'Alpine White',
+      vin: 'WBAJA7C50NCE12345',
+      description: 'Powerful BMW X5 with intelligent all-wheel drive. Perfect for Namibian roads and family adventures.',
+      transmission: 'Automatic',
+      fuelType: 'Diesel',
+      bodyType: 'SUV',
+      isNew: false,
+      featured: true,
+      dealershipId: premiumMotors.id,
+    },
+    {
+      make: 'Audi',
+      model: 'A4 2.0 TFSI',
+      year: 2021,
+      price: 675000,
+      mileage: 35000,
+      color: 'Glacier White',
+      vin: 'WAUZZZ8K0MA123456',
+      description: 'Elegant Audi A4 with advanced technology package. Excellent fuel economy and luxury features.',
+      transmission: 'Automatic',
+      fuelType: 'Petrol',
+      bodyType: 'Sedan',
+      isNew: false,
+      dealershipId: premiumMotors.id,
+    },
+    {
+      make: 'Volkswagen',
+      model: 'Touareg V6',
+      year: 2020,
+      price: 899500,
+      mileage: 45000,
+      color: 'Deep Black Pearl',
+      vin: 'WVGZZZ7PZL123456',
+      description: 'Robust VW Touareg built for adventure. Air suspension and off-road capabilities.',
+      transmission: 'Automatic',
+      fuelType: 'Diesel',
+      bodyType: 'SUV',
+      isNew: false,
+      dealerPick: true,
+      dealershipId: premiumMotors.id,
+    },
+    {
+      make: 'Porsche',
+      model: 'Cayenne S',
+      year: 2023,
+      price: 1850000,
+      mileage: 8000,
+      color: 'Carmine Red',
+      vin: 'WP1AB2A24PL123456',
+      description: 'Exceptional Porsche Cayenne S. Sports car performance in an SUV package.',
+      transmission: 'Automatic',
+      fuelType: 'Petrol',
+      bodyType: 'SUV',
+      isNew: false,
+      featured: true,
+      viewCount: 47,
+      dealershipId: premiumMotors.id,
+    },
+  ];
+
+  // City Cars Namibia - Family & Economy
+  const familyVehicles = [
+    {
+      make: 'Toyota',
+      model: 'Corolla 1.8 XS',
+      year: 2022,
+      price: 385000,
+      mileage: 18000,
+      color: 'Silver Metallic',
+      vin: 'JTDEPRAE0NJ123456',
+      description: 'Reliable Toyota Corolla perfect for daily commuting. Excellent fuel economy and proven reliability.',
+      transmission: 'Automatic',
+      fuelType: 'Petrol',
+      bodyType: 'Sedan',
+      isNew: false,
+      dealershipId: cityCarsNamibia.id,
+    },
+    {
+      make: 'Honda',
+      model: 'CR-V 2.0 Comfort',
+      year: 2021,
+      price: 525000,
+      mileage: 32000,
+      color: 'Modern Steel',
+      vin: 'JHLRW1H50BC123456',
+      description: 'Spacious Honda CR-V ideal for families. AWD capability and excellent safety ratings.',
+      transmission: 'CVT',
+      fuelType: 'Petrol',
+      bodyType: 'SUV',
+      isNew: false,
+      featured: true,
+      dealershipId: cityCarsNamibia.id,
+    },
+    {
+      make: 'Nissan',
+      model: 'Qashqai 1.5 dCi',
+      year: 2020,
+      price: 395000,
+      mileage: 42000,
+      color: 'Magnetic Red',
+      vin: 'SJNFAAJ10U1123456',
+      description: 'Compact crossover with efficient diesel engine. Perfect blend of economy and versatility.',
+      transmission: 'Manual',
+      fuelType: 'Diesel',
+      bodyType: 'Crossover',
+      isNew: false,
+      dealershipId: cityCarsNamibia.id,
+    },
+    {
+      make: 'Hyundai',
+      model: 'i20 1.4 Glide',
+      year: 2023,
+      price: 265000,
+      mileage: 5000,
+      color: 'Polar White',
+      vin: 'KMHB141CAPK123456',
+      description: 'Nearly new Hyundai i20 with manufacturer warranty remaining. Great first car option.',
+      transmission: 'Manual',
+      fuelType: 'Petrol',
+      bodyType: 'Hatchback',
+      isNew: false,
+      dealerPick: true,
+      dealershipId: cityCarsNamibia.id,
+    },
+    {
+      make: 'Kia',
+      model: 'Sportage 2.0 LX',
+      year: 2021,
+      price: 455000,
+      mileage: 28000,
+      color: 'Clear White',
+      vin: 'KNDPM3AC5L7123456',
+      description: 'Well-maintained Kia Sportage with comprehensive service history. 7-year warranty.',
+      transmission: 'Automatic',
+      fuelType: 'Petrol',
+      bodyType: 'SUV',
+      isNew: false,
+      dealershipId: cityCarsNamibia.id,
+    },
+  ];
+
+  // Auto Palace - Trucks & Commercial
+  const commercialVehicles = [
+    {
+      make: 'Ford',
+      model: 'Ranger 3.2 XLT',
+      year: 2021,
+      price: 585000,
+      mileage: 55000,
+      color: 'Lightning Blue',
+      vin: 'AFNXXMPC1LW123456',
+      description: 'Tough Ford Ranger ready for work and adventure. 4x4 capability with towing capacity.',
+      transmission: 'Manual',
+      fuelType: 'Diesel',
+      bodyType: 'Pickup',
+      isNew: false,
+      featured: true,
+      dealershipId: autoPalace.id,
+    },
+    {
+      make: 'Toyota',
+      model: 'Hilux 2.8 GD-6',
+      year: 2022,
+      price: 695000,
+      mileage: 35000,
+      color: 'White',
+      vin: 'AHTEB52G7LS123456',
+      description: 'Legendary Toyota Hilux reliability. Perfect for business and personal use in challenging conditions.',
+      transmission: 'Manual',
+      fuelType: 'Diesel',
+      bodyType: 'Pickup',
+      isNew: false,
+      dealerPick: true,
+      dealershipId: autoPalace.id,
+    },
+    {
+      make: 'Isuzu',
+      model: 'D-Max 250 LX',
+      year: 2020,
+      price: 485000,
+      mileage: 68000,
+      color: 'Cosmic Black',
+      vin: 'MPATFS85VLB123456',
+      description: 'Dependable Isuzu D-Max with excellent load capacity. Commercial vehicle with personal comfort.',
+      transmission: 'Manual',
+      fuelType: 'Diesel',
+      bodyType: 'Pickup',
+      isNew: false,
+      dealershipId: autoPalace.id,
+    },
+    {
+      make: 'Mitsubishi',
+      model: 'Triton 2.4 DI-D',
+      year: 2023,
+      price: 575000,
+      mileage: 15000,
+      color: 'Sterling Silver',
+      vin: 'MMBJNKD25PH123456',
+      description: 'Modern Mitsubishi Triton with latest safety features. Comfortable crew cab configuration.',
+      transmission: 'Automatic',
+      fuelType: 'Diesel',
+      bodyType: 'Pickup',
+      isNew: false,
+      featured: true,
+      dealershipId: autoPalace.id,
+    },
+    {
+      make: 'Volkswagen',
+      model: 'Amarok V6',
+      year: 2021,
+      price: 765000,
+      mileage: 42000,
+      color: 'Canyon Grey',
+      vin: 'WVWZZZ2KZL123456',
+      description: 'Premium pickup truck with V6 power. Best-in-class towing and sophisticated interior.',
+      transmission: 'Automatic',
+      fuelType: 'Diesel',
+      bodyType: 'Pickup',
+      isNew: false,
+      dealerPick: true,
+      dealershipId: autoPalace.id,
+    },
+  ];
+
+  // Elite Autos - Performance & Imports
+  const performanceVehicles = [
+    {
+      make: 'BMW',
+      model: 'M3 Competition',
+      year: 2023,
+      price: 1650000,
+      mileage: 3500,
+      color: 'BMW Individual Frozen Dark Grey',
+      vin: 'WBSMW9C0PEE123456',
+      description: 'Ultimate driving machine. BMW M3 Competition with track-focused performance and luxury.',
+      transmission: 'Automatic',
+      fuelType: 'Petrol',
+      bodyType: 'Sedan',
+      isNew: false,
+      featured: true,
+      dealershipId: eliteAutos.id,
+    },
+    {
+      make: 'Audi',
+      model: 'RS6 Avant',
+      year: 2022,
+      price: 1885000,
+      mileage: 8500,
+      color: 'Nardo Grey',
+      vin: 'WAUVV8E2AN123456',
+      description: 'Supercar performance in a practical wagon. Audi RS6 Avant with Quattro all-wheel drive.',
+      transmission: 'Automatic',
+      fuelType: 'Petrol',
+      bodyType: 'Wagon',
+      isNew: false,
+      dealerPick: true,
+      featured: true,
+      dealershipId: eliteAutos.id,
+    },
+    {
+      make: 'Mercedes-AMG',
+      model: 'GT 63 S 4MATIC+',
+      year: 2021,
+      price: 2250000,
+      mileage: 12000,
+      color: 'AMG Solarbeam Yellow',
+      vin: 'WDDYJ7JA0LA123456',
+      description: 'Breathtaking AMG GT 4-door coupe. Racing DNA meets everyday usability.',
+      transmission: 'Automatic',
+      fuelType: 'Petrol',
+      bodyType: 'Coupe',
+      isNew: false,
+      featured: true,
+      viewCount: 89,
+      dealershipId: eliteAutos.id,
+    },
+    {
+      make: 'Porsche',
+      model: '911 Carrera S',
+      year: 2022,
+      price: 1950000,
+      mileage: 6500,
+      color: 'Guards Red',
+      vin: 'WP0AB2A99NS123456',
+      description: 'Iconic Porsche 911 Carrera S. Timeless design meets cutting-edge performance technology.',
+      transmission: 'Automatic',
+      fuelType: 'Petrol',
+      bodyType: 'Sports Car',
+      isNew: false,
+      dealerPick: true,
+      dealershipId: eliteAutos.id,
+    },
+    {
+      make: 'Lamborghini',
+      model: 'Huracán EVO',
+      year: 2020,
+      price: 3250000,
+      mileage: 8900,
+      color: 'Arancio Borealis',
+      vin: 'ZHWUC4ZF3LLA12345',
+      description: 'Exotic Lamborghini Huracán EVO. V10 naturally aspirated engine with all-wheel drive.',
+      transmission: 'Automatic',
+      fuelType: 'Petrol',
+      bodyType: 'Sports Car',
+      isNew: false,
+      featured: true,
+      viewCount: 156,
+      dealershipId: eliteAutos.id,
+    },
+  ];
+
+  // Namibia Motors - Mixed Premium Selection
+  const namibiaVehicles = [
+    {
+      make: 'Toyota',
+      model: 'Camry 2.5 XS',
+      year: 2023,
+      price: 580000,
+      mileage: 15000,
+      color: 'Pearl White',
+      vin: 'JTNK4RBE3P3123456',
+      description: 'Executive sedan with hybrid efficiency. Toyota Camry combining luxury with environmental consciousness.',
+      transmission: 'CVT',
+      fuelType: 'Hybrid',
+      bodyType: 'Sedan',
+      isNew: false,
+      featured: true,
+      viewCount: 47,
+      dealershipId: namibiaMotors.id,
+    },
+    {
+      make: 'Toyota',
+      model: 'Fortuner 2.8 GD-6',
+      year: 2020,
+      price: 495000,
+      mileage: 55000,
+      color: 'Silver Metallic',
+      vin: 'AHTEB42G0KS123456',
+      description: '7-seater family SUV perfect for Namibian adventures. Reliable diesel engine with 4x4 capability.',
+      transmission: 'Manual',
+      fuelType: 'Diesel',
+      bodyType: 'SUV',
+      isNew: false,
+      dealershipId: namibiaMotors.id,
+    },
+    {
+      make: 'Toyota',
+      model: 'Fortuner 2.4 GD-6',
+      year: 2021,
+      price: 499000,
+      mileage: 32000,
+      color: 'Charcoal Mica',
+      vin: 'AHTEB42G1LS123457',
+      description: 'Well-maintained Toyota Fortuner with comprehensive service history. Perfect family vehicle.',
+      transmission: 'Manual',
+      fuelType: 'Diesel',
+      bodyType: 'SUV',
+      isNew: false,
+      dealershipId: namibiaMotors.id,
+    },
+    {
+      make: 'Toyota',
+      model: 'Hilux 2.8 GD-6',
+      year: 2019,
+      price: 399900,
+      mileage: 67000,
+      color: 'White',
+      vin: 'AHTEB52G1KS123458',
+      description: 'Proven Toyota Hilux workhorse. Ideal for both business and leisure activities.',
+      transmission: 'Manual',
+      fuelType: 'Diesel',
+      bodyType: 'Pickup',
+      isNew: false,
+      dealershipId: namibiaMotors.id,
+    },
+    {
+      make: 'Toyota',
+      model: 'Land Cruiser Prado 3.0 TD',
+      year: 2016,
+      price: 499500,
+      mileage: 89000,
+      color: 'Pearl White',
+      vin: 'JTEBU17R0J5123459',
+      description: 'Legendary off-road capability meets luxury comfort. Perfect for exploring Namibia.',
+      transmission: 'Automatic',
+      fuelType: 'Diesel',
+      bodyType: 'SUV',
+      isNew: false,
+      dealershipId: namibiaMotors.id,
+    },
+    {
+      make: 'Toyota',
+      model: 'Corolla Cross 1.8 XS',
+      year: 2024,
+      price: 499995,
+      mileage: 5000,
+      color: 'Red Mica Metallic',
+      vin: 'MZEA12L0PMA123460',
+      description: 'Latest Toyota Corolla Cross with modern technology. Compact SUV with big capabilities.',
+      transmission: 'CVT',
+      fuelType: 'Petrol',
+      bodyType: 'SUV',
+      isNew: false,
+      featured: true,
+      dealershipId: namibiaMotors.id,
+    },
+  ];
+
+  // Create all vehicles
+  const allVehicles = [
+    ...premiumVehicles,
+    ...familyVehicles,
+    ...commercialVehicles,
+    ...performanceVehicles,
+    ...namibiaVehicles,
+  ];
+
+  console.log('🚗 Creating vehicles...');
+  let createdCount = 0;
+
+  for (const vehicleData of allVehicles) {
+    const vehicle = await prisma.vehicle.create({
+      data: vehicleData,
+    });
+
+    // Add sample images for each vehicle
+    const imageUrls = [
+      'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1616422285623-13ff0162193c?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop',
+    ];
+
+    // Create 3-5 images per vehicle
+    const numImages = Math.floor(Math.random() * 3) + 3; // 3 to 5 images
+    for (let i = 0; i < numImages; i++) {
+      await prisma.vehicleImage.create({
+        data: {
+          vehicleId: vehicle.id,
+          url: imageUrls[i % imageUrls.length],
+          isPrimary: i === 0, // First image is primary
+        },
+      });
+    }
+
+    createdCount++;
+    console.log(`  ✅ Created ${vehicle.year} ${vehicle.make} ${vehicle.model} (${createdCount}/${allVehicles.length})`);
+  }
+
+  console.log(`\n🎉 Database seeding completed successfully!`);
+  console.log(`📊 Summary:`);
+  console.log(`   - Dealerships: 5`);
+  console.log(`   - Vehicles: ${allVehicles.length}`);
+  console.log(`   - Images: ${allVehicles.length * 4} (average)`);
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error('❌ Seeding failed:', e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

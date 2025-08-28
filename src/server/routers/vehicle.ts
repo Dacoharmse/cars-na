@@ -6,6 +6,17 @@ import { router, publicProcedure, protectedProcedure, adminProcedure, dealerProc
 import { TRPCError } from "@trpc/server";
 import type { inferAsyncReturnType } from "@trpc/server";
 import { createTRPCContext } from "../trpc";
+import { 
+  filterVehicles, 
+  getFeaturedVehicles, 
+  getDealerPickVehicles, 
+  getMostViewedVehicles, 
+  getNewListings,
+  getVehicleById,
+  getVehiclesWithDealership,
+  getDealershipByName,
+  getVehiclesByDealershipName
+} from "@/lib/mockData";
 
 type Context = inferAsyncReturnType<typeof createTRPCContext>;
 
@@ -102,37 +113,47 @@ export const vehicleRouter = router({
     .query(async ({ ctx, input }) => {
       const { limit, cursor } = input;
       
-      const items = await ctx.prisma.vehicle.findMany({
-        take: limit + 1,
-        where: {
-          isPrivate: false,
-          status: "AVAILABLE",
-          dealerPick: true, // Assuming we have this field in the schema
-        },
-        cursor: cursor ? { id: cursor } : undefined,
-        orderBy: [
-          { dealerPick: "desc" },
-          { createdAt: "desc" }
-        ],
-        include: {
-          dealership: true,
-          images: {
-            where: { isPrimary: true },
-            take: 1,
+      try {
+        const items = await ctx.prisma.vehicle.findMany({
+          take: limit + 1,
+          where: {
+            isPrivate: false,
+            status: "AVAILABLE",
+            dealerPick: true, // Assuming we have this field in the schema
           },
-        },
-      });
+          cursor: cursor ? { id: cursor } : undefined,
+          orderBy: [
+            { dealerPick: "desc" },
+            { createdAt: "desc" }
+          ],
+          include: {
+            dealership: true,
+            images: {
+              where: { isPrimary: true },
+              take: 1,
+            },
+          },
+        });
 
-      let nextCursor: typeof cursor = undefined;
-      if (items.length > limit) {
-        const nextItem = items.pop();
-        nextCursor = nextItem!.id;
+        let nextCursor: typeof cursor = undefined;
+        if (items.length > limit) {
+          const nextItem = items.pop();
+          nextCursor = nextItem!.id;
+        }
+
+        return {
+          items,
+          nextCursor,
+        };
+      } catch (error) {
+        // Fallback to mock data
+        console.log('Database not available, using mock data for dealer picks');
+        const items = getDealerPickVehicles(limit);
+        return {
+          items,
+          nextCursor: undefined,
+        };
       }
-
-      return {
-        items,
-        nextCursor,
-      };
     }),
 
   // Get featured vehicles
@@ -141,37 +162,47 @@ export const vehicleRouter = router({
     .query(async ({ ctx, input }) => {
       const { limit, cursor } = input;
       
-      const items = await ctx.prisma.vehicle.findMany({
-        take: limit + 1,
-        where: {
-          isPrivate: false,
-          status: "AVAILABLE",
-          featured: true, // Assuming we have this field in the schema
-        },
-        cursor: cursor ? { id: cursor } : undefined,
-        orderBy: [
-          { featured: "desc" },
-          { createdAt: "desc" }
-        ],
-        include: {
-          dealership: true,
-          images: {
-            where: { isPrimary: true },
-            take: 1,
+      try {
+        const items = await ctx.prisma.vehicle.findMany({
+          take: limit + 1,
+          where: {
+            isPrivate: false,
+            status: "AVAILABLE",
+            featured: true, // Assuming we have this field in the schema
           },
-        },
-      });
+          cursor: cursor ? { id: cursor } : undefined,
+          orderBy: [
+            { featured: "desc" },
+            { createdAt: "desc" }
+          ],
+          include: {
+            dealership: true,
+            images: {
+              where: { isPrimary: true },
+              take: 1,
+            },
+          },
+        });
 
-      let nextCursor: typeof cursor = undefined;
-      if (items.length > limit) {
-        const nextItem = items.pop();
-        nextCursor = nextItem!.id;
+        let nextCursor: typeof cursor = undefined;
+        if (items.length > limit) {
+          const nextItem = items.pop();
+          nextCursor = nextItem!.id;
+        }
+
+        return {
+          items,
+          nextCursor,
+        };
+      } catch (error) {
+        // Fallback to mock data
+        console.log('Database not available, using mock data for featured vehicles');
+        const items = getFeaturedVehicles(limit);
+        return {
+          items,
+          nextCursor: undefined,
+        };
       }
-
-      return {
-        items,
-        nextCursor,
-      };
     }),
 
   // Get top deals (vehicles with discounts)
@@ -374,51 +405,99 @@ export const vehicleRouter = router({
     }),
 
   // Get all public vehicles (public)
-  // Get all public vehicles (public)
   getAll: publicProcedure
     .input(getAllVehiclesInput)
     .query(async ({ ctx, input }: { ctx: Context; input: z.infer<typeof getAllVehiclesInput> }) => {
       const { limit, cursor, filters } = input;
 
-      const items = await ctx.prisma.vehicle.findMany({
-        take: limit + 1,
-        where: {
-          isPrivate: false,
-          ...(filters?.make && { make: filters.make }),
-          ...(filters?.model && { model: filters.model }),
-          ...(filters?.minYear && { year: { gte: filters.minYear } }),
-          ...(filters?.maxYear && { year: { lte: filters.maxYear } }),
-          ...(filters?.minPrice && { price: { gte: filters.minPrice } }),
-          ...(filters?.maxPrice && { price: { lte: filters.maxPrice } }),
-          ...(filters?.minMileage && { mileage: { gte: filters.minMileage } }),
-          ...(filters?.maxMileage && { mileage: { lte: filters.maxMileage } }),
-          ...(filters?.dealershipId && { dealershipId: filters.dealershipId }),
-        },
-        cursor: cursor ? { id: cursor } : undefined,
-        orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          dealership: true,
-          images: {
-            where: {
-              isPrimary: true,
-            },
-            take: 1,
+      try {
+        console.log('Attempting database connection for getAll...');
+        const items = await ctx.prisma.vehicle.findMany({
+          take: limit + 1,
+          where: {
+            isPrivate: false,
+            ...(filters?.make && { make: filters.make }),
+            ...(filters?.model && { model: filters.model }),
+            ...(filters?.minYear && { year: { gte: filters.minYear } }),
+            ...(filters?.maxYear && { year: { lte: filters.maxYear } }),
+            ...(filters?.minPrice && { price: { gte: filters.minPrice } }),
+            ...(filters?.maxPrice && { price: { lte: filters.maxPrice } }),
+            ...(filters?.minMileage && { mileage: { gte: filters.minMileage } }),
+            ...(filters?.maxMileage && { mileage: { lte: filters.maxMileage } }),
+            ...(filters?.dealershipId && { dealershipId: filters.dealershipId }),
           },
-        },
-      });
+          cursor: cursor ? { id: cursor } : undefined,
+          orderBy: {
+            createdAt: "desc",
+          },
+          include: {
+            dealership: true,
+            images: {
+              where: {
+                isPrimary: true,
+              },
+              take: 1,
+            },
+          },
+        });
 
-      let nextCursor: typeof cursor = undefined;
-      if (items.length > limit) {
-        const nextItem = items.pop();
-        nextCursor = nextItem!.id;
+        let nextCursor: typeof cursor = undefined;
+        if (items.length > limit) {
+          const nextItem = items.pop();
+          nextCursor = nextItem!.id;
+        }
+
+        return {
+          items,
+          nextCursor,
+        };
+      } catch (error) {
+        // Fallback to mock data when database is not available
+        console.log('Database not available, using mock data');
+        console.log('Filters applied:', filters);
+        
+        const filteredVehicles = filterVehicles({
+          make: filters?.make,
+          model: filters?.model,
+          minYear: filters?.minYear,
+          maxYear: filters?.maxYear,
+          minPrice: filters?.minPrice,
+          maxPrice: filters?.maxPrice,
+          minMileage: filters?.minMileage,
+          maxMileage: filters?.maxMileage,
+          dealershipId: filters?.dealershipId,
+        });
+
+        console.log('Filtered vehicles count:', filteredVehicles.length);
+
+        // Sort by creation date (newest first)
+        const sortedVehicles = filteredVehicles.sort((a, b) => 
+          b.createdAt.getTime() - a.createdAt.getTime()
+        );
+
+        // Implement cursor-based pagination simulation
+        let startIndex = 0;
+        if (cursor) {
+          const cursorIndex = sortedVehicles.findIndex(v => v.id === cursor);
+          startIndex = cursorIndex >= 0 ? cursorIndex + 1 : 0;
+        }
+
+        const items = sortedVehicles.slice(startIndex, startIndex + limit + 1);
+        let nextCursor: typeof cursor = undefined;
+        
+        if (items.length > limit) {
+          const nextItem = items.pop();
+          nextCursor = nextItem!.id;
+        }
+
+        console.log('Returning items count:', items.length);
+        console.log('Items:', items.map(v => `${v.year} ${v.make} ${v.model}`));
+
+        return {
+          items,
+          nextCursor,
+        };
       }
-
-      return {
-        items,
-        nextCursor,
-      };
     }),
 
   // Get vehicles by dealership (dealer only)
@@ -483,47 +562,63 @@ export const vehicleRouter = router({
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }: { ctx: Context; input: { id: string } }) => {
-      const vehicle = await ctx.prisma.vehicle.findUnique({
-        where: { id: input.id },
-        include: {
-          dealership: true,
-          images: true,
-        },
-      });
-
-      if (!vehicle) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Vehicle not found",
+      try {
+        const vehicle = await ctx.prisma.vehicle.findUnique({
+          where: { id: input.id },
+          include: {
+            dealership: true,
+            images: true,
+          },
         });
-      }
 
-      // If vehicle is private, only allow access to dealer staff or admin
-      if (vehicle.isPrivate) {
-        if (!ctx.session?.user) {
+        if (!vehicle) {
           throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "You don't have permission to view this vehicle",
+            code: "NOT_FOUND",
+            message: "Vehicle not found",
           });
         }
 
-        const user = await ctx.prisma.user.findUnique({
-          where: { id: ctx.session.user.id },
-        });
+        // If vehicle is private, only allow access to dealer staff or admin
+        if (vehicle.isPrivate) {
+          if (!ctx.session?.user) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "You don't have permission to view this vehicle",
+            });
+          }
 
-        if (
-          !user ||
-          (user.role !== "ADMIN" &&
-            user.dealershipId !== vehicle.dealershipId)
-        ) {
+          const user = await ctx.prisma.user.findUnique({
+            where: { id: ctx.session.user.id },
+          });
+
+          if (
+            !user ||
+            (user.role !== "ADMIN" &&
+              user.dealershipId !== vehicle.dealershipId)
+          ) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "You don't have permission to view this vehicle",
+            });
+          }
+        }
+
+        return vehicle;
+      } catch (error) {
+        // Fallback to mock data when database is not available
+        console.log('Database not available, using mock data for vehicle:', input.id);
+        
+        const mockVehicle = getVehicleById(input.id);
+        
+        if (!mockVehicle) {
           throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "You don't have permission to view this vehicle",
+            code: "NOT_FOUND",
+            message: "Vehicle not found",
           });
         }
-      }
 
-      return vehicle;
+        return mockVehicle;
+      }
     }),
 
   // Create vehicle (dealer only)

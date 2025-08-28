@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -9,12 +10,56 @@ import { Select } from "@/components/ui/Select";
 import { HomeShowcase } from "@/components/HomeShowcase";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Search, Eye, CheckCircle, Star, TrendingUp, Car, DollarSign, MapPin, Phone, Zap, ArrowRight } from 'lucide-react';
+import CarFilterSearch from "@/components/CarFilterSearch";
+import { DealerContactModal } from "@/components/DealerContactModal";
 
 
 export default function Home() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMake, setSelectedMake] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+
+  // Dealership data for the contact modal
+  const featuredDealership = {
+    name: 'Namibia Motors',
+    address: '101 Robert Mugabe Avenue',
+    city: 'Windhoek, Khomas',
+    phone: '+264 61 123 456',
+    email: 'info@namibiamotors.na'
+  };
+
+  // Handle main search form submission
+  const handleMainSearch = () => {
+    const searchParams = new URLSearchParams();
+    
+    if (searchQuery.trim()) {
+      searchParams.set('search', searchQuery.trim());
+    }
+    
+    if (selectedMake) {
+      searchParams.set('make', selectedMake);
+    }
+    
+    if (selectedLocation) {
+      searchParams.set('location', selectedLocation);
+    }
+    
+    const queryString = searchParams.toString();
+    const url = queryString ? `/vehicles?${queryString}` : '/vehicles';
+    
+    router.push(url);
+  };
+
+  // Handle quick search for popular vehicles
+  const handleQuickSearch = (searchTerm: string) => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('search', searchTerm);
+    
+    router.push(`/vehicles?${searchParams.toString()}`);
+  };
 
   return (
     <MainLayout>
@@ -103,23 +148,33 @@ export default function Home() {
                     <label htmlFor="hero-search" className="sr-only">
                       Search for cars by make, model, or keyword
                     </label>
-                    <input
-                      id="hero-search"
-                      type="text"
-                      placeholder="Search 5,000+ verified listings..."
-                      className="w-full px-4 py-3 pl-12 rounded-lg border border-slate-200 focus:border-[#1F3469] focus:ring-2 focus:ring-[#1F3469]/20 outline-none transition-all duration-200 text-sm"
-                    />
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
+                    <button
+                      onClick={() => setSearchDialogOpen(true)}
+                      className="w-full px-4 py-3 pl-12 rounded-lg border border-slate-200 hover:border-[#1F3469] focus:border-[#1F3469] focus:ring-2 focus:ring-[#1F3469]/20 outline-none transition-all duration-200 text-sm text-left text-slate-600 hover:text-slate-800 bg-white hover:bg-slate-50"
+                    >
+                      Search 5,000+ verified listings...
+                    </button>
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" aria-hidden="true" />
                   </div>
                 </div>
                 
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 animate-fade-in" style={{animationDelay: '300ms'}}>
-                  <Button size="lg" className="flex-1 sm:flex-none bg-[#1F3469] text-white hover:bg-[#3B4F86] shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 font-semibold text-base px-8 py-6 animate-pulse" style={{animationDuration: '1.5s', animationIterationCount: '3'}}>
+                  <Button 
+                    size="lg" 
+                    className="flex-1 sm:flex-none bg-[#1F3469] text-white hover:bg-[#3B4F86] shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 font-semibold text-base px-8 py-6 animate-pulse" 
+                    style={{animationDuration: '1.5s', animationIterationCount: '3'}}
+                    onClick={() => setSearchDialogOpen(true)}
+                  >
                     <Car className="w-5 h-5 mr-2" />
                     Find Your Car
                   </Button>
-                  <Button size="lg" variant="outline" className="border-2 border-[#CB2030] text-[#CB2030] hover:bg-[#CB2030] hover:text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 font-semibold text-base px-8 py-6">
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="border-2 border-[#CB2030] text-[#CB2030] hover:bg-[#CB2030] hover:text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 font-semibold text-base px-8 py-6"
+                    onClick={() => router.push('/sell')}
+                  >
                     <DollarSign className="w-5 h-5 mr-2" />
                     Sell Your Car
                   </Button>
@@ -209,10 +264,17 @@ export default function Home() {
                     
                     {/* Action Buttons */}
                     <div className="flex gap-4">
-                      <Button className="flex-1 bg-gradient-to-r from-[#1F3469] to-[#3B4F86] hover:from-[#3B4F86] hover:to-[#1F3469] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5">
+                      <Button 
+                        className="flex-1 bg-gradient-to-r from-[#1F3469] to-[#3B4F86] hover:from-[#3B4F86] hover:to-[#1F3469] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
+                        onClick={() => router.push('/vehicles?dealer=namibia-motors')}
+                      >
                         View Inventory
                       </Button>
-                      <Button variant="outline" className="border-2 border-[#1F3469] text-[#1F3469] hover:bg-[#1F3469] hover:text-white font-semibold transition-all duration-200 hover:shadow-lg">
+                      <Button 
+                        variant="outline" 
+                        className="border-2 border-[#1F3469] text-[#1F3469] hover:bg-[#1F3469] hover:text-white font-semibold transition-all duration-200 hover:shadow-lg"
+                        onClick={() => setContactModalOpen(true)}
+                      >
                         Contact Dealer
                       </Button>
                     </div>
@@ -329,10 +391,17 @@ export default function Home() {
                   
                   {/* Mobile Action Buttons */}
                   <div className="flex gap-2">
-                    <Button className="flex-1 bg-[#1F3469] hover:bg-[#3B4F86] text-white font-semibold text-sm py-2">
+                    <Button 
+                      className="flex-1 bg-[#1F3469] hover:bg-[#3B4F86] text-white font-semibold text-sm py-2"
+                      onClick={() => router.push('/vehicles?dealer=namibia-motors')}
+                    >
                       View Inventory
                     </Button>
-                    <Button variant="outline" className="border-[#1F3469] text-[#1F3469] hover:bg-[#1F3469] hover:text-white text-sm py-2 px-4">
+                    <Button 
+                      variant="outline" 
+                      className="border-[#1F3469] text-[#1F3469] hover:bg-[#1F3469] hover:text-white text-sm py-2 px-4"
+                      onClick={() => setContactModalOpen(true)}
+                    >
                       Contact
                     </Button>
                   </div>
@@ -374,6 +443,11 @@ export default function Home() {
                     placeholder="e.g., Toyota Hilux, BMW X3..."
                     value={searchQuery}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e: React.KeyboardEvent) => {
+                      if (e.key === 'Enter') {
+                        handleMainSearch();
+                      }
+                    }}
                     className="w-full h-14 text-neutral-900 border-2 border-neutral-200 focus:border-[#1F3469] focus:ring-[#1F3469] rounded-xl text-base font-medium placeholder:text-neutral-400"
                   />
                 </div>
@@ -427,7 +501,11 @@ export default function Home() {
                 
                 <div className="space-y-3">
                   <label className="text-sm font-semibold text-neutral-800">&nbsp;</label>
-                  <Button className="w-full h-14 bg-gradient-to-r from-[#1F3469] to-[#3B4F86] hover:from-[#3B4F86] hover:to-[#1F3469] text-white font-bold text-base shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 rounded-xl" size="lg">
+                  <Button 
+                    className="w-full h-14 bg-gradient-to-r from-[#1F3469] to-[#3B4F86] hover:from-[#3B4F86] hover:to-[#1F3469] text-white font-bold text-base shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 rounded-xl" 
+                    size="lg"
+                    onClick={handleMainSearch}
+                  >
                     <Search className="w-5 h-5 mr-2" />
                     Search Cars
                   </Button>
@@ -440,10 +518,11 @@ export default function Home() {
                   <div>
                     <p className="text-sm font-semibold text-neutral-700 mb-3">Popular in Namibia:</p>
                     <div className="flex flex-wrap gap-2">
-                      {['Toyota Hilux', 'Ford Ranger', 'VW Amarok', 'BMW X3', 'Mercedes C-Class', 'Land Cruiser'].map((tag) => (
+                      {['Toyota Hilux', 'Ford Ranger', 'BMW X5', 'Toyota Fortuner', 'Mercedes E-Class', 'Toyota Corolla'].map((tag) => (
                         <button
                           key={tag}
-                          className="px-4 py-2 bg-gradient-to-r from-neutral-100 to-neutral-50 hover:from-[#1F3469]/10 hover:to-[#1F3469]/5 hover:text-[#1F3469] text-neutral-700 rounded-full text-sm font-medium transition-all duration-200 border border-neutral-200 hover:border-[#1F3469]/20 focus:outline-none focus:ring-2 focus:ring-[#1F3469] focus:ring-offset-2"
+                          onClick={() => handleQuickSearch(tag)}
+                          className="px-4 py-2 bg-gradient-to-r from-neutral-100 to-neutral-50 hover:from-[#1F3469]/10 hover:to-[#1F3469]/5 hover:text-[#1F3469] text-neutral-700 rounded-full text-sm font-medium transition-all duration-200 border border-neutral-200 hover:border-[#1F3469]/20 focus:outline-none focus:ring-2 focus:ring-[#1F3469] focus:ring-offset-2 cursor-pointer"
                           aria-label={`Search for ${tag}`}
                         >
                           {tag}
@@ -768,12 +847,26 @@ export default function Home() {
             <Button size="lg" className="bg-white text-[#1F3469] hover:bg-neutral-100 font-semibold">
               Browse All Vehicles
             </Button>
-            <Button variant="outline" size="lg" className="text-white border-white hover:bg-white hover:text-[#1F3469]">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="text-white border-white hover:bg-white hover:text-[#1F3469]"
+              onClick={() => router.push('/sell')}
+            >
               Sell Your Car
             </Button>
           </div>
         </div>
       </section> 
+
+      <CarFilterSearch open={searchDialogOpen} onClose={() => setSearchDialogOpen(false)} />
+      
+      {/* Dealer Contact Modal */}
+      <DealerContactModal
+        isOpen={contactModalOpen}
+        onClose={() => setContactModalOpen(false)}
+        dealership={featuredDealership}
+      />
     </MainLayout>
   );
 }

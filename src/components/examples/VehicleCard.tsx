@@ -65,10 +65,10 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   };
 
   return (
-    <Link href={`/vehicles/${id}`} className="block group">
-      <Card className="h-full hover:shadow-lg transition-shadow duration-200 overflow-hidden">
-        {/* Image */}
-        <div className="relative h-48 bg-gray-100">
+    <Card className="h-full hover:shadow-lg transition-shadow duration-200 overflow-hidden group">
+      {/* Image */}
+      <Link href={`/vehicles/${id}`}>
+        <div className="relative h-48 bg-gray-100 cursor-pointer">
           <Image
             src={imageUrl}
             alt={`${year} ${make} ${model}`}
@@ -76,18 +76,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
             className="object-cover group-hover:scale-105 transition-transform duration-200"
           />
           
-          {/* Save Button */}
-          <button
-            onClick={handleSaveClick}
-            className={`absolute top-3 right-3 p-2 rounded-full transition-colors ${
-              isSaved 
-                ? 'bg-red-500 text-white' 
-                : 'bg-white/80 hover:bg-white text-gray-700'
-            }`}
-          >
-            <Heart className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
-          </button>
-
           {/* Status Badge */}
           {status && status !== 'AVAILABLE' && (
             <div className="absolute top-3 left-3">
@@ -97,10 +85,24 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
             </div>
           )}
         </div>
+      </Link>
 
-        <CardContent className="p-4">
-          {/* Title and Price */}
-          <div className="mb-3">
+      {/* Save Button */}
+      <button
+        onClick={handleSaveClick}
+        className={`absolute top-3 right-3 p-2 rounded-full transition-colors z-10 ${
+          isSaved 
+            ? 'bg-red-500 text-white' 
+            : 'bg-white/80 hover:bg-white text-gray-700'
+        }`}
+      >
+        <Heart className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+      </button>
+
+      <CardContent className="p-4">
+        {/* Title and Price */}
+        <Link href={`/vehicles/${id}`}>
+          <div className="mb-3 cursor-pointer">
             <h3 className="font-semibold text-lg text-gray-900 group-hover:text-[#1F3469] transition-colors">
               {year} {make} {model}
             </h3>
@@ -108,56 +110,58 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
               {formatVehiclePrice(price)}
             </div>
           </div>
+        </Link>
 
-          {/* Key Specs */}
-          <div className="grid grid-cols-2 gap-3 text-sm text-gray-600 mb-3">
-            <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              <span>{year}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Gauge className="h-4 w-4" />
-              <span>{formatMileage(mileage)} km</span>
-            </div>
-            {transmission && (
-              <div className="flex items-center gap-1">
-                <Settings className="h-4 w-4" />
-                <span>{transmission}</span>
-              </div>
-            )}
-            {fuelType && (
-              <div className="flex items-center gap-1">
-                <Fuel className="h-4 w-4" />
-                <span>{fuelType}</span>
-              </div>
-            )}
+        {/* Key Specs */}
+        <div className="grid grid-cols-2 gap-3 text-sm text-gray-600 mb-3">
+          <div className="flex items-center gap-1">
+            <Calendar className="h-4 w-4" />
+            <span>{year}</span>
           </div>
-
-          {/* Additional Info */}
-          <div className="space-y-1 text-sm text-gray-600">
-            {exteriorColor && (
-              <div>Color: <span className="font-medium">{exteriorColor}</span></div>
-            )}
-            {dealership && (
-              <div className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                <span>{dealership.name}</span>
-                {dealership.city && <span>, {dealership.city}</span>}
-              </div>
-            )}
+          <div className="flex items-center gap-1">
+            <Gauge className="h-4 w-4" />
+            <span>{formatMileage(mileage)} km</span>
           </div>
-        </CardContent>
+          {transmission && (
+            <div className="flex items-center gap-1">
+              <Settings className="h-4 w-4" />
+              <span>{transmission}</span>
+            </div>
+          )}
+          {fuelType && (
+            <div className="flex items-center gap-1">
+              <Fuel className="h-4 w-4" />
+              <span>{fuelType}</span>
+            </div>
+          )}
+        </div>
 
-        <CardFooter className="p-4 pt-0">
-          <Button 
-            className="w-full bg-[#CB2030] hover:bg-[#CB2030]/90"
-            onClick={(e) => e.preventDefault()}
-          >
+        {/* Additional Info */}
+        <div className="space-y-1 text-sm text-gray-600">
+          {exteriorColor && (
+            <div>Color: <span className="font-medium">{exteriorColor}</span></div>
+          )}
+          {dealership && (
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              <span>{dealership.name}</span>
+              {dealership.city && <span>, {dealership.city}</span>}
+            </div>
+          )}
+        </div>
+      </CardContent>
+
+      <CardFooter className="p-4 pt-0">
+        <Button 
+          className="w-full bg-[#CB2030] hover:bg-[#CB2030]/90"
+          asChild
+        >
+          <Link href={`/vehicles/${id}`}>
             View Details
-          </Button>
-        </CardFooter>
-      </Card>
-    </Link>
+          </Link>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 
