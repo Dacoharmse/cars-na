@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -73,6 +73,85 @@ const CATEGORIES = {
   }
 };
 
+// Image Preview Component
+function ImagePreview({ 
+  image, 
+  index, 
+  onRemove, 
+  isMain, 
+  onSetMain 
+}: { 
+  image: File; 
+  index: number; 
+  onRemove: () => void;
+  isMain: boolean;
+  onSetMain: () => void;
+}) {
+  const [imageSrc, setImageSrc] = useState<string>('');
+  
+  useEffect(() => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImageSrc(e.target?.result as string);
+    };
+    reader.readAsDataURL(image);
+    
+    return () => {
+      setImageSrc('');
+    };
+  }, [image]);
+
+  return (
+    <div className="relative group">
+      <div className={`aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 ${
+        isMain ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'
+      }`}>
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={`Vehicle ${index + 1}`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400">
+            <Camera className="w-8 h-8" />
+          </div>
+        )}
+        {isMain && (
+          <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+            Main
+          </div>
+        )}
+      </div>
+      
+      {/* Action buttons */}
+      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        {!isMain && (
+          <button
+            onClick={onSetMain}
+            className="bg-blue-500 text-white rounded-full p-1 hover:bg-blue-600 transition-colors shadow-lg text-xs"
+            title="Set as main image"
+          >
+            <Eye className="w-3 h-3" />
+          </button>
+        )}
+        <button
+          onClick={onRemove}
+          className="bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-lg"
+          title="Remove image"
+        >
+          <X className="w-3 h-3" />
+        </button>
+      </div>
+      
+      <div className="mt-2 text-xs text-gray-500 text-center truncate">
+        {image.name}
+        {isMain && <span className="text-blue-600 font-medium"> (Main)</span>}
+      </div>
+    </div>
+  );
+}
+
 // This is a public form for car sellers to submit their vehicles to dealers
 
 interface FormData {
@@ -106,6 +185,7 @@ interface FormData {
   
   // Step 4: Images
   images: File[];
+  mainImageIndex: number;
 }
 
 export default function SellYourCarWizard() {
@@ -129,7 +209,8 @@ export default function SellYourCarWizard() {
     features: [],
     
     // Step 4: Images
-    images: []
+    images: [],
+    mainImageIndex: 0
   });
 
   const updateFormData = (field: keyof FormData, value: any) => {
@@ -161,7 +242,8 @@ export default function SellYourCarWizard() {
         price: '',
         description: '',
         features: [],
-        images: []
+        images: [],
+        mainImageIndex: 0
       });
       setCurrentStep(1);
     },
@@ -596,15 +678,28 @@ function Step2VehicleDetails({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between">
-        <Button onClick={onPrev} variant="outline">
+      <div className="flex justify-between pt-6 border-t border-gray-200">
+        <Button onClick={onPrev} variant="outline" className="px-6 py-3">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Previous
         </Button>
-        <Button onClick={onNext} disabled={!canProceed}>
+        <Button 
+          onClick={onNext} 
+          disabled={!canProceed}
+          className={`px-8 py-3 text-base font-semibold ${
+            !canProceed 
+              ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-700' 
+              : 'bg-blue-600 hover:bg-blue-700 text-white'
+          }`}
+        >
           Next Step
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
+      </div>
+      
+      {/* Debug info - remove in production */}
+      <div className="text-xs text-gray-400 mt-2">
+        Debug: Manufacturer: {formData.manufacturer ? '✓' : '✗'}, Model: {formData.model ? '✓' : '✗'}, Year: {formData.year ? '✓' : '✗'}, Price: {formData.price ? '✓' : '✗'}, Can Proceed: {canProceed ? '✓' : '✗'}
       </div>
     </div>
   );
@@ -666,12 +761,12 @@ function Step3Features({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between">
-        <Button onClick={onPrev} variant="outline">
+      <div className="flex justify-between pt-6 border-t border-gray-200">
+        <Button onClick={onPrev} variant="outline" className="px-6 py-3">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Previous
         </Button>
-        <Button onClick={onNext}>
+        <Button onClick={onNext} className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white">
           Next Step
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
@@ -692,14 +787,47 @@ function Step4Images({
   onNext: () => void;
   onPrev: () => void;
 }) {
+  const [isDragging, setIsDragging] = useState(false);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     updateFormData('images', [...formData.images, ...files]);
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+    if (files.length > 0) {
+      updateFormData('images', [...formData.images, ...files]);
+    }
+  };
+
   const removeImage = (index: number) => {
     const updatedImages = formData.images.filter((_, i) => i !== index);
     updateFormData('images', updatedImages);
+    
+    // If removing the main image, set the first remaining image as main
+    if (formData.mainImageIndex === index) {
+      updateFormData('mainImageIndex', 0);
+    } else if (formData.mainImageIndex > index) {
+      // Adjust main image index if we removed an image before it
+      updateFormData('mainImageIndex', formData.mainImageIndex - 1);
+    }
+  };
+
+  const setMainImage = (index: number) => {
+    updateFormData('mainImageIndex', index);
   };
 
   return (
@@ -710,7 +838,16 @@ function Step4Images({
       </div>
 
       {/* Upload Area */}
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+      <div 
+        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          isDragging 
+            ? 'border-blue-400 bg-blue-50' 
+            : 'border-gray-300 hover:border-gray-400'
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <Camera className="w-12 h-12 mx-auto mb-4 text-gray-400" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Vehicle Photos</h3>
         <p className="text-gray-600 mb-4">Drag and drop or click to select images</p>
@@ -722,42 +859,43 @@ function Step4Images({
           className="hidden"
           id="image-upload"
         />
-        <label htmlFor="image-upload">
-          <Button type="button" className="cursor-pointer">
-            <Upload className="w-4 h-4 mr-2" />
-            Choose Images
-          </Button>
+        <label 
+          htmlFor="image-upload"
+          className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md cursor-pointer transition-colors"
+        >
+          <Upload className="w-4 h-4 mr-2" />
+          Choose Images
         </label>
       </div>
 
       {/* Image Preview */}
       {formData.images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {formData.images.map((image, index) => (
-            <div key={index} className="relative">
-              <img
-                src={URL.createObjectURL(image)}
-                alt={`Vehicle ${index + 1}`}
-                className="w-full h-32 object-cover rounded-lg"
-              />
-              <button
-                onClick={() => removeImage(index)}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+        <div className="space-y-4">
+          <h4 className="text-lg font-medium text-gray-900">Selected Images ({formData.images.length})</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {formData.images.map((image, index) => {
+              return (
+                <ImagePreview 
+                  key={index} 
+                  image={image} 
+                  index={index} 
+                  onRemove={() => removeImage(index)}
+                  isMain={formData.mainImageIndex === index}
+                  onSetMain={() => setMainImage(index)}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
 
       {/* Navigation */}
-      <div className="flex justify-between">
-        <Button onClick={onPrev} variant="outline">
+      <div className="flex justify-between pt-6 border-t border-gray-200">
+        <Button onClick={onPrev} variant="outline" className="px-6 py-3">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Previous
         </Button>
-        <Button onClick={onNext}>
+        <Button onClick={onNext} className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white">
           Next Step
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
@@ -866,14 +1004,14 @@ function Step5Review({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between">
-        <Button onClick={onPrev} variant="outline">
+      <div className="flex justify-between pt-6 border-t border-gray-200">
+        <Button onClick={onPrev} variant="outline" className="px-6 py-3">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Previous
         </Button>
         <Button 
           onClick={onSubmit} 
-          className="bg-green-600 hover:bg-green-700"
+          className="px-8 py-3 text-base font-semibold bg-green-600 hover:bg-green-700 text-white"
           disabled={isSubmitting}
         >
           {isSubmitting ? (
