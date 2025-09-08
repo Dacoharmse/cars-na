@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -14,7 +15,10 @@ import {
   Users, 
   Award,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Eye,
+  Building2,
+  MapPinned
 } from 'lucide-react';
 
 // Mock dealer data
@@ -82,6 +86,85 @@ const FEATURED_DEALERS = [
 ];
 
 export default function DealersPage() {
+  const router = useRouter();
+  const [filteredDealers, setFilteredDealers] = useState(FEATURED_DEALERS);
+  const [filterType, setFilterType] = useState<string | null>(null);
+
+  const handleBrowseAllDealers = () => {
+    // Scroll to the dealers section or show all dealers
+    const dealersSection = document.getElementById('all-dealers-section');
+    if (dealersSection) {
+      dealersSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleBecomeDealer = () => {
+    router.push('/dealers/register');
+  };
+
+  const handleViewAllDealers = () => {
+    // For now, just scroll to the dealers section. 
+    // In a real app, this would navigate to a full dealers list page
+    handleBrowseAllDealers();
+  };
+
+  const handleViewInventory = (dealerId: string, dealerName: string) => {
+    // Navigate to dealer's inventory page
+    router.push(`/dealers/${dealerId}/inventory`);
+  };
+
+  const handleMailDealer = (dealerEmail: string, dealerName: string) => {
+    // Open mail client
+    window.location.href = `mailto:${dealerEmail}?subject=Inquiry about vehicles at ${dealerName}`;
+  };
+
+  const handleViewRelated = (dealerId: string, specialties: string[]) => {
+    // Filter dealers by similar specialties
+    const targetSpecialty = specialties[0];
+    if (targetSpecialty) {
+      const related = FEATURED_DEALERS.filter(dealer => 
+        dealer.id !== dealerId && 
+        dealer.specialties.some(specialty => 
+          specialty.toLowerCase().includes(targetSpecialty.toLowerCase()) ||
+          targetSpecialty.toLowerCase().includes(specialty.toLowerCase())
+        )
+      );
+      
+      setFilteredDealers(related.length > 0 ? related : FEATURED_DEALERS);
+      setFilterType(`Dealers with "${targetSpecialty}" specialty`);
+    } else {
+      setFilteredDealers(FEATURED_DEALERS);
+      setFilterType(null);
+    }
+    
+    // Scroll to dealers section
+    const dealersSection = document.getElementById('all-dealers-section');
+    if (dealersSection) {
+      dealersSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleViewSameTown = (location: string) => {
+    // Filter dealers in same town
+    const sameTownDealers = FEATURED_DEALERS.filter(dealer => 
+      dealer.location.toLowerCase() === location.toLowerCase()
+    );
+    
+    setFilteredDealers(sameTownDealers.length > 0 ? sameTownDealers : FEATURED_DEALERS);
+    setFilterType(`Dealers in ${location}`);
+    
+    // Scroll to dealers section
+    const dealersSection = document.getElementById('all-dealers-section');
+    if (dealersSection) {
+      dealersSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleClearFilter = () => {
+    setFilteredDealers(FEATURED_DEALERS);
+    setFilterType(null);
+  };
+
   return (
     <MainLayout>
       <div className="min-h-screen bg-gray-50">
@@ -97,10 +180,19 @@ export default function DealersPage() {
                 Find quality vehicles with confidence and peace of mind.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-white text-[#1F3469] hover:bg-gray-100">
+                <Button 
+                  size="lg" 
+                  className="bg-white text-[#1F3469] hover:bg-gray-100"
+                  onClick={handleBrowseAllDealers}
+                >
                   Browse All Dealers
                 </Button>
-                <Button variant="outline" size="lg" className="text-white border-white hover:bg-white hover:text-[#1F3469]">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-white border-white hover:bg-white hover:text-[#1F3469]"
+                  onClick={handleBecomeDealer}
+                >
                   Become a Dealer
                 </Button>
               </div>
@@ -224,19 +316,31 @@ export default function DealersPage() {
         </section>
 
         {/* Featured Dealers */}
-        <section className="py-16">
+        <section id="all-dealers-section" className="py-16">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Featured Dealers
+                {filterType ? 'Filtered Dealers' : 'Featured Dealers'}
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Discover our top-rated dealers who consistently provide exceptional service and quality vehicles.
+                {filterType || 'Discover our top-rated dealers who consistently provide exceptional service and quality vehicles.'}
               </p>
+              {filterType && (
+                <div className="mt-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleClearFilter}
+                    className="mx-auto"
+                  >
+                    Clear Filter - Show All Dealers
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {FEATURED_DEALERS.map((dealer) => (
+              {filteredDealers.map((dealer) => (
                 <Card key={dealer.id} className="hover:shadow-lg transition-shadow duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
@@ -279,18 +383,59 @@ export default function DealersPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Clock className="w-4 h-4 mr-1" />
-                        <span>{dealer.yearsInBusiness} years in business</span>
+                    <div className="pt-4 border-t border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Clock className="w-4 h-4 mr-1" />
+                          <span>{dealer.yearsInBusiness} years in business</span>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Phone className="w-4 h-4 mr-1" />
-                          Call
-                        </Button>
-                        <Button size="sm">
+                      
+                      {/* Action Buttons */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewInventory(dealer.id, dealer.name)}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
                           View Inventory
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleMailDealer(dealer.email, dealer.name)}
+                        >
+                          <Mail className="w-4 h-4 mr-1" />
+                          Mail
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewRelated(dealer.id, dealer.specialties)}
+                        >
+                          <Building2 className="w-4 h-4 mr-1" />
+                          View Related
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewSameTown(dealer.location)}
+                        >
+                          <MapPinned className="w-4 h-4 mr-1" />
+                          Same Town
+                        </Button>
+                      </div>
+                      
+                      {/* Call button as primary action */}
+                      <div className="mt-3">
+                        <Button 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => window.location.href = `tel:${dealer.phone}`}
+                        >
+                          <Phone className="w-4 h-4 mr-1" />
+                          Call {dealer.phone}
                         </Button>
                       </div>
                     </div>
@@ -300,7 +445,7 @@ export default function DealersPage() {
             </div>
 
             <div className="text-center mt-12">
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" onClick={handleViewAllDealers}>
                 View All Dealers
               </Button>
             </div>
@@ -318,10 +463,19 @@ export default function DealersPage() {
               Grow your business with our comprehensive dealer platform.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-[#1F3469] hover:bg-gray-100">
+              <Button 
+                size="lg" 
+                className="bg-white text-[#1F3469] hover:bg-gray-100"
+                onClick={handleBecomeDealer}
+              >
                 Apply to Become a Dealer
               </Button>
-              <Button variant="outline" size="lg" className="text-white border-white hover:bg-white hover:text-[#1F3469]">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="text-white border-white hover:bg-white hover:text-[#1F3469]"
+                onClick={() => router.push('/help')}
+              >
                 Learn More
               </Button>
             </div>

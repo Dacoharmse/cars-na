@@ -73,7 +73,7 @@ const CATEGORIES = {
   }
 };
 
-// Image Preview Component
+// Image Preview Component for upload step
 function ImagePreview({ 
   image, 
   index, 
@@ -147,6 +147,58 @@ function ImagePreview({
       <div className="mt-2 text-xs text-gray-500 text-center truncate">
         {image.name}
         {isMain && <span className="text-blue-600 font-medium"> (Main)</span>}
+      </div>
+    </div>
+  );
+}
+
+// Image Preview Component for review step (read-only)
+function ReviewImagePreview({ 
+  image, 
+  index, 
+  isMain 
+}: { 
+  image: File; 
+  index: number; 
+  isMain: boolean;
+}) {
+  const [imageSrc, setImageSrc] = useState<string>('');
+  
+  useEffect(() => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImageSrc(e.target?.result as string);
+    };
+    reader.readAsDataURL(image);
+    
+    return () => {
+      if (imageSrc && imageSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(imageSrc);
+      }
+    };
+  }, [image]);
+
+  return (
+    <div className="relative">
+      <div className={`aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 ${
+        isMain ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'
+      }`}>
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={`Vehicle ${index + 1}`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400">
+            <Camera className="w-6 h-6" />
+          </div>
+        )}
+        {isMain && (
+          <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+            Main
+          </div>
+        )}
       </div>
     </div>
   );
@@ -512,6 +564,14 @@ function Step1SellerDetailsAndCategory({
   );
 }
 
+// Popular car manufacturers list
+const POPULAR_MANUFACTURERS = [
+  'Toyota', 'BMW', 'Ford', 'Honda', 'Nissan', 'Mercedes-Benz', 'Audi', 'Volkswagen',
+  'Hyundai', 'Kia', 'Mazda', 'Subaru', 'Lexus', 'Volvo', 'Jeep', 'Land Rover',
+  'Porsche', 'Chevrolet', 'Peugeot', 'Renault', 'Mitsubishi', 'Suzuki', 'Isuzu',
+  'Daihatsu', 'Opel', 'Fiat', 'Alfa Romeo', 'Jaguar', 'Infiniti', 'Acura'
+];
+
 // Step 2: Vehicle Details (Dynamic based on category)
 function Step2VehicleDetails({ 
   formData, 
@@ -525,6 +585,7 @@ function Step2VehicleDetails({
   onPrev: () => void;
 }) {
   const categoryName = CATEGORIES[formData.category as keyof typeof CATEGORIES]?.name || 'Vehicle';
+  const [showOtherManufacturer, setShowOtherManufacturer] = useState(false);
   
   const canProceed = formData.manufacturer && formData.model && formData.year && formData.price;
 
@@ -539,11 +600,38 @@ function Step2VehicleDetails({
         {/* Basic Information */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Manufacturer</label>
-          <Input
-            value={formData.manufacturer}
-            onChange={(e) => updateFormData('manufacturer', e.target.value)}
-            placeholder="e.g., Toyota, BMW, Ford"
-          />
+          <select 
+            className="w-full p-2 border border-gray-300 rounded-md"
+            value={POPULAR_MANUFACTURERS.includes(formData.manufacturer) ? formData.manufacturer : (formData.manufacturer ? 'Other' : '')}
+            onChange={(e) => {
+              if (e.target.value === 'Other') {
+                setShowOtherManufacturer(true);
+                updateFormData('manufacturer', '');
+              } else {
+                setShowOtherManufacturer(false);
+                updateFormData('manufacturer', e.target.value);
+              }
+            }}
+          >
+            <option value="">Select manufacturer</option>
+            {POPULAR_MANUFACTURERS.map((manufacturer) => (
+              <option key={manufacturer} value={manufacturer}>
+                {manufacturer}
+              </option>
+            ))}
+            <option value="Other">Other</option>
+          </select>
+          
+          {showOtherManufacturer && (
+            <div className="mt-2">
+              <Input
+                value={formData.manufacturer}
+                onChange={(e) => updateFormData('manufacturer', e.target.value)}
+                placeholder="Enter manufacturer name"
+                className="border-blue-300 focus:ring-blue-500"
+              />
+            </div>
+          )}
         </div>
 
         <div>
@@ -990,11 +1078,11 @@ function Step5Review({
             <CardContent>
               <div className="grid grid-cols-4 gap-2">
                 {formData.images.map((image, index) => (
-                  <img
-                    key={index}
-                    src={URL.createObjectURL(image)}
-                    alt={`Vehicle ${index + 1}`}
-                    className="w-full h-20 object-cover rounded"
+                  <ReviewImagePreview 
+                    key={index} 
+                    image={image} 
+                    index={index} 
+                    isMain={formData.mainImageIndex === index}
                   />
                 ))}
               </div>
