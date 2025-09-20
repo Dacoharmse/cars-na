@@ -7,6 +7,8 @@ import { dealershipRouter } from "./dealership";
 import { vehicleRouter } from "./vehicle";
 import { leadRouter } from "./lead";
 import { showcaseRouter } from "../api/routers/showcase";
+import { analyticsRouter } from "./analytics";
+import { subscriptionRouter } from "./subscription";
 
 export const appRouter = router({
   user: userRouter,
@@ -14,6 +16,8 @@ export const appRouter = router({
   vehicle: vehicleRouter,
   lead: leadRouter,
   showcase: showcaseRouter,
+  analytics: analyticsRouter,
+  subscription: subscriptionRouter,
 });
 
 export type AppRouter = typeof appRouter;

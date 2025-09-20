@@ -3,7 +3,7 @@
 
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-1.1.x"]
+  binaryTargets = ["native", "debian-openssl-1.1.x", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -13,32 +13,53 @@ datasource db {
 
 // User model for authentication and role-based access
 model User {
-  id                   String    @id @default(cuid())
+  id                   String     @id @default(cuid())
   name                 String?
-  email                String    @unique
+  email                String     @unique
   emailVerified        DateTime?
   image                String?
   password             String?
-  role                 UserRole  @default(USER)
-  
+  role                 UserRole   @default(USER)
+
+  // User status and admin fields
+  status               UserStatus @default(ACTIVE)
+  isActive             Boolean    @default(true)
+  isSuspended          Boolean    @default(false)
+  suspendReason        String?
+  suspendedAt          DateTime?
+  suspendedBy          String?
+  lastLoginAt          DateTime?
+  loginCount           Int        @default(0)
+
+  // Profile fields
+  phone                String?
+  dateOfBirth          DateTime?
+  address              String?
+  city                 String?
+  region               String?
+  postalCode           String?
+
   // Email verification fields
   verificationToken    String?
   verificationExpires  DateTime?
-  
+
   // Password reset fields
   resetToken           String?
   resetExpires         DateTime?
-  
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  
+
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
   // Relations
   dealership           Dealership? @relation(fields: [dealershipId], references: [id])
   dealershipId         String?
-  
+
   // Auth relations
   accounts             Account[]
   sessions             Session[]
+
+  // Audit trail
+  auditLogs            UserAuditLog[]
 }
 
 // Dealership model for car dealerships
@@ -68,6 +89,9 @@ model Dealership {
   users              User[]
   vehicles           Vehicle[]
   leads              Lead[]
+  subscription       DealershipSubscription?
+  featuredListings   FeaturedListing[]
+  notifications      SubscriptionNotification[]
 }
 
 // Vehicle model for car listings
@@ -99,6 +123,7 @@ model Vehicle {
   dealershipId String
   images       VehicleImage[]
   leads        Lead[]
+  featuredListings FeaturedListing[]
 }
 
 // VehicleImage model for car images
@@ -168,11 +193,47 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// User audit log model for tracking admin actions
+model UserAuditLog {
+  id          String            @id @default(cuid())
+  userId      String
+  action      UserAuditAction
+  details     String?
+  performedBy String
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime          @default(now())
+
+  // Relations
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 // Enums
 enum UserRole {
   ADMIN
-  DEALER
+  DEALER_PRINCIPAL
+  SALES_EXECUTIVE
   USER
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+  INACTIVE
+}
+
+enum UserAuditAction {
+  CREATED
+  UPDATED
+  DELETED
+  SUSPENDED
+  ACTIVATED
+  PASSWORD_RESET
+  EMAIL_VERIFIED
+  LOGIN
+  LOGOUT
+  ROLE_CHANGED
 }
 
 enum VehicleStatus {
@@ -205,4 +266,196 @@ enum DealershipStatus {
   APPROVED
   REJECTED
   SUSPENDED
+}
+
+// Subscription Plans model
+model SubscriptionPlan {
+  id              String                @id @default(cuid())
+  name            String                @unique
+  slug            String                @unique
+  description     String?
+  price           Float
+  currency        String                @default("NAD")
+  duration        Int                   // Duration in months
+  features        Json                  // JSON array of features
+  maxListings     Int                   @default(0) // 0 = unlimited
+  maxPhotos       Int                   @default(5)
+  priority        Int                   @default(0) // Higher number = higher priority
+  isActive        Boolean               @default(true)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  // Relations
+  subscriptions   DealershipSubscription[]
+}
+
+// Dealership Subscriptions
+model DealershipSubscription {
+  id              String                    @id @default(cuid())
+  dealershipId    String
+  planId          String
+  status          SubscriptionStatus        @default(ACTIVE)
+  startDate       DateTime                  @default(now())
+  endDate         DateTime
+  autoRenew       Boolean                   @default(true)
+
+  // Payment tracking
+  stripeCustomerId        String?
+  stripeSubscriptionId    String?
+  lastPaymentDate         DateTime?
+  nextPaymentDate         DateTime?
+
+  // Usage tracking
+  currentListings         Int           @default(0)
+  listingsUsed           Int           @default(0)
+  featuredListingsUsed   Int           @default(0)
+
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  // Relations
+  dealership      Dealership            @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+  plan            SubscriptionPlan      @relation(fields: [planId], references: [id])
+  payments        Payment[]
+  usageAnalytics  UsageAnalytics[]
+
+  @@unique([dealershipId])
+}
+
+// Payment history
+model Payment {
+  id                  String                @id @default(cuid())
+  subscriptionId      String
+  amount              Float
+  currency            String                @default("NAD")
+  status              PaymentStatus         @default(PENDING)
+  paymentMethod       PaymentMethod         @default(STRIPE)
+
+  // Stripe integration
+  stripePaymentIntentId   String?
+  stripeChargeId          String?
+
+  // Payment details
+  description         String?
+  metadata            Json?
+
+  paidAt              DateTime?
+  failedAt            DateTime?
+  refundedAt          DateTime?
+  refundAmount        Float?
+
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  // Relations
+  subscription        DealershipSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+// Usage Analytics for subscriptions
+model UsageAnalytics {
+  id                  String                @id @default(cuid())
+  subscriptionId      String
+  date                DateTime              @default(now())
+
+  // Metrics
+  listingsViewed      Int                   @default(0)
+  leadGenerated       Int                   @default(0)
+  inquiriesReceived   Int                   @default(0)
+  phoneCallsReceived  Int                   @default(0)
+  featuredImpressions Int                   @default(0)
+  heroImpressions     Int                   @default(0)
+
+  // Performance metrics
+  conversionRate      Float?
+  averageViewTime     Int?                  // In seconds
+
+  createdAt           DateTime              @default(now())
+
+  // Relations
+  subscription        DealershipSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, date])
+}
+
+// Featured Listings for subscription benefits
+model FeaturedListing {
+  id              String                @id @default(cuid())
+  vehicleId       String
+  dealershipId    String
+  type            FeaturedType          @default(STANDARD)
+  startDate       DateTime              @default(now())
+  endDate         DateTime
+  isActive        Boolean               @default(true)
+  priority        Int                   @default(0)
+
+  // Placement tracking
+  impressions     Int                   @default(0)
+  clicks          Int                   @default(0)
+
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  // Relations
+  vehicle         Vehicle               @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  dealership      Dealership            @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+}
+
+// Subscription notification system
+model SubscriptionNotification {
+  id              String                    @id @default(cuid())
+  dealershipId    String
+  type            NotificationType
+  title           String
+  message         String
+  isRead          Boolean                   @default(false)
+  actionUrl       String?
+
+  createdAt       DateTime                  @default(now())
+  readAt          DateTime?
+
+  // Relations
+  dealership      Dealership                @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+}
+
+// Enums for subscription system
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  SUSPENDED
+  PENDING_PAYMENT
+  PAST_DUE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  STRIPE
+  BANK_TRANSFER
+  CASH
+  CHEQUE
+}
+
+enum FeaturedType {
+  STANDARD
+  HERO
+  CAROUSEL
+  TOP_SEARCH
+  NEWSLETTER
+}
+
+enum NotificationType {
+  PAYMENT_DUE
+  PAYMENT_FAILED
+  SUBSCRIPTION_EXPIRING
+  PLAN_UPGRADED
+  PLAN_DOWNGRADED
+  FEATURE_LIMIT_REACHED
+  USAGE_SUMMARY
 }

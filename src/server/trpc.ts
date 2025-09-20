@@ -43,14 +43,24 @@ export const publicProcedure = t.procedure;
 /**
  * Protected procedure - only authenticated users can access
  */
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
     throw new TRPCError({ code: 'UNAUTHORIZED' });
   }
+
+  const user = await ctx.prisma.user.findUnique({
+    where: { id: ctx.session.user.id },
+  });
+
+  if (!user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+
   return next({
     ctx: {
       ...ctx,
       session: { ...ctx.session, user: ctx.session.user },
+      user,
     },
   });
 });
@@ -62,19 +72,20 @@ export const adminProcedure = t.procedure.use(async ({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
     throw new TRPCError({ code: 'UNAUTHORIZED' });
   }
-  
+
   const user = await ctx.prisma.user.findUnique({
     where: { id: ctx.session.user.id },
   });
-  
+
   if (!user || user.role !== 'ADMIN') {
     throw new TRPCError({ code: 'FORBIDDEN' });
   }
-  
+
   return next({
     ctx: {
       ...ctx,
       session: { ...ctx.session, user: ctx.session.user },
+      user,
     },
   });
 });

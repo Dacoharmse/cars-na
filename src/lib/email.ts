@@ -54,12 +54,12 @@ class EmailService {
         port: parseInt(process.env.SMTP_PORT || '587'),
         secure: process.env.SMTP_SECURE === 'true',
         auth: {
-          user: process.env.SMTP_USER || '',
-          pass: process.env.SMTP_PASSWORD || '',
+          user: process.env.SMTP_USER || process.env.EMAIL_USER || '',
+          pass: process.env.SMTP_PASS || process.env.EMAIL_PASS || '',
         },
       };
 
-      this.transporter = nodemailer.createTransporter(config);
+      this.transporter = nodemailer.createTransport(config);
 
       // Verify connection
       await this.transporter.verify();
@@ -88,7 +88,7 @@ class EmailService {
       }
 
       const mailOptions = {
-        from: `"Cars.na" <${process.env.SMTP_USER}>`,
+        from: process.env.FROM_EMAIL || process.env.EMAIL_FROM || `"Cars.na" <${process.env.SMTP_USER || process.env.EMAIL_USER}>`,
         to,
         subject: template.subject,
         html: template.html,

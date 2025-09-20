@@ -538,7 +538,9 @@ export const getVehiclesWithDealership = (): MockVehicle[] => {
 };
 
 export const getVehicleById = (id: string): MockVehicle | undefined => {
-  const vehicle = MOCK_VEHICLES.find(v => v.id === id);
+  // Handle both 'vehicle-1' and '1' formats
+  const normalizedId = id.startsWith('vehicle-') ? id : `vehicle-${id}`;
+  const vehicle = MOCK_VEHICLES.find(v => v.id === normalizedId);
   if (vehicle) {
     return {
       ...vehicle,

@@ -5,7 +5,7 @@ import { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { prisma } from "./prisma";
-import { emailService } from "./email";
+import { sendWelcomeEmail, sendLoginNotificationEmail } from "./email-helpers";
 
 export const authOptions: NextAuthOptions = {
   // adapter: PrismaAdapter(prisma), // Disabled for development
@@ -13,8 +13,8 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   pages: {
-    signIn: "/login",
-    error: "/login",
+    signIn: "/admin-auth",
+    error: "/admin-auth",
   },
   providers: [
     CredentialsProvider({
@@ -29,6 +29,18 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
+          // Check for hardcoded admin user for development
+          if (credentials.email === 'admin@cars.na' && credentials.password === 'admin@cars2025') {
+            return {
+              id: 'admin-001',
+              name: 'System Administrator',
+              email: 'admin@cars.na',
+              role: 'ADMIN',
+              dealershipId: null,
+              image: null,
+            };
+          }
+
           // Find user in database
           const user = await prisma.user.findUnique({
             where: {
@@ -63,34 +75,54 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error) {
           console.error('Authentication error:', error);
+
+          // Fallback for admin user if database is not available
+          if (credentials.email === 'admin@cars.na' && credentials.password === 'admin@cars2025') {
+            return {
+              id: 'admin-001',
+              name: 'System Administrator',
+              email: 'admin@cars.na',
+              role: 'ADMIN',
+              dealershipId: null,
+              image: null,
+            };
+          }
+
           return null;
         }
       },
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
-      // Send login notification email when user successfully signs in
-      if (user && user.email) {
-        try {
-          await emailService.sendLoginNotification(
+    async signIn({ user, account, profile, email, credentials }) {
+      try {
+        // Send login notification for database users (not hardcoded admin)
+        if (user && user.email && user.email !== 'admin@cars.na') {
+          // Extract basic login details (in production, you'd get these from request headers)
+          const loginDetails = {
+            device: 'Web Browser',
+            location: 'Namibia'
+          };
+
+          // Send login notification email (non-blocking)
+          sendLoginNotificationEmail(
             {
               name: user.name || 'User',
               email: user.email,
+              id: user.id || ''
             },
-            {
-              // In production, you can get these from the request headers
-              ip: 'N/A', // req.ip in production
-              location: 'N/A', // Can be determined from IP
-              device: 'N/A', // Can be parsed from user-agent
-            }
-          );
-        } catch (error) {
-          console.error('Failed to send login notification:', error);
-          // Don't block login if email fails
+            loginDetails
+          ).catch(error => {
+            console.error('Failed to send login notification:', error);
+          });
         }
+
+        console.log('User signed in:', user?.email);
+        return true;
+      } catch (error) {
+        console.error('Sign-in callback error:', error);
+        return true; // Don't block login due to email issues
       }
-      return true;
     },
     async jwt({ token, user }) {
       if (user) {
