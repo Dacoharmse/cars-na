@@ -300,8 +300,8 @@ model DealershipSubscription {
   autoRenew       Boolean                   @default(true)
 
   // Payment tracking
-  stripeCustomerId        String?
-  stripeSubscriptionId    String?
+  paystackCustomerId      String?
+  paystackSubscriptionId  String?
   lastPaymentDate         DateTime?
   nextPaymentDate         DateTime?
 
@@ -329,11 +329,11 @@ model Payment {
   amount              Float
   currency            String                @default("NAD")
   status              PaymentStatus         @default(PENDING)
-  paymentMethod       PaymentMethod         @default(STRIPE)
+  paymentMethod       PaymentMethod         @default(PAYSTACK)
 
-  // Stripe integration
-  stripePaymentIntentId   String?
-  stripeChargeId          String?
+  // Paystack integration
+  paystackPaymentId       String?
+  paystackReference       String?
 
   // Payment details
   description         String?
@@ -436,7 +436,7 @@ enum PaymentStatus {
 }
 
 enum PaymentMethod {
-  STRIPE
+  PAYSTACK
   BANK_TRANSFER
   CASH
   CHEQUE
