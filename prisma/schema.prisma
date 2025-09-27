@@ -459,3 +459,42 @@ enum NotificationType {
   FEATURE_LIMIT_REACHED
   USAGE_SUMMARY
 }
+
+// Banner model for homepage advertising
+model Banner {
+  id          String        @id @default(cuid())
+  title       String
+  subtitle    String?
+  description String?
+  imageUrl    String?
+  linkUrl     String?
+  buttonText  String?
+  isActive    Boolean       @default(true)
+  position    BannerPosition @default(MAIN)
+  priority    Int           @default(0) // Higher number = higher priority
+  startDate   DateTime?
+  endDate     DateTime?
+
+  // Styling options
+  backgroundColor String?
+  textColor      String?
+  overlayOpacity Float?        @default(0.5)
+
+  // Tracking
+  impressions    Int           @default(0)
+  clicks         Int           @default(0)
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Relations
+  createdBy      String        // User ID who created the banner
+}
+
+enum BannerPosition {
+  MAIN          // Main banner area (where "Partner with Cars.na" is)
+  HERO          // Hero section
+  SIDEBAR       // Sidebar banners
+  FOOTER        // Footer banners
+  BETWEEN       // Between sections
+}

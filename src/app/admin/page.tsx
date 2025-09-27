@@ -20,7 +20,8 @@ import {
   AlertTriangle,
   DollarSign,
   ArrowUpRight,
-  LogOut
+  LogOut,
+  Image
 } from 'lucide-react';
 
 // Import simplified admin components (avoiding tRPC compatibility issues)
@@ -97,6 +98,7 @@ export default function AdminDashboard() {
     { id: 'users', label: 'Users', icon: Users },
     { id: 'dealers', label: 'Dealers', icon: Building2 },
     { id: 'listings', label: 'Listings', icon: Car },
+    { id: 'banners', label: 'Banners', icon: Image },
     { id: 'moderation', label: 'Moderation', icon: Shield },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings }
@@ -410,6 +412,37 @@ export default function AdminDashboard() {
                 <Building2 className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Dealer Management</h3>
                 <p className="text-gray-600">Advanced dealer management features will be available here.</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Banners Tab */}
+        {activeTab === 'banners' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Banner Management</h2>
+              <Button
+                onClick={() => router.push('/admin/banners')}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Image className="w-4 h-4 mr-2" />
+                Manage Banners
+              </Button>
+            </div>
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Image className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Website Banner Management</h3>
+                <p className="text-gray-600 mb-4">
+                  Create and manage advertising banners displayed on the homepage and throughout the website.
+                </p>
+                <Button
+                  onClick={() => router.push('/admin/banners')}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Open Banner Manager
+                </Button>
               </CardContent>
             </Card>
           </div>

@@ -1,6 +1,15 @@
 'use client';
 
-import { PaystackPop } from '@paystack/inline-js';
+// Import PaystackPop dynamically for client-side usage only
+let PaystackPop: any;
+
+if (typeof window !== 'undefined') {
+  try {
+    PaystackPop = require('@paystack/inline-js');
+  } catch (error) {
+    console.warn('PaystackPop import failed:', error);
+  }
+}
 
 // Server-side Paystack (for Node.js/API routes)
 let Paystack: any;

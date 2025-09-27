@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PaystackPop } from '@paystack/inline-js';
+// PaystackPop will be imported dynamically
 import {
   initializePaystackPayment,
   generatePaymentReference,
@@ -58,6 +58,9 @@ function CheckoutForm({
     setError(null);
 
     try {
+      // Dynamic import of PaystackPop for client-side
+      const { default: PaystackPop } = await import('@paystack/inline-js');
+
       // Generate unique payment reference
       const paymentRef = generatePaymentReference();
 
@@ -148,6 +151,9 @@ function CheckoutForm({
       }
 
       const subscriptionData = await response.json();
+
+      // Dynamic import of PaystackPop for client-side
+      const { default: PaystackPop } = await import('@paystack/inline-js');
 
       // Initialize payment with subscription data
       const handler = PaystackPop.setup({

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Card } from './Card';
 import { Button } from './Button';
 import { Heart, Star, Gauge, Settings, Fuel, Palette } from 'lucide-react';
@@ -28,20 +29,20 @@ export interface VehicleCardProps {
 }
 
 const VehicleCard = React.forwardRef<HTMLDivElement, VehicleCardProps>(
-  ({ 
-    id, 
-    make, 
-    model, 
-    year, 
-    price, 
+  ({
+    id,
+    make,
+    model,
+    year,
+    price,
     originalPrice = undefined,
-    mileage, 
-    transmission, 
-    fuelType, 
-    color, 
-    image, 
-    dealer, 
-    location, 
+    mileage,
+    transmission,
+    fuelType,
+    color,
+    image,
+    dealer,
+    location,
     isNew,
     viewsLast30Days,
     createdAt,
@@ -49,14 +50,19 @@ const VehicleCard = React.forwardRef<HTMLDivElement, VehicleCardProps>(
     featured = false,
     dealerBoost = false,
     className,
-    ...props 
+    ...props
   }, ref) => {
+    const router = useRouter();
     const formatPrice = (price: number) => {
       return `N$ ${price.toLocaleString()}`;
     };
 
     const formatMileage = (mileage: number) => {
       return `${mileage.toLocaleString()} km`;
+    };
+
+    const handleViewDetails = () => {
+      router.push(`/vehicles/${id}`);
     };
 
     return (
@@ -152,10 +158,11 @@ const VehicleCard = React.forwardRef<HTMLDivElement, VehicleCardProps>(
 
           {/* Action Buttons */}
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="flex-1"
+              onClick={handleViewDetails}
               aria-label={`View details for ${year} ${make} ${model}`}
             >
               View Details

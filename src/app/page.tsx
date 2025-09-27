@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Search, Eye, CheckCircle, Star, TrendingUp, Car, DollarSign, MapPin, Phone, Zap, ArrowRight } from 'lucide-react';
 import CarFilterSearch from "@/components/CarFilterSearch";
 import { DealerContactModal } from "@/components/DealerContactModal";
+import { DynamicBanner } from "@/components/DynamicBanner";
 
 
 export default function Home() {
@@ -858,32 +859,37 @@ export default function Home() {
 
 
 
-      {/* Banner Advertisement Space */}
+      {/* Dynamic Banner Advertisement Space */}
       <section className="py-8 bg-neutral-50">
         <div className="container mx-auto px-4">
-          <div className="rounded-lg overflow-hidden shadow-sm border border-neutral-200">
-            <div className="relative min-h-[200px] bg-gradient-to-r from-[#1F3469] to-[#3B4F86]">
-              <img 
-                src="/cars-na-logo.png" 
-                alt="Cars.na - Namibia's Leading Car Marketplace" 
-                className="w-full h-full object-contain absolute inset-0 p-8"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center bg-[#1F3469]/10">
-                <div className="text-center bg-white/95 p-8 rounded-lg backdrop-blur-sm max-w-md shadow-lg">
-                  <h3 className="text-2xl font-bold mb-3 text-[#1F3469]">Partner with Cars.na</h3>
-                  <p className="text-neutral-700 mb-6 leading-relaxed">
-                    Reach thousands of car buyers across Namibia with our premium advertising solutions
-                  </p>
-                  <Button size="sm" className="bg-[#1F3469] text-white hover:bg-[#3B4F86]">
-                    Advertise With Us
-                  </Button>
+          <DynamicBanner
+            position="MAIN"
+            fallbackContent={
+              <div className="rounded-lg overflow-hidden shadow-sm border border-neutral-200">
+                <div className="relative min-h-[200px] bg-gradient-to-r from-[#1F3469] to-[#3B4F86]">
+                  <img
+                    src="/cars-na-logo.png"
+                    alt="Cars.na - Namibia's Leading Car Marketplace"
+                    className="w-full h-full object-contain absolute inset-0 p-8"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#1F3469]/10">
+                    <div className="text-center bg-white/95 p-8 rounded-lg backdrop-blur-sm max-w-md shadow-lg">
+                      <h3 className="text-2xl font-bold mb-3 text-[#1F3469]">Partner with Cars.na</h3>
+                      <p className="text-neutral-700 mb-6 leading-relaxed">
+                        Reach thousands of car buyers across Namibia with our premium advertising solutions
+                      </p>
+                      <Button size="sm" className="bg-[#1F3469] text-white hover:bg-[#3B4F86]">
+                        Advertise With Us
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            }
+          />
         </div>
       </section> 
 

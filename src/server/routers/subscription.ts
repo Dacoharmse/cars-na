@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { router, protectedProcedure, adminProcedure } from '../trpc';
 import { prisma } from '@/lib/prisma';
-import { stripe } from '@/lib/stripe';
+import { paystack } from '@/lib/paystack';
 import { TRPCError } from '@trpc/server';
 
 export const subscriptionRouter = router({
@@ -99,38 +99,31 @@ export const subscriptionRouter = router({
       }
 
       try {
-        // Create or get Stripe customer
-        let customerId = dealership.subscription?.stripeCustomerId;
+        // Create or get Paystack customer
+        let customerId = dealership.subscription?.paystackCustomerId;
 
         if (!customerId) {
-          const customer = await stripe.customers.create({
-            name: dealership.name,
-            email: dealership.users[0]?.email,
+          const customer = await paystack.customer.create({
+            email: dealership.users[0]?.email || '',
+            first_name: dealership.name.split(' ')[0] || 'Dealership',
+            last_name: dealership.name.split(' ').slice(1).join(' ') || 'Owner',
             metadata: {
               dealershipId: dealership.id,
             },
           });
-          customerId = customer.id;
+          customerId = customer.data.customer_code;
         }
 
-        // Create payment intent
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: Math.round(plan.price * 100), // Convert to cents
-          currency: plan.currency.toLowerCase(),
-          customer: customerId,
-          setup_future_usage: 'off_session',
-          metadata: {
-            dealershipId: dealership.id,
-            planId: plan.id,
-          },
-        });
-
+        // Return checkout data for frontend
         return {
-          clientSecret: paymentIntent.client_secret,
           customerId,
+          planId: plan.id,
+          amount: plan.price,
+          currency: plan.currency,
+          dealershipId: dealership.id,
         };
       } catch (error) {
-        console.error('Stripe error:', error);
+        console.error('Paystack error:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to create checkout session',
@@ -161,12 +154,15 @@ export const subscriptionRouter = router({
         });
       }
 
-      // Cancel in Stripe if exists
-      if (subscription.stripeSubscriptionId) {
+      // Cancel in Paystack if exists
+      if (subscription.paystackSubscriptionId) {
         try {
-          await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+          await paystack.subscription.disable({
+            code: subscription.paystackSubscriptionId,
+            token: subscription.paystackSubscriptionId,
+          });
         } catch (error) {
-          console.error('Stripe cancellation error:', error);
+          console.error('Paystack cancellation error:', error);
         }
       }
 
