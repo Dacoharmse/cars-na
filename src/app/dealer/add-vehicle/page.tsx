@@ -69,17 +69,17 @@ const SAFETY_FEATURES = [
 
 // Mock salespeople data for the dealership (in real app, this would come from API)
 const SALESPEOPLE = [
-  { id: '1', name: 'John Smith', email: 'john@dealership.com', phone: '+264 81 123 4567' },
-  { id: '2', name: 'Sarah Johnson', email: 'sarah@dealership.com', phone: '+264 81 234 5678' },
-  { id: '3', name: 'Mike Wilson', email: 'mike@dealership.com', phone: '+264 81 345 6789' },
-  { id: '4', name: 'Lisa Brown', email: 'lisa@dealership.com', phone: '+264 81 456 7890' }
+  { id: '1', name: 'John Smith', email: 'john@premium-motors.com', phone: '+264 81 123 4567' },
+  { id: '2', name: 'Sarah Johnson', email: 'sarah@premium-motors.com', phone: '+264 81 234 5678' },
+  { id: '3', name: 'Mike Wilson', email: 'mike@premium-motors.com', phone: '+264 81 345 6789' },
+  { id: '4', name: 'Lisa Brown', email: 'lisa@premium-motors.com', phone: '+264 81 456 7890' }
 ];
 
 // Mock current user (in real app, this would come from session)
 const CURRENT_USER = {
   id: '1',
-  name: 'John Smith',
-  email: 'john@dealership.com',
+  name: 'Premium Motors Manager',
+  email: 'dealer@premium-motors.com',
   phone: '+264 81 123 4567'
 };
 
@@ -149,10 +149,29 @@ export default function DealerAddVehicleWizard() {
     }));
   };
 
-  const handleSubmit = () => {
-    console.log('Adding vehicle to inventory:', vehicleData);
-    alert('Vehicle successfully added to your inventory!');
-    window.location.href = '/dealer/dashboard';
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch('/api/dealer/vehicles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(vehicleData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log('Vehicle successfully added:', result);
+        setCurrentStep(6); // Go to success step
+      } else {
+        console.error('Error adding vehicle:', result.error);
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+      alert('Network error. Please try again.');
+    }
   };
 
   return (
@@ -750,11 +769,11 @@ export default function DealerAddVehicleWizard() {
               </Button>
 
               <Button
-                onClick={currentStep === 6 ? handleSubmit : nextStep}
+                onClick={currentStep === 5 ? handleSubmit : nextStep}
                 className="flex items-center bg-blue-600 hover:bg-blue-700"
               >
-                {currentStep === 6 ? 'Add to Inventory' : 'Next Step'}
-                {currentStep < 6 && <ArrowRight className="h-4 w-4 ml-2" />}
+                {currentStep === 5 ? 'Add to Inventory' : 'Next Step'}
+                {currentStep < 5 && <ArrowRight className="h-4 w-4 ml-2" />}
               </Button>
             </div>
           </CardContent>

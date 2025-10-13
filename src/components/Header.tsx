@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { Phone, Pencil, Lock, Search, Menu, X, LogOut, LayoutDashboard } from "lucide-react";
+import { Phone, Pencil, Lock, Search, Menu, X, LogOut, LayoutDashboard, Shield } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import CarFilterSearch from "@/components/CarFilterSearch";
 
@@ -80,19 +80,30 @@ export default function Header() {
             {session ? (
               // Logged In State
               <>
-                <Link
-                  href="/dealer/dashboard"
-                  className="flex items-center gap-1 md:gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#1F3469] dark:hover:text-white transition-colors group"
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> 
-                  <span className="hidden sm:inline">Dashboard</span>
-                </Link>
+                {/* Dashboard Link - different for admin vs dealer */}
+                {((session?.user as any)?.role === 'ADMIN' || session?.user?.email === 'admin@cars.na') ? (
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-1 md:gap-2 text-xs font-semibold text-purple-700 dark:text-purple-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors group"
+                  >
+                    <Shield className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                    <span className="hidden sm:inline">Admin Panel</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/dealer/dashboard"
+                    className="flex items-center gap-1 md:gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#1F3469] dark:hover:text-white transition-colors group"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                    <span className="hidden sm:inline">Dashboard</span>
+                  </Link>
+                )}
                 <div className="w-px h-4 bg-slate-300 dark:bg-slate-600"></div>
                 <button
                   onClick={() => signOut()}
                   className="flex items-center gap-1 md:gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 transition-colors group"
                 >
-                  <LogOut className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> 
+                  <LogOut className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                   <span className="hidden sm:inline">Logout</span>
                 </button>
               </>
@@ -100,10 +111,10 @@ export default function Header() {
               // Logged Out State
               <>
                 <Link
-                  href="/auth/login"
+                  href="/dealer/login"
                   className="flex items-center gap-1 md:gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#1F3469] dark:hover:text-white transition-colors group"
                 >
-                  <Lock className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> 
+                  <Lock className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                   <span className="whitespace-nowrap">Dealership Login</span>
                 </Link>
                 <div className="w-px h-4 bg-slate-300 dark:bg-slate-600"></div>

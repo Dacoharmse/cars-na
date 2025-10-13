@@ -30,13 +30,47 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Check for hardcoded admin user for development
-          if (credentials.email === 'admin@cars.na' && credentials.password === 'admin@cars2025') {
+          if (credentials.email === 'admin@cars.na' && (credentials.password === 'admin123' || credentials.password === 'admin@cars2025')) {
             return {
               id: 'admin-001',
               name: 'System Administrator',
               email: 'admin@cars.na',
               role: 'ADMIN',
               dealershipId: null,
+              image: null,
+            };
+          }
+
+          // Check for hardcoded dealer users for development
+          if (credentials.email === 'dealer@premium-motors.com' && credentials.password === 'dealer123') {
+            return {
+              id: 'dealer-001',
+              name: 'Premium Motors Manager',
+              email: 'dealer@premium-motors.com',
+              role: 'DEALER_PRINCIPAL',
+              dealershipId: 'dealership-001',
+              image: null,
+            };
+          }
+
+          if (credentials.email === 'dealer@citycars.na' && credentials.password === 'dealer123') {
+            return {
+              id: 'dealer-002',
+              name: 'City Cars Manager',
+              email: 'dealer@citycars.na',
+              role: 'DEALER_PRINCIPAL',
+              dealershipId: 'dealership-002',
+              image: null,
+            };
+          }
+
+          if (credentials.email === 'sales@citycars.na' && credentials.password === 'sales123') {
+            return {
+              id: 'sales-001',
+              name: 'Sales Executive',
+              email: 'sales@citycars.na',
+              role: 'SALES_EXECUTIVE',
+              dealershipId: 'dealership-002',
               image: null,
             };
           }

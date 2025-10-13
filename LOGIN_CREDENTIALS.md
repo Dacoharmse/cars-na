@@ -12,43 +12,34 @@
 
 ---
 
-## 👤 **USER ACCOUNTS**
+## 👤 **PUBLIC ACCESS**
 
-### **Regular User Account**
+### **Anonymous Users (No Login Required)**
 ```
-Email:    test@example.com
-Password: password123
-Role:     Standard User
-Access:   Browse vehicles, save favorites, contact dealers
-```
-
-### **Test User Account 2**
-```
-Email:    user@example.com
-Password: user123
-Role:     Standard User
-Access:   Browse vehicles, inquiries, profile management
+Access:   Browse vehicles, view details, contact dealers
+Features: Search cars, filter listings, view dealer info, send inquiries
+Note:     No user accounts needed - visitors can browse and contact dealers directly
 ```
 
 ---
 
 ## 🏪 **DEALER ACCOUNTS**
 
-### **Premium Motors Dealer**
+### **Premium Motors Dealer Principal**
 ```
 Email:    dealer@premium-motors.com
 Password: dealer123
-Role:     Dealer
-Access:   Dealer dashboard, vehicle management, analytics
+Role:     Dealer Principal
+Access:   Dealer dashboard, vehicle management, analytics, full dealership control
 Subscription: Premium tier
 ```
 
-### **City Cars Dealer**
+### **City Cars Dealer Principal**
 ```
 Email:    dealer@citycars.na
 Password: dealer123
-Role:     Dealer
-Access:   Dealer dashboard, basic features
+Role:     Dealer Principal
+Access:   Dealer dashboard, full dealership management, staff oversight
 Subscription: Basic tier
 ```
 
@@ -92,9 +83,13 @@ Access:   Vehicle approval, content moderation, user reports
 
 ## 🔗 **LOGIN URLS**
 
-### **Public Authentication**
-- **User Login**: http://localhost:3000/auth/login
-- **User Registration**: http://localhost:3000/auth/register
+### **Public Access (No Login Required)**
+- **Homepage**: http://localhost:3000
+- **Browse Vehicles**: http://localhost:3000/vehicles
+- **Dealer Directory**: http://localhost:3000/dealers
+
+### **Dealer Authentication**
+- **Dealer Login**: http://localhost:3000/dealer/login
 - **Dealer Registration**: http://localhost:3000/dealers/register
 
 ### **Admin Authentication**
@@ -102,11 +97,11 @@ Access:   Vehicle approval, content moderation, user reports
 - **Admin Auth Page**: http://localhost:3000/admin-auth
 
 ### **Dashboard Access** (Post-Login)
-- **User Dashboard**: http://localhost:3000/dashboard
 - **Dealer Dashboard**: http://localhost:3000/dealer/dashboard
 - **Dealer Analytics**: http://localhost:3000/dealer/analytics
 - **Add Vehicle**: http://localhost:3000/dealer/add-vehicle
 - **Admin Panel**: http://localhost:3000/admin
+- **Banner Management**: http://localhost:3000/admin/banners
 
 ---
 
@@ -148,7 +143,7 @@ Admin Email: admin-notifications@cars.na
 ## 🧪 **TESTING SCENARIOS**
 
 ### **User Journey Testing**
-1. **New User Flow**: Register → Browse → Save Vehicle → Contact Dealer
+1. **Anonymous User Flow**: Visit Homepage → Browse Vehicles → View Details → Contact Dealer
 2. **Dealer Flow**: Register → Setup Profile → Add Vehicles → Manage Inquiries
 3. **Admin Flow**: Login → Approve Dealers → Moderate Content → Manage Users
 
@@ -190,7 +185,7 @@ Admin Email: admin-notifications@cars.na
 
 **📝 QUICK COPY-PASTE LOGINS**:
 ```
-User:     test@example.com / password123
+Public:   No login required - browse freely
 Dealer:   dealer@premium-motors.com / dealer123
 Admin:    admin@cars.na / admin123
 ```
