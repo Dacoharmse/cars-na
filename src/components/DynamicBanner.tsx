@@ -116,63 +116,68 @@ export function DynamicBanner({ position, className = '', fallbackContent }: Dyn
 
   return (
     <div className={className}>
-      <div className="rounded-lg overflow-hidden shadow-sm border border-neutral-200 relative">
-        <div
-          className="relative min-h-[200px]"
-          style={{
-            backgroundColor: currentBanner.backgroundColor || '#1F3469'
-          }}
-        >
+      <div className="rounded-lg overflow-hidden shadow-lg border border-neutral-200 relative cursor-pointer group" onClick={() => handleBannerClick(currentBanner)}>
+        <div className="relative h-[250px] sm:h-[300px]">
+          {/* Background Image */}
           {currentBanner.imageUrl && (
             <img
               src={currentBanner.imageUrl}
               alt={currentBanner.title}
-              className="w-full h-full object-cover absolute inset-0"
+              className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
             />
           )}
 
+          {/* Overlay */}
           <div
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0"
             style={{
               backgroundColor: currentBanner.backgroundColor || '#1F3469',
-              opacity: currentBanner.overlayOpacity || 0.5
+              opacity: currentBanner.overlayOpacity || 0.6
             }}
-          >
-            <div className="text-center bg-white/95 p-8 rounded-lg backdrop-blur-sm max-w-md shadow-lg">
+          />
+
+          {/* Content */}
+          <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+            <div className="text-center max-w-2xl">
               <h3
-                className="text-2xl font-bold mb-3"
-                style={{ color: currentBanner.textColor || '#1F3469' }}
+                className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3 drop-shadow-lg"
+                style={{ color: currentBanner.textColor || '#FFFFFF' }}
               >
                 {currentBanner.title}
               </h3>
 
               {currentBanner.subtitle && (
                 <h4
-                  className="text-lg font-semibold mb-3"
-                  style={{ color: currentBanner.textColor || '#1F3469' }}
+                  className="text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4 drop-shadow-md"
+                  style={{ color: currentBanner.textColor || '#FFFFFF' }}
                 >
                   {currentBanner.subtitle}
                 </h4>
               )}
 
               {currentBanner.description && (
-                <p className="text-neutral-700 mb-6 leading-relaxed">
+                <p
+                  className="text-sm sm:text-base mb-4 sm:mb-6 leading-relaxed drop-shadow-md"
+                  style={{ color: currentBanner.textColor || '#FFFFFF' }}
+                >
                   {currentBanner.description}
                 </p>
               )}
 
               {currentBanner.buttonText && currentBanner.linkUrl && (
                 <Button
-                  size="sm"
-                  className="hover:bg-[#3B4F86]"
+                  className="group-hover:scale-105 transition-transform duration-200 shadow-xl"
                   style={{
-                    backgroundColor: currentBanner.textColor || '#1F3469',
-                    color: currentBanner.backgroundColor || '#FFFFFF'
+                    backgroundColor: currentBanner.textColor || '#FFFFFF',
+                    color: currentBanner.backgroundColor || '#1F3469'
                   }}
-                  onClick={() => handleBannerClick(currentBanner)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBannerClick(currentBanner);
+                  }}
                 >
                   {currentBanner.buttonText}
                 </Button>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -1087,7 +1087,7 @@ const BANNERS_DATA = [
     id: 'banner-001',
     title: 'Summer Sale 2024',
     position: 'MAIN',
-    imageUrl: '/banners/summer-sale.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1200&h=600&fit=crop',
     link: '/vehicles?sale=summer',
     status: 'Active',
     startDate: '2024-01-01',
@@ -1101,7 +1101,7 @@ const BANNERS_DATA = [
     id: 'banner-002',
     title: 'New Arrivals - Premium Cars',
     position: 'HERO',
-    imageUrl: '/banners/new-arrivals.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1200&h=600&fit=crop',
     link: '/vehicles?sort=newest',
     status: 'Active',
     startDate: '2024-01-10',
@@ -1115,7 +1115,7 @@ const BANNERS_DATA = [
     id: 'banner-003',
     title: 'Finance Options Available',
     position: 'SIDEBAR',
-    imageUrl: '/banners/finance.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop',
     link: '/financing',
     status: 'Active',
     startDate: '2023-12-01',
@@ -1129,7 +1129,7 @@ const BANNERS_DATA = [
     id: 'banner-004',
     title: 'Dealer Registration Promo',
     position: 'FOOTER',
-    imageUrl: '/banners/dealer-promo.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1562519819-019d3336fe48?w=800&h=600&fit=crop',
     link: '/dealers/register',
     status: 'Scheduled',
     startDate: '2024-02-01',
@@ -1143,7 +1143,7 @@ const BANNERS_DATA = [
     id: 'banner-005',
     title: 'Trade-In Your Old Car',
     position: 'BETWEEN',
-    imageUrl: '/banners/trade-in.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1485291571150-772bcfc10da5?w=1200&h=400&fit=crop',
     link: '/sell',
     status: 'Inactive',
     startDate: '2023-11-01',
@@ -1167,6 +1167,7 @@ const BANNER_STATS = {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -1210,6 +1211,27 @@ export default function AdminDashboard() {
   const [bulkSettingsModalOpen, setBulkSettingsModalOpen] = useState(false);
   const [selectedListings, setSelectedListings] = useState<string[]>([]);
 
+  // Banner management state
+  const [previewBanner, setPreviewBanner] = useState<any>(null);
+  const [editingBanner, setEditingBanner] = useState<any>(null);
+  const [deletingBanner, setDeletingBanner] = useState<any>(null);
+  const [banners, setBanners] = useState<any[]>([]);
+  const [bannerStats, setBannerStats] = useState({
+    totalBanners: 0,
+    activeBanners: 0,
+    scheduledBanners: 0,
+    inactiveBanners: 4,
+    totalClicks: 0,
+    totalImpressions: 0,
+    avgCTR: 0
+  });
+  const [activeAdvertTab, setActiveAdvertTab] = useState('banners'); // 'banners', 'payments', 'analytics'
+
+  // Debug: Log when activeAdvertTab changes
+  useEffect(() => {
+    console.log('Active Advert Tab changed to:', activeAdvertTab);
+  }, [activeAdvertTab]);
+
   // Dealer management functions
   const handleViewDealer = (dealer: any) => {
     setSelectedDealer(dealer);
@@ -1239,6 +1261,65 @@ export default function AdminDashboard() {
     // In a real app, this would make an API call
     console.log('Deleting dealer:', dealerId);
     // Remove the dealer from the system
+  };
+
+  // Banner management functions
+  const fetchBanners = async () => {
+    try {
+      const response = await fetch('/api/admin/banners');
+      if (response.ok) {
+        const data = await response.json();
+        setBanners(data);
+
+        // Calculate stats
+        const activeBanners = data.filter((b: any) => b.isActive).length;
+        const totalClicks = data.reduce((sum: number, b: any) => sum + (b.clicks || 0), 0);
+        const totalImpressions = data.reduce((sum: number, b: any) => sum + (b.impressions || 0), 0);
+        const avgCTR = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(1) : 0;
+
+        setBannerStats({
+          totalBanners: data.length,
+          activeBanners,
+          scheduledBanners: data.filter((b: any) => b.startDate && new Date(b.startDate) > new Date()).length,
+          inactiveBanners: data.filter((b: any) => !b.isActive).length,
+          totalClicks,
+          totalImpressions,
+          avgCTR: parseFloat(avgCTR as string)
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching banners:', error);
+    }
+  };
+
+  const handlePreviewBanner = (banner: any) => {
+    setPreviewBanner(banner);
+  };
+
+  const handleEditBanner = (banner: any) => {
+    setEditingBanner(banner);
+  };
+
+  const handleDeleteBanner = async (banner: any) => {
+    const confirmed = confirm(`Are you sure you want to delete the banner "${banner.title}"?`);
+    if (confirmed) {
+      try {
+        const response = await fetch(`/api/admin/banners/${banner.id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          alert('Banner deleted successfully!');
+          fetchBanners(); // Refresh the list
+        } else {
+          alert('Failed to delete banner');
+        }
+      } catch (error) {
+        console.error('Error deleting banner:', error);
+        alert('An error occurred while deleting the banner');
+      }
+      setDeletingBanner(null);
+    }
   };
 
   // Listing management functions
@@ -1519,15 +1600,34 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    // Check for admin authentication
-    const adminLoggedIn = localStorage.getItem('adminLoggedIn');
-    if (adminLoggedIn === 'true') {
-      setIsAuthenticated(true);
-    } else {
-      router.push('/admin-auth');
+    // Check for admin authentication using NextAuth session
+    if (status === 'loading') {
+      setIsLoading(true);
+      return;
     }
+
+    if (!session) {
+      router.push('/admin/login');
+      return;
+    }
+
+    // Check if user is admin
+    const isAdmin = (session?.user as any)?.role === 'ADMIN' || session?.user?.email === 'admin@cars.na';
+    if (!isAdmin) {
+      router.push('/dealer/login');
+      return;
+    }
+
+    setIsAuthenticated(true);
     setIsLoading(false);
-  }, [router]);
+  }, [session, status, router]);
+
+  // Fetch banners when Advertisements tab is active
+  useEffect(() => {
+    if (isAuthenticated && activeTab === 'advertisements') {
+      fetchBanners();
+    }
+  }, [isAuthenticated, activeTab]);
 
   if (isLoading) {
     return (
@@ -1557,7 +1657,7 @@ export default function AdminDashboard() {
   ];
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/admin-auth' });
+    await signOut({ callbackUrl: '/admin/login' });
   };
 
   const getStatusBadge = (status: string) => {
@@ -2887,28 +2987,82 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Advertisement Management</h2>
                 <div className="flex gap-3">
-                  <Button size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Banner
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export Analytics
-                  </Button>
+                  {activeAdvertTab === 'banners' && (
+                    <Button size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Banner
+                    </Button>
+                  )}
+                  {activeAdvertTab === 'analytics' && (
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export Analytics
+                    </Button>
+                  )}
                 </div>
               </div>
 
-              {/* Banner Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Sub-tabs Navigation */}
+              <div className="border-b border-gray-200">
+                {/* Debug indicator */}
+                <div className="text-xs text-gray-400 px-4 py-1">Current tab: {activeAdvertTab}</div>
+                <nav className="flex gap-6">
+                  <button
+                    onClick={() => setActiveAdvertTab('banners')}
+                    className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeAdvertTab === 'banners'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Image className="h-4 w-4" />
+                      Banner Management
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setActiveAdvertTab('payments')}
+                    className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeAdvertTab === 'payments'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" />
+                      Payments & Subscriptions
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setActiveAdvertTab('analytics')}
+                    className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeAdvertTab === 'analytics'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      Analytics & Reports
+                    </div>
+                  </button>
+                </nav>
+              </div>
+
+              {/* Banners Tab Content */}
+              {activeAdvertTab === 'banners' && (
+                <>
+                  {/* Banner Stats Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Banners</CardTitle>
                     <Image className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{BANNER_STATS.totalBanners}</div>
+                    <div className="text-2xl font-bold">{bannerStats.totalBanners}</div>
                     <p className="text-xs text-muted-foreground">
-                      {BANNER_STATS.activeBanners} active
+                      {bannerStats.activeBanners} active
                     </p>
                   </CardContent>
                 </Card>
@@ -2919,7 +3073,7 @@ export default function AdminDashboard() {
                     <Activity className="h-4 w-4 text-blue-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{BANNER_STATS.totalClicks.toLocaleString()}</div>
+                    <div className="text-2xl font-bold">{bannerStats.totalClicks.toLocaleString()}</div>
                     <p className="text-xs text-blue-600">Last 30 days</p>
                   </CardContent>
                 </Card>
@@ -2930,7 +3084,7 @@ export default function AdminDashboard() {
                     <TrendingUp className="h-4 w-4 text-green-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{BANNER_STATS.totalImpressions.toLocaleString()}</div>
+                    <div className="text-2xl font-bold">{bannerStats.totalImpressions.toLocaleString()}</div>
                     <p className="text-xs text-green-600">+15% from last month</p>
                   </CardContent>
                 </Card>
@@ -2941,164 +3095,568 @@ export default function AdminDashboard() {
                     <BarChart3 className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{BANNER_STATS.avgCTR}%</div>
+                    <div className="text-2xl font-bold">{bannerStats.avgCTR}%</div>
                     <p className="text-xs text-muted-foreground">Click-through rate</p>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Banners Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {BANNERS_DATA.map((banner) => (
+              {/* Banners Grid - Organized by Position */}
+              <div className="space-y-8">
+                {banners.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Image className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                    <p className="text-gray-500">No banners found. Create your first banner to get started!</p>
+                  </div>
+                ) : (
+                  <>
+                    {['HERO', 'MAIN', 'SIDEBAR'].map(position => {
+                      const positionBanners = banners.filter(b => b.position === position);
+                      if (positionBanners.length === 0) return null;
+
+                      const positionInfo: Record<string, {title: string, description: string, page: string}> = {
+                        HERO: {title: 'Hero Banners', description: 'Top banner on Vehicles page', page: '/vehicles'},
+                        MAIN: {title: 'Main Banners', description: 'Main banner on Homepage', page: '/'},
+                        SIDEBAR: {title: 'Sidebar Banners', description: 'Sidebar on Vehicles page (desktop only)', page: '/vehicles'}
+                      };
+
+                      return (
+                        <div key={position}>
+                          <div className="flex items-center justify-between mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900">{positionInfo[position].title}</h3>
+                              <p className="text-sm text-gray-500">
+                                {positionInfo[position].description} • <a href={positionInfo[position].page} target="_blank" className="text-blue-600 hover:underline">View page</a>
+                              </p>
+                            </div>
+                            <Badge variant="outline">{positionBanners.length} banner(s)</Badge>
+                          </div>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {positionBanners.map((banner) => (
                   <Card key={banner.id}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">{banner.title}</CardTitle>
-                        <Badge className={getStatusBadge(banner.status)}>
-                          {banner.status}
+                        <Badge className={banner.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                          {banner.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </div>
-                      <CardDescription>Position: {banner.position}</CardDescription>
+                      <CardDescription>
+                        Fixed Position: {banner.position} •
+                        <span className="text-blue-600"> Change image/content only</span>
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {/* Banner Preview */}
-                      <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                        <div className="text-center text-gray-400">
-                          <Image className="h-12 w-12 mx-auto mb-2" />
-                          <p className="text-sm">Banner Preview</p>
-                          <p className="text-xs">{banner.imageUrl}</p>
-                        </div>
+                      <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                        {banner.imageUrl ? (
+                          <img
+                            src={banner.imageUrl}
+                            alt={banner.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '<div class="flex items-center justify-center h-full text-center text-gray-400"><div><div class="h-12 w-12 mx-auto mb-2 flex items-center justify-center"><svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div><p class="text-sm">Failed to load image</p></div></div>';
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-center text-gray-400">
+                            <div>
+                              <Image className="h-12 w-12 mx-auto mb-2" />
+                              <p className="text-sm">No image available</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Banner Details */}
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <p className="text-gray-500">Link</p>
-                          <p className="font-medium text-blue-600 truncate">{banner.link}</p>
+                          <p className="font-medium text-blue-600 truncate">{banner.linkUrl || 'N/A'}</p>
                         </div>
                         <div>
                           <p className="text-gray-500">Priority</p>
-                          <p className="font-medium">{banner.priority}</p>
+                          <p className="font-medium">{banner.priority || 0}</p>
                         </div>
                         <div>
                           <p className="text-gray-500">Start Date</p>
-                          <p className="font-medium">{new Date(banner.startDate).toLocaleDateString()}</p>
+                          <p className="font-medium">{banner.startDate ? new Date(banner.startDate).toLocaleDateString() : 'N/A'}</p>
                         </div>
                         <div>
                           <p className="text-gray-500">End Date</p>
-                          <p className="font-medium">{new Date(banner.endDate).toLocaleDateString()}</p>
+                          <p className="font-medium">{banner.endDate ? new Date(banner.endDate).toLocaleDateString() : 'N/A'}</p>
                         </div>
                         <div>
                           <p className="text-gray-500">Clicks</p>
-                          <p className="font-medium text-blue-600">{banner.clicks.toLocaleString()}</p>
+                          <p className="font-medium text-blue-600">{(banner.clicks || 0).toLocaleString()}</p>
                         </div>
                         <div>
                           <p className="text-gray-500">Impressions</p>
-                          <p className="font-medium text-green-600">{banner.impressions.toLocaleString()}</p>
+                          <p className="font-medium text-green-600">{(banner.impressions || 0).toLocaleString()}</p>
                         </div>
                       </div>
 
                       {/* Actions */}
                       <div className="flex gap-2 pt-2">
-                        <Button size="sm" variant="outline" className="flex-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handlePreviewBanner(banner)}
+                        >
                           <Eye className="h-4 w-4 mr-2" />
                           Preview
                         </Button>
-                        <Button size="sm" variant="outline" className="flex-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handleEditBanner(banner)}
+                        >
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </Button>
-                        <Button size="sm" variant="outline" className="flex-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeleteBanner(banner)}
+                        >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete
                         </Button>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
               </div>
 
-              {/* Quick Banner Upload Section */}
-              <Card>
+              {/* Banner Management Help */}
+              <Card className="bg-blue-50 border-blue-200">
                 <CardHeader>
-                  <CardTitle>Quick Banner Upload</CardTitle>
-                  <CardDescription>Upload a new banner for the homepage</CardDescription>
+                  <CardTitle className="flex items-center text-blue-900">
+                    <Image className="h-5 w-5 mr-2" />
+                    How to Manage Banners
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Banner Title</label>
-                      <input
-                        type="text"
-                        placeholder="Enter banner title..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Position</label>
-                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="MAIN">Main Homepage Banner</option>
-                        <option value="HERO">Hero Section</option>
-                        <option value="SIDEBAR">Sidebar</option>
-                        <option value="FOOTER">Footer</option>
-                        <option value="BETWEEN">Between Content</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Link URL</label>
-                      <input
-                        type="url"
-                        placeholder="https://..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="10"
-                        placeholder="1-10"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                      <input
-                        type="date"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                      <input
-                        type="date"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Banner Image</label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                      <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                      <p className="text-sm text-gray-600 mb-1">Click to upload or drag and drop</p>
-                      <p className="text-xs text-gray-500">PNG, JPG, WEBP up to 5MB</p>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end gap-3">
-                    <Button variant="outline">Cancel</Button>
-                    <Button>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Banner
-                    </Button>
-                  </div>
+                <CardContent className="text-sm text-blue-800 space-y-2">
+                  <p><strong>1. Edit Existing Banners:</strong> Click the "Edit" button on any banner card above to change its image, title, or link.</p>
+                  <p><strong>2. Preview Changes:</strong> Use the "Preview" button to see how the banner looks before making changes.</p>
+                  <p><strong>3. Toggle Active/Inactive:</strong> Use the status dropdown in edit mode to enable or disable banners.</p>
+                  <p><strong>4. Banner Positions are Fixed:</strong> Each banner slot is tied to a specific location on the website and cannot be moved.</p>
+                  <p className="mt-4 p-3 bg-white rounded border border-blue-300">
+                    <strong>💡 Tip:</strong> Changes take effect immediately on the live site. Always preview your changes before saving!
+                  </p>
                 </CardContent>
               </Card>
+                </>
+              )}
+
+              {/* Payments Tab Content */}
+              {activeAdvertTab === 'payments' && (
+                <div className="space-y-6">
+                  {/* Payment Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                        <CreditCard className="h-4 w-4 text-green-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">$12,450</div>
+                        <p className="text-xs text-green-600">+18% from last month</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Active Subscriptions</CardTitle>
+                        <Users className="h-4 w-4 text-blue-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">8</div>
+                        <p className="text-xs text-muted-foreground">Advertisers paying</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
+                        <Clock className="h-4 w-4 text-orange-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">3</div>
+                        <p className="text-xs text-orange-600">Awaiting payment</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
+                        <AlertCircle className="h-4 w-4 text-red-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">2</div>
+                        <p className="text-xs text-red-600">Within 7 days</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Active Subscriptions Table */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Active Advertisement Subscriptions</CardTitle>
+                      <CardDescription>Manage advertiser subscriptions and payments</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-50 border-b">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Advertiser</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Banner Position</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Plan</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            <tr className="hover:bg-gray-50">
+                              <td className="px-4 py-3">
+                                <div>
+                                  <p className="font-medium text-gray-900">ABC Motors</p>
+                                  <p className="text-sm text-gray-500">contact@abcmotors.com</p>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <Badge>HERO</Badge>
+                              </td>
+                              <td className="px-4 py-3 text-sm">Monthly Premium</td>
+                              <td className="px-4 py-3 text-sm">Jan 1, 2025</td>
+                              <td className="px-4 py-3 text-sm">Jan 31, 2025</td>
+                              <td className="px-4 py-3 text-sm font-semibold">$500/mo</td>
+                              <td className="px-4 py-3">
+                                <Badge className="bg-green-100 text-green-800">Active</Badge>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex gap-2">
+                                  <Button size="sm" variant="outline">View</Button>
+                                  <Button size="sm" variant="outline">Invoice</Button>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50">
+                              <td className="px-4 py-3">
+                                <div>
+                                  <p className="font-medium text-gray-900">XYZ Dealership</p>
+                                  <p className="text-sm text-gray-500">info@xyzdealership.com</p>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <Badge>MAIN</Badge>
+                              </td>
+                              <td className="px-4 py-3 text-sm">Quarterly Standard</td>
+                              <td className="px-4 py-3 text-sm">Dec 15, 2024</td>
+                              <td className="px-4 py-3 text-sm">Mar 15, 2025</td>
+                              <td className="px-4 py-3 text-sm font-semibold">$1,200/qtr</td>
+                              <td className="px-4 py-3">
+                                <Badge className="bg-green-100 text-green-800">Active</Badge>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex gap-2">
+                                  <Button size="sm" variant="outline">View</Button>
+                                  <Button size="sm" variant="outline">Invoice</Button>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50">
+                              <td className="px-4 py-3">
+                                <div>
+                                  <p className="font-medium text-gray-900">Premium Autos Ltd</p>
+                                  <p className="text-sm text-gray-500">sales@premiumautos.com</p>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <Badge>SIDEBAR</Badge>
+                              </td>
+                              <td className="px-4 py-3 text-sm">Monthly Basic</td>
+                              <td className="px-4 py-3 text-sm">Jan 5, 2025</td>
+                              <td className="px-4 py-3 text-sm">Feb 5, 2025</td>
+                              <td className="px-4 py-3 text-sm font-semibold">$200/mo</td>
+                              <td className="px-4 py-3">
+                                <Badge className="bg-yellow-100 text-yellow-800">Expiring Soon</Badge>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex gap-2">
+                                  <Button size="sm" variant="outline">Renew</Button>
+                                  <Button size="sm" variant="outline">Invoice</Button>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Pricing Plans */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Advertisement Pricing Plans</CardTitle>
+                      <CardDescription>Manage subscription tiers and pricing</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="border rounded-lg p-6">
+                          <h3 className="font-semibold text-lg mb-2">Basic Plan</h3>
+                          <p className="text-3xl font-bold mb-4">$200<span className="text-sm text-gray-500">/month</span></p>
+                          <ul className="space-y-2 text-sm mb-4">
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />SIDEBAR position</li>
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Basic analytics</li>
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />1 banner change/month</li>
+                          </ul>
+                          <Button className="w-full" variant="outline">Edit Plan</Button>
+                        </div>
+
+                        <div className="border-2 border-blue-500 rounded-lg p-6">
+                          <div className="flex justify-between items-center mb-2">
+                            <h3 className="font-semibold text-lg">Standard Plan</h3>
+                            <Badge className="bg-blue-100 text-blue-800">Popular</Badge>
+                          </div>
+                          <p className="text-3xl font-bold mb-4">$400<span className="text-sm text-gray-500">/month</span></p>
+                          <ul className="space-y-2 text-sm mb-4">
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />MAIN position</li>
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Advanced analytics</li>
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Unlimited changes</li>
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Priority support</li>
+                          </ul>
+                          <Button className="w-full">Edit Plan</Button>
+                        </div>
+
+                        <div className="border rounded-lg p-6 bg-gradient-to-br from-purple-50 to-blue-50">
+                          <h3 className="font-semibold text-lg mb-2">Premium Plan</h3>
+                          <p className="text-3xl font-bold mb-4">$600<span className="text-sm text-gray-500">/month</span></p>
+                          <ul className="space-y-2 text-sm mb-4">
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />HERO position</li>
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Full analytics suite</li>
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Unlimited changes</li>
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Dedicated account manager</li>
+                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Custom reporting</li>
+                          </ul>
+                          <Button className="w-full" variant="outline">Edit Plan</Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Analytics Tab Content */}
+              {activeAdvertTab === 'analytics' && (
+                <div className="space-y-6">
+                  {/* Analytics Overview */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Impressions</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-blue-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{bannerStats.totalImpressions.toLocaleString()}</div>
+                        <p className="text-xs text-blue-600">Last 30 days</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
+                        <Activity className="h-4 w-4 text-green-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{bannerStats.totalClicks.toLocaleString()}</div>
+                        <p className="text-xs text-green-600">Last 30 days</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Average CTR</CardTitle>
+                        <BarChart3 className="h-4 w-4 text-purple-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{bannerStats.avgCTR}%</div>
+                        <p className="text-xs text-muted-foreground">Click-through rate</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">ROI</CardTitle>
+                        <DollarSign className="h-4 w-4 text-green-500" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">324%</div>
+                        <p className="text-xs text-green-600">Return on investment</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Performance by Position */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Performance by Banner Position</CardTitle>
+                      <CardDescription>Compare performance across different banner slots</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="border-b pb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <h4 className="font-semibold">HERO Position</h4>
+                              <p className="text-sm text-gray-500">Top banner on vehicles page</p>
+                            </div>
+                            <Badge className="bg-green-100 text-green-800">Best CTR</Badge>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 mt-3">
+                            <div>
+                              <p className="text-sm text-gray-500">Impressions</p>
+                              <p className="text-2xl font-bold">45,234</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Clicks</p>
+                              <p className="text-2xl font-bold">4,892</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">CTR</p>
+                              <p className="text-2xl font-bold text-green-600">10.8%</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="border-b pb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <h4 className="font-semibold">MAIN Position</h4>
+                              <p className="text-sm text-gray-500">Main banner on homepage</p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 mt-3">
+                            <div>
+                              <p className="text-sm text-gray-500">Impressions</p>
+                              <p className="text-2xl font-bold">38,567</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Clicks</p>
+                              <p className="text-2xl font-bold">3,534</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">CTR</p>
+                              <p className="text-2xl font-bold text-blue-600">9.2%</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <h4 className="font-semibold">SIDEBAR Position</h4>
+                              <p className="text-sm text-gray-500">Sidebar banner on vehicles page</p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 mt-3">
+                            <div>
+                              <p className="text-sm text-gray-500">Impressions</p>
+                              <p className="text-2xl font-bold">22,145</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Clicks</p>
+                              <p className="text-2xl font-bold">1,508</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">CTR</p>
+                              <p className="text-2xl font-bold text-orange-600">6.8%</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Top Performing Banners */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Top Performing Banners</CardTitle>
+                      <CardDescription>Best performing advertisements this month</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {banners.slice(0, 5).map((banner, index) => (
+                          <div key={banner.id} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div className="flex items-center gap-4">
+                              <div className="text-2xl font-bold text-gray-300">#{index + 1}</div>
+                              <div className="w-24 h-16 bg-gray-100 rounded overflow-hidden">
+                                {banner.imageUrl && (
+                                  <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="font-semibold">{banner.title}</h4>
+                                <p className="text-sm text-gray-500">{banner.position}</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-8 text-center">
+                              <div>
+                                <p className="text-sm text-gray-500">Impressions</p>
+                                <p className="font-semibold">{(banner.impressions || 0).toLocaleString()}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-gray-500">Clicks</p>
+                                <p className="font-semibold">{(banner.clicks || 0).toLocaleString()}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-gray-500">CTR</p>
+                                <p className="font-semibold text-green-600">
+                                  {banner.impressions > 0 ? ((banner.clicks / banner.impressions) * 100).toFixed(1) : 0}%
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Monthly Trends Chart Placeholder */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Performance Trends</CardTitle>
+                      <CardDescription>Banner performance over the last 6 months</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                        <div className="text-center text-gray-500">
+                          <BarChart3 className="h-12 w-12 mx-auto mb-2" />
+                          <p>Performance chart visualization</p>
+                          <p className="text-sm">(Chart library integration coming soon)</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </div>
           )}
 
@@ -6694,6 +7252,246 @@ export default function AdminDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Banner Preview Modal */}
+      {previewBanner && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setPreviewBanner(null)}>
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Banner Preview</h2>
+              <button
+                onClick={() => setPreviewBanner(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">{previewBanner.title}</h3>
+                <Badge className={previewBanner.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                  {previewBanner.isActive ? 'Active' : 'Inactive'}
+                </Badge>
+              </div>
+
+              {/* Banner Image Preview */}
+              <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                {previewBanner.imageUrl ? (
+                  <img
+                    src={previewBanner.imageUrl}
+                    alt={previewBanner.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-center text-gray-400">
+                    <div>
+                      <Image className="h-12 w-12 mx-auto mb-2" />
+                      <p className="text-sm">No image available</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Banner Details */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm text-gray-500">Position</p>
+                  <p className="font-medium">{previewBanner.position}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Priority</p>
+                  <p className="font-medium">{previewBanner.priority || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Link URL</p>
+                  <p className="font-medium text-blue-600 truncate">{previewBanner.linkUrl || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="font-medium">{previewBanner.isActive ? 'Active' : 'Inactive'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Start Date</p>
+                  <p className="font-medium">{previewBanner.startDate ? new Date(previewBanner.startDate).toLocaleDateString() : 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">End Date</p>
+                  <p className="font-medium">{previewBanner.endDate ? new Date(previewBanner.endDate).toLocaleDateString() : 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Clicks</p>
+                  <p className="font-medium text-blue-600">{(previewBanner.clicks || 0).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Impressions</p>
+                  <p className="font-medium text-green-600">{(previewBanner.impressions || 0).toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setPreviewBanner(null)}
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setEditingBanner(previewBanner);
+                    setPreviewBanner(null);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Banner
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Banner Edit Modal */}
+      {editingBanner && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setEditingBanner(null)}>
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Edit Banner</h2>
+              <button
+                onClick={() => setEditingBanner(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Banner Title</label>
+                <Input
+                  value={editingBanner.title}
+                  onChange={(e) => setEditingBanner({...editingBanner, title: e.target.value})}
+                  placeholder="Enter banner title"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Position</label>
+                <div className="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2 text-gray-600">
+                  {editingBanner.position} (Fixed)
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Banner position cannot be changed. This slot is fixed on the website.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
+                <Input
+                  value={editingBanner.imageUrl}
+                  onChange={(e) => setEditingBanner({...editingBanner, imageUrl: e.target.value})}
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Link URL</label>
+                <Input
+                  value={editingBanner.linkUrl || ''}
+                  onChange={(e) => setEditingBanner({...editingBanner, linkUrl: e.target.value})}
+                  placeholder="/vehicles"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                  <Input
+                    type="number"
+                    value={editingBanner.priority || 0}
+                    onChange={(e) => setEditingBanner({...editingBanner, priority: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <select
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    value={editingBanner.isActive ? 'active' : 'inactive'}
+                    onChange={(e) => setEditingBanner({...editingBanner, isActive: e.target.value === 'active'})}
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Banner Size Info */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
+                  <Image className="h-4 w-4 mr-2" />
+                  Recommended Banner Sizes & Formats
+                </h4>
+                <div className="text-xs text-blue-800 space-y-1">
+                  <p><strong>HERO:</strong> 1200x600px (2:1 ratio) - Full width banner</p>
+                  <p><strong>MAIN:</strong> 1200x600px (2:1 ratio) - Full width banner</p>
+                  <p><strong>SIDEBAR:</strong> 800x600px (4:3 ratio) - Vertical banner</p>
+                  <p className="mt-2"><strong>Formats:</strong> JPG, PNG, WebP • Max size: 2MB • Use high-quality images</p>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingBanner(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch(`/api/admin/banners/${editingBanner.id}`, {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          title: editingBanner.title,
+                          subtitle: editingBanner.subtitle,
+                          description: editingBanner.description,
+                          imageUrl: editingBanner.imageUrl,
+                          linkUrl: editingBanner.linkUrl,
+                          buttonText: editingBanner.buttonText,
+                          isActive: editingBanner.isActive,
+                          position: editingBanner.position,
+                          priority: editingBanner.priority,
+                          startDate: editingBanner.startDate,
+                          endDate: editingBanner.endDate,
+                          backgroundColor: editingBanner.backgroundColor,
+                          textColor: editingBanner.textColor,
+                          overlayOpacity: editingBanner.overlayOpacity
+                        }),
+                      });
+
+                      if (response.ok) {
+                        alert('Banner updated successfully! Changes will appear on the site immediately.');
+                        setEditingBanner(null);
+                        fetchBanners(); // Refresh the list
+                      } else {
+                        alert('Failed to update banner. Please try again.');
+                      }
+                    } catch (error) {
+                      console.error('Error updating banner:', error);
+                      alert('An error occurred while updating the banner.');
+                    }
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -151,9 +151,9 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-25'),
     dealershipId: 'premium-motors-id',
     images: [
-      { id: 'img-1-1', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWYyOTM3Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyOCIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+TWVyY2VkZXMtQmVueg==', isPrimary: true },
-      { id: 'img-1-2', url: 'https://via.placeholder.com/800x600/374151/ffffff?text=Mercedes+Interior', isPrimary: false },
-      { id: 'img-1-3', url: 'https://via.placeholder.com/800x600/4b5563/ffffff?text=Mercedes+Side+View', isPrimary: false },
+      { id: 'img-1-1', url: 'https://placehold.co/800x600/1f2937/ffffff?text=Mercedes-Benz+E-Class', isPrimary: true },
+      { id: 'img-1-2', url: 'https://placehold.co/800x600/374151/ffffff?text=Mercedes+Interior', isPrimary: false },
+      { id: 'img-1-3', url: 'https://placehold.co/800x600/4b5563/ffffff?text=Mercedes+Side+View', isPrimary: false },
     ],
   },
   {
@@ -179,9 +179,9 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-20'),
     dealershipId: 'premium-motors-id',
     images: [
-      { id: 'img-2-1', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWUzYThhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMiIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Qk1XIFg1PC90ZXh0Pjwvc3ZnPg==', isPrimary: true },
-      { id: 'img-2-2', url: 'https://via.placeholder.com/800x600/1e40af/ffffff?text=BMW+Interior', isPrimary: false },
-      { id: 'img-2-3', url: 'https://via.placeholder.com/800x600/3730a3/ffffff?text=BMW+Side+View', isPrimary: false },
+      { id: 'img-2-1', url: 'https://placehold.co/800x600/1e3a8a/ffffff?text=BMW+X5', isPrimary: true },
+      { id: 'img-2-2', url: 'https://placehold.co/800x600/1e40af/ffffff?text=BMW+Interior', isPrimary: false },
+      { id: 'img-2-3', url: 'https://placehold.co/800x600/3730a3/ffffff?text=BMW+Side+View', isPrimary: false },
     ],
   },
   {
@@ -207,8 +207,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-15'),
     dealershipId: 'premium-motors-id',
     images: [
-      { id: 'img-3-1', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjN2MyZDEyIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMiIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+QXVkaSBBNDwvdGV4dD48L3N2Zz4=', isPrimary: true },
-      { id: 'img-3-2', url: 'https://via.placeholder.com/800x600/92400e/ffffff?text=Audi+Interior', isPrimary: false },
+      { id: 'img-3-1', url: 'https://placehold.co/800x600/7c2d12/ffffff?text=Audi+A4', isPrimary: true },
+      { id: 'img-3-2', url: 'https://placehold.co/800x600/92400e/ffffff?text=Audi+Interior', isPrimary: false },
     ],
   },
 
@@ -236,8 +236,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-10'),
     dealershipId: 'city-cars-namibia-id',
     images: [
-      { id: 'img-4-1', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGMyNjI2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMiIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+VG95b3RhPC90ZXh0Pjwvc3ZnPg==', isPrimary: true },
-      { id: 'img-4-2', url: 'https://via.placeholder.com/800x600/b91c1c/ffffff?text=Toyota+Interior', isPrimary: false },
+      { id: 'img-4-1', url: 'https://placehold.co/800x600/dc2626/ffffff?text=Toyota+Corolla', isPrimary: true },
+      { id: 'img-4-2', url: 'https://placehold.co/800x600/b91c1c/ffffff?text=Toyota+Interior', isPrimary: false },
     ],
   },
   {
@@ -263,8 +263,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-05'),
     dealershipId: 'city-cars-namibia-id',
     images: [
-      { id: 'img-5-1', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMDU5NjY5Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMiIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+SG9uZGE8L3RleHQ+PC9zdmc+', isPrimary: true },
-      { id: 'img-5-2', url: 'https://via.placeholder.com/800x600/047857/ffffff?text=Honda+Interior', isPrimary: false },
+      { id: 'img-5-1', url: 'https://placehold.co/800x600/059669/ffffff?text=Honda+CR-V', isPrimary: true },
+      { id: 'img-5-2', url: 'https://placehold.co/800x600/047857/ffffff?text=Honda+Interior', isPrimary: false },
     ],
   },
 
@@ -292,8 +292,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-07-30'),
     dealershipId: 'auto-palace-id',
     images: [
-      { id: 'img-6-1', url: 'https://via.placeholder.com/800x600/0f766e/ffffff?text=Ford+Ranger+3.2+XLT', isPrimary: true },
-      { id: 'img-6-2', url: 'https://via.placeholder.com/800x600/0d9488/ffffff?text=Ford+Interior', isPrimary: false },
+      { id: 'img-6-1', url: 'https://placehold.co/800x600/0f766e/ffffff?text=Ford+Ranger+3.2+XLT', isPrimary: true },
+      { id: 'img-6-2', url: 'https://placehold.co/800x600/0d9488/ffffff?text=Ford+Interior', isPrimary: false },
     ],
   },
   {
@@ -319,8 +319,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-01'),
     dealershipId: 'auto-palace-id',
     images: [
-      { id: 'img-7-1', url: 'https://via.placeholder.com/800x600/ea580c/ffffff?text=Toyota+Hilux+2.8+GD-6', isPrimary: true },
-      { id: 'img-7-2', url: 'https://via.placeholder.com/800x600/c2410c/ffffff?text=Toyota+Interior', isPrimary: false },
+      { id: 'img-7-1', url: 'https://placehold.co/800x600/ea580c/ffffff?text=Toyota+Hilux+2.8+GD-6', isPrimary: true },
+      { id: 'img-7-2', url: 'https://placehold.co/800x600/c2410c/ffffff?text=Toyota+Interior', isPrimary: false },
     ],
   },
 
@@ -348,8 +348,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-22'),
     dealershipId: 'elite-autos-id',
     images: [
-      { id: 'img-8-1', url: 'https://via.placeholder.com/800x600/7c3aed/ffffff?text=BMW+M3+Competition', isPrimary: true },
-      { id: 'img-8-2', url: 'https://via.placeholder.com/800x600/6d28d9/ffffff?text=BMW+Interior', isPrimary: false },
+      { id: 'img-8-1', url: 'https://placehold.co/800x600/7c3aed/ffffff?text=BMW+M3+Competition', isPrimary: true },
+      { id: 'img-8-2', url: 'https://placehold.co/800x600/6d28d9/ffffff?text=BMW+Interior', isPrimary: false },
     ],
   },
   {
@@ -375,8 +375,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-18'),
     dealershipId: 'elite-autos-id',
     images: [
-      { id: 'img-9-1', url: 'https://via.placeholder.com/800x600/ef4444/ffffff?text=Porsche+911+Carrera+S', isPrimary: true },
-      { id: 'img-9-2', url: 'https://via.placeholder.com/800x600/dc2626/ffffff?text=Porsche+Interior', isPrimary: false },
+      { id: 'img-9-1', url: 'https://placehold.co/800x600/ef4444/ffffff?text=Porsche+911+Carrera+S', isPrimary: true },
+      { id: 'img-9-2', url: 'https://placehold.co/800x600/dc2626/ffffff?text=Porsche+Interior', isPrimary: false },
     ],
   },
 
@@ -404,8 +404,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-25'),
     dealershipId: 'namibia-motors-id',
     images: [
-      { id: 'img-10-1', url: 'https://via.placeholder.com/800x600/6366f1/ffffff?text=Car+Image', isPrimary: true },
-      { id: 'img-10-2', url: 'https://via.placeholder.com/800x600/8b5cf6/ffffff?text=Vehicle+Photo', isPrimary: false },
+      { id: 'img-10-1', url: 'https://placehold.co/800x600/6366f1/ffffff?text=Car+Image', isPrimary: true },
+      { id: 'img-10-2', url: 'https://placehold.co/800x600/8b5cf6/ffffff?text=Vehicle+Photo', isPrimary: false },
     ],
   },
   {
@@ -431,8 +431,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-12'),
     dealershipId: 'namibia-motors-id',
     images: [
-      { id: 'img-11-1', url: 'https://via.placeholder.com/800x600/f59e0b/ffffff?text=Auto+Photo', isPrimary: true },
-      { id: 'img-11-2', url: 'https://via.placeholder.com/800x600/10b981/ffffff?text=Car+View', isPrimary: false },
+      { id: 'img-11-1', url: 'https://placehold.co/800x600/f59e0b/ffffff?text=Auto+Photo', isPrimary: true },
+      { id: 'img-11-2', url: 'https://placehold.co/800x600/10b981/ffffff?text=Car+View', isPrimary: false },
     ],
   },
   {
@@ -458,8 +458,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-08'),
     dealershipId: 'namibia-motors-id',
     images: [
-      { id: 'img-12-1', url: 'https://via.placeholder.com/800x600/ef4444/ffffff?text=Vehicle+Image', isPrimary: true },
-      { id: 'img-12-2', url: 'https://via.placeholder.com/800x600/6366f1/ffffff?text=Car+Image', isPrimary: false },
+      { id: 'img-12-1', url: 'https://placehold.co/800x600/ef4444/ffffff?text=Vehicle+Image', isPrimary: true },
+      { id: 'img-12-2', url: 'https://placehold.co/800x600/6366f1/ffffff?text=Car+Image', isPrimary: false },
     ],
   },
   {
@@ -485,8 +485,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-07-28'),
     dealershipId: 'namibia-motors-id',
     images: [
-      { id: 'img-13-1', url: 'https://via.placeholder.com/800x600/8b5cf6/ffffff?text=Vehicle+Photo', isPrimary: true },
-      { id: 'img-13-2', url: 'https://via.placeholder.com/800x600/10b981/ffffff?text=Car+View', isPrimary: false },
+      { id: 'img-13-1', url: 'https://placehold.co/800x600/8b5cf6/ffffff?text=Vehicle+Photo', isPrimary: true },
+      { id: 'img-13-2', url: 'https://placehold.co/800x600/10b981/ffffff?text=Car+View', isPrimary: false },
     ],
   },
   {
@@ -512,8 +512,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
     updatedAt: new Date('2024-08-20'),
     dealershipId: 'namibia-motors-id',
     images: [
-      { id: 'img-14-1', url: 'https://via.placeholder.com/800x600/f59e0b/ffffff?text=Auto+Photo', isPrimary: true },
-      { id: 'img-14-2', url: 'https://via.placeholder.com/800x600/ef4444/ffffff?text=Vehicle+Image', isPrimary: false },
+      { id: 'img-14-1', url: 'https://placehold.co/800x600/f59e0b/ffffff?text=Auto+Photo', isPrimary: true },
+      { id: 'img-14-2', url: 'https://placehold.co/800x600/ef4444/ffffff?text=Vehicle+Image', isPrimary: false },
     ],
   },
 ];

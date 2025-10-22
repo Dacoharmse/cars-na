@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
@@ -421,13 +420,12 @@ export default function VehicleDetailPage() {
               {/* Main Image */}
               <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
                 <div className="relative h-96 lg:h-[500px] bg-gray-100">
-                  <Image
+                  <img
                     src={images[currentImageIndex]?.url || ''}
                     alt={`${vehicle.make} ${vehicle.model}`}
-                    fill
-                    className="object-cover"
+                    className="w-full h-full object-cover"
                   />
-                  
+
                   {images.length > 1 && (
                     <>
                       <button
@@ -461,16 +459,14 @@ export default function VehicleDetailPage() {
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
                         className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                          index === currentImageIndex 
-                            ? 'border-[#CB2030] ring-2 ring-[#CB2030]/20' 
+                          index === currentImageIndex
+                            ? 'border-[#CB2030] ring-2 ring-[#CB2030]/20'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        <Image
+                        <img
                           src={image.url}
                           alt={`View ${index + 1}`}
-                          width={100}
-                          height={100}
                           className="object-cover w-full h-full"
                         />
                       </button>
@@ -936,11 +932,9 @@ export default function VehicleDetailPage() {
                     {getFilteredSimilarCars().map((car) => (
                       <div key={car.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group">
                         <div className="w-16 h-12 bg-gray-200 rounded overflow-hidden">
-                          <Image
+                          <img
                             src={car.image}
                             alt={`${car.year} ${car.make} ${car.model}`}
-                            width={64}
-                            height={48}
                             className="object-cover w-full h-full"
                           />
                         </div>

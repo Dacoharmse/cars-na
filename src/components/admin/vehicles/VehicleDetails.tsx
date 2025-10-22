@@ -567,7 +567,7 @@ export default function VehicleDetails({ vehicle, onClose, onUpdate, onAction }:
                     <div>
                       <div className="relative">
                         <img
-                          src={vehicle.images[selectedImageIndex]?.url || '/placeholder-car.jpg'}
+                          src={vehicle.images[selectedImageIndex]?.url || 'https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'}
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                           className="w-full h-96 object-cover rounded-lg"
                         />

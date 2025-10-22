@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { Card, CardContent } from '@/components/ui/Card';
 import { VehicleCard } from '@/components/examples/VehicleCard';
+import { DynamicBanner } from '@/components/DynamicBanner';
 import { api } from '@/lib/api';
 
 export default function VehiclesPage() {
@@ -131,11 +132,16 @@ export default function VehiclesPage() {
             {dealerParam ? getDealershipDisplayName(dealerParam) : 'Browse Vehicles'}
           </h1>
           <p className="text-neutral-600">
-            {dealerParam 
-              ? `Premium vehicles from ${getDealershipDisplayName(dealerParam).replace(' Inventory', '')}` 
+            {dealerParam
+              ? `Premium vehicles from ${getDealershipDisplayName(dealerParam).replace(' Inventory', '')}`
               : 'Find your perfect car from our extensive inventory'
             }
           </p>
+        </div>
+
+        {/* Top Banner Advertisement */}
+        <div className="mb-8">
+          <DynamicBanner position="HERO" />
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -242,6 +248,11 @@ export default function VehiclesPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Sidebar Banner Advertisement */}
+            <div className="mt-6 hidden lg:block">
+              <DynamicBanner position="SIDEBAR" />
+            </div>
           </div>
 
           {/* Main Content */}
@@ -324,7 +335,7 @@ export default function VehiclesPage() {
                     year={vehicle.year}
                     price={vehicle.price}
                     mileage={vehicle.mileage}
-                    imageUrl={vehicle.images?.[0]?.url || '/placeholder-car.jpg'}
+                    imageUrl={vehicle.images?.[0]?.url || 'https://placehold.co/800x600/e5e7eb/6b7280?text=Car+Image'}
                     exteriorColor={vehicle.color}
                     transmission={vehicle.transmission}
                     fuelType={vehicle.fuelType}

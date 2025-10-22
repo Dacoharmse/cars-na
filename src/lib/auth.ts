@@ -13,8 +13,8 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   pages: {
-    signIn: "/admin-auth",
-    error: "/admin-auth",
+    signIn: "/dealer/login",
+    error: "/dealer/login",
   },
   providers: [
     CredentialsProvider({

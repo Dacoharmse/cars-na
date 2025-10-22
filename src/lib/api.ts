@@ -3,9 +3,10 @@
  * This is a mock implementation to avoid tRPC setup issues during development
  */
 
-import { 
-  getVehiclesWithDealership, 
-  filterVehicles, 
+import React from 'react';
+import {
+  getVehiclesWithDealership,
+  filterVehicles,
   getVehicleById as getMockVehicleById,
   getVehiclesByDealership,
   getFeaturedVehicles,
@@ -29,7 +30,7 @@ const transformVehicleForShowcase = (vehicle: any) => ({
   transmission: vehicle.transmission,
   fuelType: vehicle.fuelType,
   color: vehicle.color,
-  image: vehicle.images?.find(img => img.isPrimary)?.url || vehicle.images?.[0]?.url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTVlN2ViIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzZiNzI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Q2FyIEltYWdlPC90ZXh0Pjwvc3ZnPg==',
+  image: vehicle.images?.find((img: any) => img.isPrimary)?.url || vehicle.images?.[0]?.url || 'https://placehold.co/800x600/e5e7eb/6b7280?text=Car+Image',
   dealer: vehicle.dealership?.name || 'Unknown Dealer',
   location: vehicle.dealership?.city || 'Namibia',
   isNew: vehicle.isNew,
@@ -38,45 +39,66 @@ const transformVehicleForShowcase = (vehicle: any) => ({
   popularityRank: vehicle.viewCount
 });
 
-// Mock API client that returns comprehensive demo data
+// Mock API client that fetches from real database via API routes
 export const api = {
   vehicle: {
     getAll: {
       useQuery: (params: any, options?: any) => {
-        const { limit = 20, filters } = params || {};
-        
-        // Apply filters if provided
-        const filteredVehicles = filters ? filterVehicles({
-          make: filters.make,
-          model: filters.model,
-          minYear: filters.minYear,
-          maxYear: filters.maxYear,
-          minPrice: filters.minPrice,
-          maxPrice: filters.maxPrice,
-          minMileage: filters.minMileage,
-          maxMileage: filters.maxMileage,
-          dealershipId: filters.dealershipId,
-          search: filters.search,
-          location: filters.location,
-          featured: filters.featured,
-          dealerPick: filters.dealerPick,
-          hasDiscount: filters.hasDiscount,
-          isNew: filters.isNew,
-          sortBy: filters.sortBy,
-        }) : mockVehicles;
+        const [data, setData] = React.useState<any>(null);
+        const [isLoading, setIsLoading] = React.useState(true);
+        const [error, setError] = React.useState<Error | null>(null);
 
-        // Limit results (filtering function already handles sorting)
-        const limitedVehicles = filteredVehicles.slice(0, limit);
+        const fetchVehicles = React.useCallback(async () => {
+          try {
+            setIsLoading(true);
+            const { limit = 20, filters = {} } = params || {};
+
+            // Build query string
+            const queryParams = new URLSearchParams();
+            queryParams.set('limit', limit.toString());
+
+            if (filters.make) queryParams.set('make', filters.make);
+            if (filters.minPrice) queryParams.set('minPrice', filters.minPrice.toString());
+            if (filters.maxPrice) queryParams.set('maxPrice', filters.maxPrice.toString());
+            if (filters.minYear) queryParams.set('minYear', filters.minYear.toString());
+            if (filters.maxYear) queryParams.set('maxYear', filters.maxYear.toString());
+            if (filters.maxMileage) queryParams.set('maxMileage', filters.maxMileage.toString());
+            if (filters.dealershipId) queryParams.set('dealershipId', filters.dealershipId);
+            if (filters.search) queryParams.set('search', filters.search);
+            if (filters.location) queryParams.set('location', filters.location);
+            if (filters.featured) queryParams.set('featured', 'true');
+            if (filters.dealerPick) queryParams.set('dealerPick', 'true');
+            if (filters.hasDiscount) queryParams.set('hasDiscount', 'true');
+            if (filters.isNew !== undefined) queryParams.set('isNew', filters.isNew.toString());
+            if (filters.sortBy) queryParams.set('sortBy', filters.sortBy);
+
+            const response = await fetch(`/api/vehicles?${queryParams.toString()}`);
+
+            if (!response.ok) {
+              throw new Error(`Failed to fetch vehicles: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            setData(result);
+            setError(null);
+          } catch (err) {
+            console.error('Error fetching vehicles:', err);
+            setError(err instanceof Error ? err : new Error('Unknown error'));
+            setData(null);
+          } finally {
+            setIsLoading(false);
+          }
+        }, [JSON.stringify(params)]);
+
+        React.useEffect(() => {
+          fetchVehicles();
+        }, [fetchVehicles]);
 
         return {
-          data: { 
-            items: limitedVehicles, 
-            nextCursor: limitedVehicles.length === limit ? limitedVehicles[limitedVehicles.length - 1]?.id : undefined,
-            total: filteredVehicles.length 
-          },
-          isLoading: false,
-          error: null,
-          refetch: () => Promise.resolve()
+          data,
+          isLoading,
+          error,
+          refetch: fetchVehicles
         };
       }
     },

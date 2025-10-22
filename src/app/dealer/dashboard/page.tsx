@@ -418,13 +418,12 @@ export default function DealerDashboard() {
   const vehicles = vehicleData?.items || [];
   const leads = leadData?.leads || [];
 
-  // Redirect if not authenticated (disabled for development)
+  // Redirect if not authenticated
   useEffect(() => {
     if (status === 'loading') return;
-    // Temporarily disabled for development testing
-    // if (!session) {
-    //   router.push('/auth/login?callbackUrl=/dealer/dashboard');
-    // }
+    if (!session) {
+      router.push('/dealer/login?callbackUrl=/dealer/dashboard');
+    }
   }, [session, status, router]);
 
   // Helper functions
@@ -939,7 +938,7 @@ export default function DealerDashboard() {
                         <div key={vehicle.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex items-center gap-3">
                             <img 
-                              src={vehicle.images?.[0]?.url || '/placeholder-car.jpg'} 
+                              src={vehicle.images?.[0]?.url || 'https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'} 
                               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                               className="w-12 h-12 rounded-lg object-cover"
                             />

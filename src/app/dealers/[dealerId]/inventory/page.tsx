@@ -73,7 +73,7 @@ const MOCK_VEHICLES = [
     fuelType: 'Petrol',
     color: 'Alpine White',
     description: 'Luxury SUV in excellent condition with full service history.',
-    images: ['/placeholder-car.jpg'],
+    images: ['https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'],
     featured: true,
     status: 'available'
   },
@@ -88,7 +88,7 @@ const MOCK_VEHICLES = [
     fuelType: 'Petrol',
     color: 'Obsidian Black',
     description: 'Executive sedan with premium features and leather interior.',
-    images: ['/placeholder-car.jpg'],
+    images: ['https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'],
     featured: false,
     status: 'available'
   },
@@ -103,7 +103,7 @@ const MOCK_VEHICLES = [
     fuelType: 'Diesel',
     color: 'Glacier White',
     description: 'Well-maintained sedan perfect for business and leisure.',
-    images: ['/placeholder-car.jpg'],
+    images: ['https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'],
     featured: true,
     status: 'available'
   },
@@ -118,7 +118,7 @@ const MOCK_VEHICLES = [
     fuelType: 'Petrol',
     color: 'Mineral Grey',
     description: 'Latest model with cutting-edge technology and performance.',
-    images: ['/placeholder-car.jpg'],
+    images: ['https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'],
     featured: true,
     status: 'available'
   }
@@ -295,7 +295,7 @@ export default function DealerInventoryPage() {
                       {/* Vehicle Image */}
                       <div className="relative aspect-video bg-gray-200 rounded-t-lg overflow-hidden">
                         <img
-                          src={vehicle.images[0] || '/placeholder-car.jpg'}
+                          src={vehicle.images[0] || 'https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'}
                           alt={`${vehicle.make} ${vehicle.model}`}
                           className="w-full h-full object-cover"
                         />

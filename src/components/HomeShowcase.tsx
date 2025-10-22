@@ -537,7 +537,7 @@ const transformVehicle = (apiVehicle: any): Vehicle => ({
   transmission: apiVehicle.transmission,
   fuelType: apiVehicle.fuelType,
   color: apiVehicle.color,
-  image: apiVehicle.images?.[0]?.url || '/placeholder-car.jpg',
+  image: apiVehicle.images?.[0]?.url || 'https://placehold.co/800x600/e5e7eb/6b7280?text=Car+Image',
   dealer: apiVehicle.dealership?.name || 'Unknown Dealer',
   location: apiVehicle.dealership?.city || 'Unknown Location',
   isNew: apiVehicle.status === 'NEW',

@@ -550,7 +550,7 @@ export default function VehicleList({ onVehicleSelect, onVehicleAction }: Vehicl
                         <div className="flex-shrink-0 h-12 w-12">
                           <img
                             className="h-12 w-12 rounded-lg object-cover"
-                            src={vehicle.images[0]?.url || '/placeholder-car.jpg'}
+                            src={vehicle.images[0]?.url || 'https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'}
                             alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                           />
                         </div>

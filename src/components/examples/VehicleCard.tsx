@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Card, CardContent, CardFooter } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -68,14 +67,13 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     <Card className="h-full hover:shadow-lg transition-shadow duration-200 overflow-hidden group">
       {/* Image */}
       <Link href={`/vehicles/${id}`}>
-        <div className="relative h-48 bg-gray-100 cursor-pointer">
-          <Image
+        <div className="relative h-48 bg-gray-100 cursor-pointer overflow-hidden">
+          <img
             src={imageUrl}
             alt={`${year} ${make} ${model}`}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-200"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
           />
-          
+
           {/* Status Badge */}
           {status && status !== 'AVAILABLE' && (
             <div className="absolute top-3 left-3">
