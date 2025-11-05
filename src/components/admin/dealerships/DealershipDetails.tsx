@@ -30,9 +30,11 @@ import {
   Eye,
   Shield,
   Download,
-  Send
+  Send,
+  Settings
 } from 'lucide-react';
 import { DealershipData, DealershipStatus } from './DealershipList';
+import { NotificationDialog } from './NotificationDialog';
 
 interface DealershipDetailsProps {
   dealership: DealershipData;
@@ -44,6 +46,7 @@ export function DealershipDetails({ dealership, isOpen, onClose }: DealershipDet
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(dealership);
+  const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -253,13 +256,19 @@ export function DealershipDetails({ dealership, isOpen, onClose }: DealershipDet
   };
 
   const handleSendNotification = () => {
-    // In real app, this would open a notification composer
-    console.log('Send notification to:', dealership.email);
+    setIsNotificationDialogOpen(true);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-[90vh] flex flex-col">
+    <>
+      <NotificationDialog
+        dealership={dealership}
+        isOpen={isNotificationDialogOpen}
+        onClose={() => setIsNotificationDialogOpen(false)}
+      />
+
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-4">
@@ -934,6 +943,7 @@ export function DealershipDetails({ dealership, isOpen, onClose }: DealershipDet
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

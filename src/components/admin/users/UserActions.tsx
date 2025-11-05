@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { trpc } from '@/lib/trpc';
+import { api } from '@/lib/api';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -41,7 +41,7 @@ export function UserActions({ isOpen, userIds, onClose, onSuccess }: UserActions
   const [newPassword, setNewPassword] = useState('');
 
   // Fetch user details for the selected users
-  const { data: users, isLoading } = trpc.user.getAll.useQuery(
+  const { data: users, isLoading } = api.user.getAll.useQuery(
     {
       page: 1,
       limit: 100
@@ -53,7 +53,7 @@ export function UserActions({ isOpen, userIds, onClose, onSuccess }: UserActions
   );
 
   // Bulk action mutation
-  const bulkActionMutation = trpc.user.bulkAction.useMutation({
+  const bulkActionMutation = api.user.bulkAction.useMutation({
     onSuccess: () => {
       onSuccess();
       onClose();
@@ -65,7 +65,7 @@ export function UserActions({ isOpen, userIds, onClose, onSuccess }: UserActions
   });
 
   // Individual action mutations
-  const suspendMutation = trpc.user.suspend.useMutation({
+  const suspendMutation = api.user.suspend.useMutation({
     onSuccess: () => {
       onSuccess();
       onClose();
@@ -73,7 +73,7 @@ export function UserActions({ isOpen, userIds, onClose, onSuccess }: UserActions
     }
   });
 
-  const activateMutation = trpc.user.activate.useMutation({
+  const activateMutation = api.user.activate.useMutation({
     onSuccess: () => {
       onSuccess();
       onClose();
@@ -81,7 +81,7 @@ export function UserActions({ isOpen, userIds, onClose, onSuccess }: UserActions
     }
   });
 
-  const resetPasswordMutation = trpc.user.resetPassword.useMutation({
+  const resetPasswordMutation = api.user.resetPassword.useMutation({
     onSuccess: () => {
       onSuccess();
       onClose();

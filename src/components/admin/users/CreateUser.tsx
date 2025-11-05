@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { trpc } from '@/lib/trpc';
+import { api } from '@/lib/api';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -70,13 +70,13 @@ export function CreateUser({ isOpen, onClose, onSuccess }: CreateUserProps) {
   const [currentStep, setCurrentStep] = useState(1);
 
   // Fetch dealerships for dropdown
-  const { data: dealerships } = trpc.dealership.getAll.useQuery(
+  const { data: dealerships } = api.dealership.getAll.useQuery(
     undefined,
     { enabled: isOpen }
   );
 
   // Create user mutation
-  const createUserMutation = trpc.user.create.useMutation({
+  const createUserMutation = api.user.create.useMutation({
     onSuccess: () => {
       onSuccess();
       onClose();

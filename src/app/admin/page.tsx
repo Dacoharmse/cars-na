@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/Badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Textarea } from '@/components/ui/Textarea';
+import { NotificationPanel } from '@/components/admin/NotificationPanel';
 import {
   Users,
   Building2,
@@ -1185,6 +1186,60 @@ export default function AdminDashboard() {
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
   const [userRoleFilter, setUserRoleFilter] = useState('all');
   const [userStatusFilter, setUserStatusFilter] = useState('all');
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [dealers, setDealers] = useState(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      const savedDealers = localStorage.getItem('admin_dealers_data');
+      if (savedDealers) {
+        try {
+          return JSON.parse(savedDealers);
+        } catch (e) {
+          console.error('Failed to parse saved dealers data:', e);
+        }
+      }
+    }
+    return DEALERS_DATA;
+  });
+  const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
+  const [suspendingDealerId, setSuspendingDealerId] = useState<string | null>(null);
+  const [suspensionReason, setSuspensionReason] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingDealerId, setDeletingDealerId] = useState<string | null>(null);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [approveAllPendingDialogOpen, setApproveAllPendingDialogOpen] = useState(false);
+  const [suspendingUser, setSuspendingUser] = useState<any>(null);
+  const [suspendReason, setSuspendReason] = useState<string>('');
+  const [activatingUser, setActivatingUser] = useState<any>(null);
+  const [users, setUsers] = useState(RECENT_USERS);
+  const [listings, setListings] = useState(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      const savedListings = localStorage.getItem('admin_listings_data');
+      if (savedListings) {
+        try {
+          return JSON.parse(savedListings);
+        } catch (e) {
+          console.error('Failed to parse saved listings data:', e);
+        }
+      }
+    }
+    return VEHICLE_LISTINGS;
+  });
+
+  // Persist dealers data to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('admin_dealers_data', JSON.stringify(dealers));
+    }
+  }, [dealers]);
+
+  // Persist listings data to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('admin_listings_data', JSON.stringify(listings));
+    }
+  }, [listings]);
 
   // Newsletter modal state
   const [newsletterModalOpen, setNewsletterModalOpen] = useState(false);
@@ -1252,15 +1307,255 @@ export default function AdminDashboard() {
   };
 
   const handleSuspendDealer = (dealerId: string) => {
-    // In a real app, this would make an API call
-    console.log('Suspending dealer:', dealerId);
-    // Update the dealer's status to 'Suspended'
+    setSuspendingDealerId(dealerId);
+    setSuspensionReason('');
+    setSuspendDialogOpen(true);
+  };
+
+  const confirmSuspendDealer = async () => {
+    if (!suspendingDealerId) return;
+
+    try {
+      const response = await fetch(`/api/admin/dealerships/${suspendingDealerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'suspend',
+          status: 'SUSPENDED',
+          reason: suspensionReason || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update the dealers state
+        setDealers(prevDealers =>
+          prevDealers.map(dealer =>
+            dealer.id === suspendingDealerId
+              ? { ...dealer, status: 'Suspended' }
+              : dealer
+          )
+        );
+        setSuspendDialogOpen(false);
+        setSuspendingDealerId(null);
+        setSuspensionReason('');
+      } else {
+        alert(`Failed to suspend dealer: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error suspending dealer:', error);
+      alert('An error occurred while suspending the dealer.');
+    }
   };
 
   const handleDeleteDealer = (dealerId: string) => {
-    // In a real app, this would make an API call
-    console.log('Deleting dealer:', dealerId);
-    // Remove the dealer from the system
+    setDeletingDealerId(dealerId);
+    setDeleteReason('');
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteDealer = async () => {
+    if (!deletingDealerId || !deleteReason.trim()) {
+      alert('Deletion reason is required.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/dealerships/${deletingDealerId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Remove the dealer from state
+        setDealers(prevDealers =>
+          prevDealers.filter(dealer => dealer.id !== deletingDealerId)
+        );
+        setDeleteDialogOpen(false);
+        setDeletingDealerId(null);
+        setDeleteReason('');
+      } else {
+        alert(`Failed to delete dealer: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting dealer:', error);
+      alert('An error occurred while deleting the dealer.');
+    }
+  };
+
+  const handleReactivateDealer = async (dealerId: string) => {
+    try {
+      const response = await fetch(`/api/admin/dealerships/${dealerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'reactivate',
+          status: 'APPROVED',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update the dealers state
+        setDealers(prevDealers =>
+          prevDealers.map(dealer =>
+            dealer.id === dealerId
+              ? { ...dealer, status: 'Active' }
+              : dealer
+          )
+        );
+      } else {
+        alert(`Failed to reactivate dealer: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error reactivating dealer:', error);
+      alert('An error occurred while reactivating the dealer.');
+    }
+  };
+
+  // User management functions
+  const handleEditUser = (user: any) => {
+    setEditingUser(user);
+  };
+
+  const handleSuspendUser = (user: any) => {
+    setSuspendingUser(user);
+  };
+
+  const handleActivateUser = (user: any) => {
+    setActivatingUser(user);
+  };
+
+  const confirmSuspendUser = async () => {
+    if (suspendingUser) {
+      // Update the user's status to 'Suspended'
+      setUsers(prevUsers =>
+        prevUsers.map(u =>
+          u.id === suspendingUser.id
+            ? { ...u, status: 'Suspended' }
+            : u
+        )
+      );
+
+      // Send email notification about user suspension via API
+      try {
+        const response = await fetch('/api/admin/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'user_suspended',
+            userData: {
+              name: suspendingUser.name,
+              email: suspendingUser.email,
+              id: suspendingUser.id
+            },
+            adminName: 'System Administrator',
+            reason: suspendReason || 'No reason provided'
+          })
+        });
+
+        if (response.ok) {
+          console.log('User suspended and notification sent:', suspendingUser.name);
+        }
+      } catch (error) {
+        console.error('Failed to send suspension notification:', error);
+      }
+
+      setSuspendingUser(null);
+      setSuspendReason('');
+    }
+  };
+
+  const confirmActivateUser = async () => {
+    if (activatingUser) {
+      // Update the user's status to 'Active'
+      setUsers(prevUsers =>
+        prevUsers.map(u =>
+          u.id === activatingUser.id
+            ? { ...u, status: 'Active' }
+            : u
+        )
+      );
+
+      // Send email notification about user reactivation via API
+      try {
+        const response = await fetch('/api/admin/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'user_reactivated',
+            userData: {
+              name: activatingUser.name,
+              email: activatingUser.email,
+              id: activatingUser.id
+            },
+            adminName: 'System Administrator'
+          })
+        });
+
+        if (response.ok) {
+          console.log('User activated and notification sent:', activatingUser.name);
+        }
+      } catch (error) {
+        console.error('Failed to send reactivation notification:', error);
+      }
+
+      setActivatingUser(null);
+    }
+  };
+
+  const saveUserEdit = async () => {
+    if (editingUser) {
+      const isNewUser = !users.find(u => u.id === editingUser.id);
+
+      // Update the user information
+      setUsers(prevUsers => {
+        const existingUser = prevUsers.find(u => u.id === editingUser.id);
+        if (existingUser) {
+          return prevUsers.map(u =>
+            u.id === editingUser.id ? editingUser : u
+          );
+        } else {
+          return [...prevUsers, editingUser];
+        }
+      });
+
+      // Send email notifications for new user creation via API
+      if (isNewUser) {
+        try {
+          const response = await fetch('/api/admin/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'user_created',
+              userData: {
+                name: editingUser.name,
+                email: editingUser.email,
+                id: editingUser.id
+              },
+              adminName: 'System Administrator'
+            })
+          });
+
+          if (response.ok) {
+            console.log('New user created and welcome email sent:', editingUser.name);
+          }
+        } catch (error) {
+          console.error('Failed to send welcome email:', error);
+        }
+      } else {
+        console.log('User updated:', editingUser.name);
+      }
+
+      setEditingUser(null);
+    }
   };
 
   // Banner management functions
@@ -1328,28 +1623,234 @@ export default function AdminDashboard() {
     setListingModalOpen(true);
   };
 
-  const handleApproveListing = (listingId: string) => {
-    // In a real app, this would make an API call
-    console.log('Approving listing:', listingId);
-    // Update the listing's status to 'Approved'
+  const handleApproveListing = async (listingId: string) => {
+    const listing = listings.find(l => l.id === listingId);
+    if (!listing) return;
+
+    setListings(prevListings =>
+      prevListings.map(l =>
+        l.id === listingId
+          ? { ...l, listingStatus: 'Approved', status: 'Active' }
+          : l
+      )
+    );
+
+    // Send email notification via API
+    try {
+      await fetch('/api/admin/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'listing_approved',
+          listingData: {
+            dealerEmail: listing.dealerContact,
+            dealerName: listing.dealerName,
+            title: listing.title,
+            make: listing.make,
+            model: listing.model,
+            year: listing.year,
+            price: listing.price
+          }
+        })
+      });
+    } catch (error) {
+      console.error('Failed to send approval email:', error);
+    }
   };
 
-  const handleRejectListing = (listingId: string) => {
-    // In a real app, this would make an API call
-    console.log('Rejecting listing:', listingId);
-    // Update the listing's status to 'Rejected'
+  const handleRejectListing = async (listingId: string) => {
+    const listing = listings.find(l => l.id === listingId);
+    if (!listing) return;
+
+    setListings(prevListings =>
+      prevListings.map(l =>
+        l.id === listingId
+          ? { ...l, listingStatus: 'Rejected', status: 'Inactive' }
+          : l
+      )
+    );
+
+    // Send email notification via API
+    try {
+      await fetch('/api/admin/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'listing_rejected',
+          listingData: {
+            dealerEmail: listing.dealerContact,
+            dealerName: listing.dealerName,
+            title: listing.title,
+            make: listing.make,
+            model: listing.model,
+            year: listing.year,
+            price: listing.price
+          }
+        })
+      });
+    } catch (error) {
+      console.error('Failed to send rejection email:', error);
+    }
   };
 
   const handleFeatureListing = (listingId: string) => {
-    // In a real app, this would make an API call
-    console.log('Featuring listing:', listingId);
-    // Toggle the featured status of the listing
+    setListings(prevListings =>
+      prevListings.map(listing =>
+        listing.id === listingId
+          ? { ...listing, featured: !listing.featured }
+          : listing
+      )
+    );
   };
 
-  const handleRemoveListing = (listingId: string) => {
-    // In a real app, this would make an API call
-    console.log('Removing listing:', listingId);
-    // Remove the listing from the platform
+  const handleSuspendListing = async (listingId: string) => {
+    const listing = listings.find(l => l.id === listingId);
+    if (!listing) return;
+
+    setListings(prevListings =>
+      prevListings.map(l =>
+        l.id === listingId
+          ? { ...l, status: 'Suspended', listingStatus: 'Suspended' }
+          : l
+      )
+    );
+
+    // Send email notification via API
+    try {
+      await fetch('/api/admin/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'listing_suspended',
+          listingData: {
+            dealerEmail: listing.dealerContact,
+            dealerName: listing.dealerName,
+            title: listing.title,
+            make: listing.make,
+            model: listing.model,
+            year: listing.year,
+            price: listing.price
+          }
+        })
+      });
+    } catch (error) {
+      console.error('Failed to send suspension email:', error);
+    }
+  };
+
+  const handleReactivateListing = async (listingId: string) => {
+    const listing = listings.find(l => l.id === listingId);
+    if (!listing) return;
+
+    setListings(prevListings =>
+      prevListings.map(l =>
+        l.id === listingId
+          ? { ...l, status: 'Active', listingStatus: 'Approved' }
+          : l
+      )
+    );
+
+    // Send email notification via API
+    try {
+      await fetch('/api/admin/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'listing_reactivated',
+          listingData: {
+            dealerEmail: listing.dealerContact,
+            dealerName: listing.dealerName,
+            title: listing.title,
+            make: listing.make,
+            model: listing.model,
+            year: listing.year,
+            price: listing.price
+          }
+        })
+      });
+    } catch (error) {
+      console.error('Failed to send reactivation email:', error);
+    }
+  };
+
+  const handlePutUnderReview = async (listingId: string) => {
+    const listing = listings.find(l => l.id === listingId);
+    if (!listing) return;
+
+    setListings(prevListings =>
+      prevListings.map(l =>
+        l.id === listingId
+          ? { ...l, listingStatus: 'Under Review', status: 'Active' }
+          : l
+      )
+    );
+
+    // Send email notification via API
+    try {
+      await fetch('/api/admin/notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'listing_under_review',
+          listingData: {
+            dealerEmail: listing.dealerContact,
+            dealerName: listing.dealerName,
+            title: listing.title,
+            make: listing.make,
+            model: listing.model,
+            year: listing.year,
+            price: listing.price
+          }
+        })
+      });
+    } catch (error) {
+      console.error('Failed to send under review email:', error);
+    }
+  };
+
+  const handleRemoveListing = async (listingId: string) => {
+    const listing = listings.find(l => l.id === listingId);
+    if (!listing) return;
+
+    if (confirm('Are you sure you want to permanently remove this listing?')) {
+      setListings(prevListings =>
+        prevListings.filter(l => l.id !== listingId)
+      );
+
+      // Send email notification via API
+      try {
+        await fetch('/api/admin/notify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'listing_deleted',
+            listingData: {
+              dealerEmail: listing.dealerContact,
+              dealerName: listing.dealerName,
+              title: listing.title,
+              make: listing.make,
+              model: listing.model,
+              year: listing.year,
+              price: listing.price
+            }
+          })
+        });
+      } catch (error) {
+        console.error('Failed to send deletion email:', error);
+      }
+    }
   };
 
   // Moderation management functions
@@ -1397,7 +1898,7 @@ export default function AdminDashboard() {
 
     try {
       // Filter recipients based on selected filter
-      const recipients = DEALERS_DATA.filter(dealer => {
+      const recipients = dealers.filter(dealer => {
         if (recipientFilter === 'all') return true;
         if (recipientFilter === 'active') return dealer.status === 'Active';
         if (recipientFilter === 'pending') return dealer.verificationStatus === 'Pending';
@@ -1487,7 +1988,7 @@ export default function AdminDashboard() {
   };
 
   const selectAllPayments = () => {
-    const filteredDealers = DEALERS_DATA.filter(dealer => {
+    const filteredDealers = dealers.filter(dealer => {
       if (paymentFilter === 'pending') return dealer.subscriptionStatus === 'Pending';
       if (paymentFilter === 'overdue') return dealer.subscriptionStatus === 'Overdue';
       return true;
@@ -1564,12 +2065,48 @@ export default function AdminDashboard() {
 
   // Bulk actions handlers for listings
   const handleApproveAllPending = () => {
-    const confirmed = confirm('Are you sure you want to approve all pending listings?');
-    if (confirmed) {
-      // In a real app, this would make an API call
-      console.log('Approving all pending listings...');
-      alert('All pending listings have been approved!');
+    setApproveAllPendingDialogOpen(true);
+  };
+
+  const confirmApproveAllPending = async () => {
+    const pendingListings = listings.filter(l => l.listingStatus === 'Pending');
+
+    // Update all pending listings to approved
+    setListings(prevListings =>
+      prevListings.map(l =>
+        l.listingStatus === 'Pending'
+          ? { ...l, listingStatus: 'Approved', status: 'Active' }
+          : l
+      )
+    );
+
+    // Send email notifications to all affected dealers
+    for (const listing of pendingListings) {
+      try {
+        await fetch('/api/admin/notify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'listing_approved',
+            listingData: {
+              dealerEmail: listing.dealerContact,
+              dealerName: listing.dealerName,
+              title: listing.title,
+              make: listing.make,
+              model: listing.model,
+              year: listing.year,
+              price: listing.price
+            }
+          })
+        });
+      } catch (error) {
+        console.error(`Failed to send approval email for listing ${listing.id}:`, error);
+      }
     }
+
+    setApproveAllPendingDialogOpen(false);
   };
 
   const handleManageFeatured = () => {
@@ -1757,10 +2294,7 @@ export default function AdminDashboard() {
                     className="pl-10 w-64"
                   />
                 </div>
-                <Button variant="outline" size="sm">
-                  <Bell className="h-4 w-4 mr-2" />
-                  Notifications
-                </Button>
+                <NotificationPanel />
               </div>
             </div>
           </div>
@@ -2292,7 +2826,7 @@ export default function AdminDashboard() {
                     Filter
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => {
-                    const csvContent = RECENT_USERS.map(u => `${u.name},${u.email},${u.role},${u.status},${u.joinedAt}`).join('\n');
+                    const csvContent = users.map(u => `${u.name},${u.email},${u.role},${u.status},${u.joinedAt}`).join('\n');
                     const blob = new Blob([`Name,Email,Role,Status,Joined\n${csvContent}`], { type: 'text/csv' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -2368,7 +2902,7 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {RECENT_USERS
+                        {users
                           .filter(user => userRoleFilter === 'all' || user.role === userRoleFilter)
                           .filter(user => userStatusFilter === 'all' || user.status === userStatusFilter)
                           .map((user) => (
@@ -2389,8 +2923,12 @@ export default function AdminDashboard() {
                               {new Date(user.joinedAt).toLocaleDateString()}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <Button variant="ghost" size="sm">Edit</Button>
-                              <Button variant="ghost" size="sm" className="text-red-600">Suspend</Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>Edit</Button>
+                              {user.status === 'Active' ? (
+                                <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleSuspendUser(user)}>Suspend</Button>
+                              ) : (
+                                <Button variant="ghost" size="sm" className="text-green-600" onClick={() => handleActivateUser(user)}>Activate</Button>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -2435,10 +2973,25 @@ export default function AdminDashboard() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="User">User</option>
                       <option value="Dealer">Dealer</option>
                       <option value="Admin">Admin</option>
+                      <option value="Sales Executive">Sales Executive</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Dealership <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="">Select a dealership</option>
+                      {dealers.map((dealer) => (
+                        <option key={dealer.id} value={dealer.id}>{dealer.name}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">All users must be assigned to a dealership</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
@@ -2463,6 +3016,129 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          )}
+
+          {/* Edit User Modal */}
+          {editingUser && (
+            <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit User</DialogTitle>
+                  <DialogDescription>Update user information</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <Input
+                      value={editingUser.name}
+                      onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <Input
+                      type="email"
+                      value={editingUser.email}
+                      onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <select
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      value={editingUser.role}
+                      onChange={(e) => setEditingUser({...editingUser, role: e.target.value})}
+                    >
+                      <option value="Dealer">Dealer</option>
+                      <option value="Admin">Admin</option>
+                      <option value="Sales Executive">Sales Executive</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Dealership <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      value={editingUser.dealershipId || ''}
+                      onChange={(e) => setEditingUser({...editingUser, dealershipId: e.target.value})}
+                      required
+                    >
+                      <option value="">Select a dealership</option>
+                      {dealers.map((dealer) => (
+                        <option key={dealer.id} value={dealer.id}>{dealer.name}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">All users must be assigned to a dealership</p>
+                  </div>
+                </div>
+                <DialogFooter className="mt-4 gap-2">
+                  <Button variant="outline" onClick={() => setEditingUser(null)}>Cancel</Button>
+                  <Button onClick={saveUserEdit}>Save Changes</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {/* Suspend User Modal */}
+          {suspendingUser && (
+            <Dialog open={!!suspendingUser} onOpenChange={() => setSuspendingUser(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Suspend User</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to suspend {suspendingUser.name}? They will not be able to access their account until reactivated.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Reason for suspension (optional)</label>
+                    <Textarea
+                      value={suspendReason}
+                      onChange={(e) => setSuspendReason(e.target.value)}
+                      placeholder="Enter reason for suspension..."
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-row justify-end gap-3 mt-6 pt-4 border-t border-gray-200" style={{ marginTop: '24px', paddingTop: '16px' }}>
+                  <button
+                    onClick={() => setSuspendingUser(null)}
+                    className="px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 font-medium text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmSuspendUser}
+                    className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 font-medium text-sm inline-flex items-center"
+                  >
+                    <Ban className="h-4 w-4 mr-2" />
+                    Suspend User
+                  </button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {/* Activate User Modal */}
+          {activatingUser && (
+            <Dialog open={!!activatingUser} onOpenChange={() => setActivatingUser(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Activate User</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to activate {activatingUser.name}? They will regain access to their account.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="mt-4 gap-2">
+                  <Button variant="outline" onClick={() => setActivatingUser(null)}>Cancel</Button>
+                  <Button onClick={confirmActivateUser} className="bg-green-600 hover:bg-green-700">
+                    <UserCheck className="h-4 w-4 mr-2" />
+                    Activate User
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           )}
 
           {/* Dealers Tab */}
@@ -2500,7 +3176,7 @@ export default function AdminDashboard() {
                     <Users className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{DEALERS_DATA.length}</div>
+                    <div className="text-2xl font-bold">{dealers.length}</div>
                     <p className="text-xs text-green-600 flex items-center">
                       <ArrowUpRight className="h-3 w-3 mr-1" />
                       +12% from last month
@@ -2515,10 +3191,10 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {DEALERS_DATA.filter(d => d.status === 'Active').length}
+                      {dealers.filter(d => d.status === 'Active').length}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {Math.round((DEALERS_DATA.filter(d => d.status === 'Active').length / DEALERS_DATA.length) * 100)}% of total
+                      {Math.round((dealers.filter(d => d.status === 'Active').length / dealers.length) * 100)}% of total
                     </p>
                   </CardContent>
                 </Card>
@@ -2530,7 +3206,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {DEALERS_DATA.filter(d => d.verificationStatus === 'Pending').length}
+                      {dealers.filter(d => d.verificationStatus === 'Pending').length}
                     </div>
                     <p className="text-xs text-yellow-600">Requires attention</p>
                   </CardContent>
@@ -2543,7 +3219,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      N${DEALERS_DATA.reduce((sum, dealer) => sum + dealer.monthlyFee, 0).toLocaleString()}
+                      N${dealers.reduce((sum, dealer) => sum + dealer.monthlyFee, 0).toLocaleString()}
                     </div>
                     <p className="text-xs text-green-600 flex items-center">
                       <ArrowUpRight className="h-3 w-3 mr-1" />
@@ -2571,7 +3247,7 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {DEALERS_DATA
+                        {dealers
                           .filter(dealer =>
                             dealer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             dealer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -2662,6 +3338,17 @@ export default function AdminDashboard() {
                                     title="Suspend Dealer"
                                   >
                                     <AlertTriangle className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {dealer.status === 'Suspended' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-green-600 hover:text-green-800"
+                                    onClick={() => handleReactivateDealer(dealer.id)}
+                                    title="Reactivate Dealer"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
                                   </Button>
                                 )}
                                 <Button
@@ -2756,7 +3443,7 @@ export default function AdminDashboard() {
                     <Car className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{VEHICLE_LISTINGS.length}</div>
+                    <div className="text-2xl font-bold">{listings.length}</div>
                     <p className="text-xs text-green-600 flex items-center">
                       <ArrowUpRight className="h-3 w-3 mr-1" />
                       +8% from last month
@@ -2771,10 +3458,10 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {VEHICLE_LISTINGS.filter(l => l.status === 'Active').length}
+                      {listings.filter(l => l.status === 'Active').length}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {Math.round((VEHICLE_LISTINGS.filter(l => l.status === 'Active').length / VEHICLE_LISTINGS.length) * 100)}% of total
+                      {Math.round((listings.filter(l => l.status === 'Active').length / listings.length) * 100)}% of total
                     </p>
                   </CardContent>
                 </Card>
@@ -2786,7 +3473,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {VEHICLE_LISTINGS.filter(l => l.listingStatus === 'Pending').length}
+                      {listings.filter(l => l.listingStatus === 'Pending').length}
                     </div>
                     <p className="text-xs text-yellow-600">Awaiting approval</p>
                   </CardContent>
@@ -2799,7 +3486,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {VEHICLE_LISTINGS.filter(l => l.featured).length}
+                      {listings.filter(l => l.featured).length}
                     </div>
                     <p className="text-xs text-blue-600">Premium placements</p>
                   </CardContent>
@@ -2823,7 +3510,7 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {VEHICLE_LISTINGS
+                        {listings
                           .filter(listing =>
                             listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             listing.dealerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -2907,24 +3594,83 @@ export default function AdminDashboard() {
                                     <CheckCircle className="h-4 w-4" />
                                   </Button>
                                 )}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className={listing.featured ? "text-yellow-600 hover:text-yellow-800" : "text-gray-600 hover:text-gray-800"}
-                                  onClick={() => handleFeatureListing(listing.id)}
-                                  title={listing.featured ? "Remove Feature" : "Feature Listing"}
-                                >
-                                  <Star className={`h-4 w-4 ${listing.featured ? 'fill-current' : ''}`} />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-red-600 hover:text-red-800"
-                                  onClick={() => handleRemoveListing(listing.id)}
-                                  title="Remove Listing"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
+                                {listing.listingStatus === 'Under Review' && (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-green-600 hover:text-green-800"
+                                      onClick={() => handleApproveListing(listing.id)}
+                                      title="Approve Listing"
+                                    >
+                                      <CheckCircle className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-red-600 hover:text-red-800"
+                                      onClick={() => handleRemoveListing(listing.id)}
+                                      title="Delete Listing"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
+                                {listing.listingStatus === 'Approved' && (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className={listing.featured ? "text-yellow-600 hover:text-yellow-800" : "text-gray-600 hover:text-gray-800"}
+                                      onClick={() => handleFeatureListing(listing.id)}
+                                      title={listing.featured ? "Remove Feature" : "Feature Listing"}
+                                    >
+                                      <Star className={`h-4 w-4 ${listing.featured ? 'fill-current' : ''}`} />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-purple-600 hover:text-purple-800"
+                                      onClick={() => handlePutUnderReview(listing.id)}
+                                      title="Put Under Review"
+                                    >
+                                      <AlertCircle className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
+                                {listing.status === 'Active' && listing.listingStatus !== 'Suspended' && listing.listingStatus !== 'Under Review' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-orange-600 hover:text-orange-800"
+                                    onClick={() => handleSuspendListing(listing.id)}
+                                    title="Suspend Listing"
+                                  >
+                                    <Ban className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {(listing.status === 'Suspended' || listing.listingStatus === 'Suspended') && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-green-600 hover:text-green-800"
+                                    onClick={() => handleReactivateListing(listing.id)}
+                                    title="Reactivate Listing"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {listing.listingStatus !== 'Under Review' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-800"
+                                    onClick={() => handleRemoveListing(listing.id)}
+                                    title="Remove Listing"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -6136,6 +6882,19 @@ export default function AdminDashboard() {
                     Suspend
                   </Button>
                 )}
+                {selectedDealer.status === 'Suspended' && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      handleReactivateDealer(selectedDealer.id);
+                      setDealerModalOpen(false);
+                    }}
+                    className="border-green-300 text-green-600 hover:bg-green-50"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Reactivate
+                  </Button>
+                )}
               </div>
               <Button variant="outline" onClick={() => setDealerModalOpen(false)}>
                 Close
@@ -6930,7 +7689,7 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {DEALERS_DATA
+                  {dealers
                     .filter(dealer => {
                       if (paymentFilter === 'pending') return dealer.subscriptionStatus === 'Pending';
                       if (paymentFilter === 'overdue') return dealer.subscriptionStatus === 'Overdue';
@@ -7185,12 +7944,12 @@ export default function AdminDashboard() {
                 onChange={(e) => setRecipientFilter(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">All Dealers ({DEALERS_DATA.length})</option>
+                <option value="all">All Dealers ({dealers.length})</option>
                 <option value="active">
-                  Active Dealers ({DEALERS_DATA.filter(d => d.status === 'Active').length})
+                  Active Dealers ({dealers.filter(d => d.status === 'Active').length})
                 </option>
                 <option value="pending">
-                  Pending Dealers ({DEALERS_DATA.filter(d => d.verificationStatus === 'Pending').length})
+                  Pending Dealers ({dealers.filter(d => d.verificationStatus === 'Pending').length})
                 </option>
               </select>
             </div>
@@ -7221,9 +7980,9 @@ export default function AdminDashboard() {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
                 <strong>Preview:</strong> This newsletter will be sent to{' '}
-                {recipientFilter === 'all' && DEALERS_DATA.length}
-                {recipientFilter === 'active' && DEALERS_DATA.filter(d => d.status === 'Active').length}
-                {recipientFilter === 'pending' && DEALERS_DATA.filter(d => d.verificationStatus === 'Pending').length}
+                {recipientFilter === 'all' && dealers.length}
+                {recipientFilter === 'active' && dealers.filter(d => d.status === 'Active').length}
+                {recipientFilter === 'pending' && dealers.filter(d => d.verificationStatus === 'Pending').length}
                 {' '}dealers via email.
               </p>
             </div>
@@ -7492,6 +8251,145 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Suspend Dealer Dialog */}
+      <Dialog open={suspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suspend Dealer</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to suspend this dealer? Their listings will be hidden from public view.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Reason for suspension (optional)
+              </label>
+              <Textarea
+                value={suspensionReason}
+                onChange={(e) => setSuspensionReason(e.target.value)}
+                placeholder="Enter reason for suspension..."
+                rows={3}
+                className="w-full"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSuspendDialogOpen(false);
+                setSuspendingDealerId(null);
+                setSuspensionReason('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmSuspendDealer}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              Suspend Dealer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dealer Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Delete Dealer</DialogTitle>
+            <DialogDescription>
+              <div className="space-y-2">
+                <p className="font-semibold">⚠️ WARNING: This action cannot be undone!</p>
+                <p>This will permanently delete the dealer and all associated data including:</p>
+                <ul className="list-disc list-inside text-sm">
+                  <li>All vehicle listings</li>
+                  <li>Customer leads and messages</li>
+                  <li>Payment history</li>
+                  <li>Analytics data</li>
+                </ul>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Reason for deletion (REQUIRED) <span className="text-red-600">*</span>
+              </label>
+              <Textarea
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                placeholder="Enter reason for deletion..."
+                rows={3}
+                className="w-full"
+                required
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setDeletingDealerId(null);
+                setDeleteReason('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteDealer}
+              disabled={!deleteReason.trim()}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Delete Permanently
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approve All Pending Dialog */}
+      <Dialog open={approveAllPendingDialogOpen} onOpenChange={setApproveAllPendingDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve All Pending Listings</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to approve all pending listings? This will:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            <ul className="list-disc list-inside space-y-2 text-sm text-gray-600">
+              <li>Set all pending listings to &quot;Approved&quot; status</li>
+              <li>Make them visible to the public</li>
+              <li>Send approval notification emails to all affected dealers</li>
+              <li>
+                Approve{' '}
+                <span className="font-semibold text-gray-900">
+                  {listings.filter(l => l.listingStatus === 'Pending').length}
+                </span>
+                {' '}pending listing(s)
+              </li>
+            </ul>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setApproveAllPendingDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmApproveAllPending}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Approve All
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

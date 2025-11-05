@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { trpc } from '@/lib/trpc';
+import { api } from '@/lib/api';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -79,22 +79,22 @@ export function UserDetails({ isOpen, userId, onClose, onSuccess }: UserDetailsP
     isLoading,
     error,
     refetch
-  } = trpc.user.getById.useQuery(
+  } = api.user.getById.useQuery(
     { id: userId },
     { enabled: isOpen && !!userId }
   );
 
   // Fetch dealerships for dropdown
-  const { data: dealerships } = trpc.dealership.getAll.useQuery();
+  const { data: dealerships } = api.dealership.getAll.useQuery();
 
   // Fetch user audit logs
-  const { data: auditLogs } = trpc.user.getAuditLogs.useQuery(
+  const { data: auditLogs } = api.user.getAuditLogs.useQuery(
     { userId, limit: 20 },
     { enabled: isOpen && !!userId }
   );
 
   // Update user mutation
-  const updateUserMutation = trpc.user.update.useMutation({
+  const updateUserMutation = api.user.update.useMutation({
     onSuccess: () => {
       refetch();
       onSuccess();
@@ -106,7 +106,7 @@ export function UserDetails({ isOpen, userId, onClose, onSuccess }: UserDetailsP
   });
 
   // Reset password mutation
-  const resetPasswordMutation = trpc.user.resetPassword.useMutation({
+  const resetPasswordMutation = api.user.resetPassword.useMutation({
     onSuccess: () => {
       setNewPassword('');
       setConfirmPassword('');
@@ -118,7 +118,7 @@ export function UserDetails({ isOpen, userId, onClose, onSuccess }: UserDetailsP
   });
 
   // Suspend user mutation
-  const suspendUserMutation = trpc.user.suspend.useMutation({
+  const suspendUserMutation = api.user.suspend.useMutation({
     onSuccess: () => {
       refetch();
       onSuccess();
@@ -129,7 +129,7 @@ export function UserDetails({ isOpen, userId, onClose, onSuccess }: UserDetailsP
   });
 
   // Activate user mutation
-  const activateUserMutation = trpc.user.activate.useMutation({
+  const activateUserMutation = api.user.activate.useMutation({
     onSuccess: () => {
       refetch();
       onSuccess();

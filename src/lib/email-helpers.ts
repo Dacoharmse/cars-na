@@ -116,6 +116,35 @@ export async function sendNewsletterEmail(
   }
 }
 
+export async function sendCustomNotificationEmail(
+  recipientEmail: string,
+  recipientName: string,
+  subject: string,
+  message: string
+) {
+  try {
+    const userData: UserData = {
+      name: recipientName,
+      email: recipientEmail
+    };
+
+    const content = {
+      subject: subject,
+      headline: subject,
+      message: message.replace(/\n/g, '<br/>'),
+      ctaText: 'Visit Cars.na',
+      ctaUrl: process.env.NEXTAUTH_URL || 'http://localhost:3000'
+    };
+
+    const result = await emailService.sendNewsletterEmail(userData, content);
+    console.log(`Custom notification sent to ${recipientEmail}:`, result);
+    return result;
+  } catch (error) {
+    console.error('Failed to send custom notification:', error);
+    return false;
+  }
+}
+
 // Admin notification emails
 export async function sendAdminNotificationEmail(
   subject: string,
@@ -294,4 +323,263 @@ export function extractUserDataFromDatabase(user: any): UserData {
     id: user.id || '',
     dealershipName: user.dealership?.name
   };
+}
+
+// Listing action notification emails
+export async function sendListingApprovedEmail(
+  dealerEmail: string,
+  dealerName: string,
+  listingData: {
+    title: string;
+    make: string;
+    model: string;
+    year: number;
+    price: number;
+  }
+) {
+  try {
+    const userData: UserData = {
+      name: dealerName,
+      email: dealerEmail
+    };
+
+    const content = {
+      subject: `Vehicle Listing Approved: ${listingData.year} ${listingData.make} ${listingData.model}`,
+      headline: '✅ Your Listing Has Been Approved!',
+      message: `
+        <p>Great news! Your vehicle listing has been approved and is now live on Cars.na.</p>
+        <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin: 20px 0;">
+          <h3 style="color: #059669; margin-top: 0;">Listing Details</h3>
+          <p><strong>Vehicle:</strong> ${listingData.year} ${listingData.make} ${listingData.model}</p>
+          <p><strong>Price:</strong> N$${listingData.price.toLocaleString()}</p>
+          <p style="margin-bottom: 0;"><strong>Status:</strong> <span style="color: #10b981;">Active</span></p>
+        </div>
+        <p>Your listing is now visible to thousands of potential buyers. You can manage your listing from your dealer dashboard.</p>
+      `,
+      ctaText: 'View My Listings',
+      ctaUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/dealer/dashboard`
+    };
+
+    const result = await emailService.sendNewsletterEmail(userData, content);
+    console.log(`Listing approved email sent to ${dealerEmail}:`, result);
+    return result;
+  } catch (error) {
+    console.error('Failed to send listing approved email:', error);
+    return false;
+  }
+}
+
+export async function sendListingRejectedEmail(
+  dealerEmail: string,
+  dealerName: string,
+  listingData: {
+    title: string;
+    make: string;
+    model: string;
+    year: number;
+    price: number;
+  }
+) {
+  try {
+    const userData: UserData = {
+      name: dealerName,
+      email: dealerEmail
+    };
+
+    const content = {
+      subject: `Vehicle Listing Rejected: ${listingData.year} ${listingData.make} ${listingData.model}`,
+      headline: '❌ Listing Rejected',
+      message: `
+        <p>We regret to inform you that your vehicle listing has been rejected.</p>
+        <div style="background: #fef2f2; padding: 20px; border-radius: 8px; border-left: 4px solid #ef4444; margin: 20px 0;">
+          <h3 style="color: #dc2626; margin-top: 0;">Listing Details</h3>
+          <p><strong>Vehicle:</strong> ${listingData.year} ${listingData.make} ${listingData.model}</p>
+          <p><strong>Price:</strong> N$${listingData.price.toLocaleString()}</p>
+          <p style="margin-bottom: 0;"><strong>Status:</strong> <span style="color: #ef4444;">Rejected</span></p>
+        </div>
+        <p>Your listing may have been rejected for violating our listing policies or containing inaccurate information. Please contact support for more details.</p>
+      `,
+      ctaText: 'Contact Support',
+      ctaUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/contact`
+    };
+
+    const result = await emailService.sendNewsletterEmail(userData, content);
+    console.log(`Listing rejected email sent to ${dealerEmail}:`, result);
+    return result;
+  } catch (error) {
+    console.error('Failed to send listing rejected email:', error);
+    return false;
+  }
+}
+
+export async function sendListingSuspendedEmail(
+  dealerEmail: string,
+  dealerName: string,
+  listingData: {
+    title: string;
+    make: string;
+    model: string;
+    year: number;
+    price: number;
+  }
+) {
+  try {
+    const userData: UserData = {
+      name: dealerName,
+      email: dealerEmail
+    };
+
+    const content = {
+      subject: `Vehicle Listing Suspended: ${listingData.year} ${listingData.make} ${listingData.model}`,
+      headline: '⚠️ Listing Suspended',
+      message: `
+        <p>Your vehicle listing has been suspended and is no longer visible to buyers.</p>
+        <div style="background: #fffbeb; padding: 20px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+          <h3 style="color: #d97706; margin-top: 0;">Listing Details</h3>
+          <p><strong>Vehicle:</strong> ${listingData.year} ${listingData.make} ${listingData.model}</p>
+          <p><strong>Price:</strong> N$${listingData.price.toLocaleString()}</p>
+          <p style="margin-bottom: 0;"><strong>Status:</strong> <span style="color: #f59e0b;">Suspended</span></p>
+        </div>
+        <p>Your listing may have been suspended due to policy violations or reported issues. Please contact support for more information or to appeal this decision.</p>
+      `,
+      ctaText: 'Contact Support',
+      ctaUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/contact`
+    };
+
+    const result = await emailService.sendNewsletterEmail(userData, content);
+    console.log(`Listing suspended email sent to ${dealerEmail}:`, result);
+    return result;
+  } catch (error) {
+    console.error('Failed to send listing suspended email:', error);
+    return false;
+  }
+}
+
+export async function sendListingDeletedEmail(
+  dealerEmail: string,
+  dealerName: string,
+  listingData: {
+    title: string;
+    make: string;
+    model: string;
+    year: number;
+    price: number;
+  }
+) {
+  try {
+    const userData: UserData = {
+      name: dealerName,
+      email: dealerEmail
+    };
+
+    const content = {
+      subject: `Vehicle Listing Removed: ${listingData.year} ${listingData.make} ${listingData.model}`,
+      headline: '🗑️ Listing Removed',
+      message: `
+        <p>Your vehicle listing has been permanently removed from Cars.na.</p>
+        <div style="background: #fef2f2; padding: 20px; border-radius: 8px; border-left: 4px solid #ef4444; margin: 20px 0;">
+          <h3 style="color: #dc2626; margin-top: 0;">Removed Listing</h3>
+          <p><strong>Vehicle:</strong> ${listingData.year} ${listingData.make} ${listingData.model}</p>
+          <p><strong>Price:</strong> N$${listingData.price.toLocaleString()}</p>
+          <p style="margin-bottom: 0;"><strong>Status:</strong> <span style="color: #ef4444;">Deleted</span></p>
+        </div>
+        <p>If you believe this was done in error, please contact our support team immediately.</p>
+      `,
+      ctaText: 'Contact Support',
+      ctaUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/contact`
+    };
+
+    const result = await emailService.sendNewsletterEmail(userData, content);
+    console.log(`Listing deleted email sent to ${dealerEmail}:`, result);
+    return result;
+  } catch (error) {
+    console.error('Failed to send listing deleted email:', error);
+    return false;
+  }
+}
+
+export async function sendListingUnderReviewEmail(
+  dealerEmail: string,
+  dealerName: string,
+  listingData: {
+    title: string;
+    make: string;
+    model: string;
+    year: number;
+    price: number;
+  }
+) {
+  try {
+    const userData: UserData = {
+      name: dealerName,
+      email: dealerEmail
+    };
+
+    const content = {
+      subject: `Vehicle Listing Under Review: ${listingData.year} ${listingData.make} ${listingData.model}`,
+      headline: '🔍 Listing Under Review',
+      message: `
+        <p>Your vehicle listing is currently under review by our team.</p>
+        <div style="background: #eff6ff; padding: 20px; border-radius: 8px; border-left: 4px solid #3b82f6; margin: 20px 0;">
+          <h3 style="color: #2563eb; margin-top: 0;">Listing Details</h3>
+          <p><strong>Vehicle:</strong> ${listingData.year} ${listingData.make} ${listingData.model}</p>
+          <p><strong>Price:</strong> N$${listingData.price.toLocaleString()}</p>
+          <p style="margin-bottom: 0;"><strong>Status:</strong> <span style="color: #3b82f6;">Under Review</span></p>
+        </div>
+        <p>We're reviewing your listing to ensure it meets our quality standards. This typically takes 24-48 hours. We'll notify you once the review is complete.</p>
+      `,
+      ctaText: 'View My Listings',
+      ctaUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/dealer/dashboard`
+    };
+
+    const result = await emailService.sendNewsletterEmail(userData, content);
+    console.log(`Listing under review email sent to ${dealerEmail}:`, result);
+    return result;
+  } catch (error) {
+    console.error('Failed to send listing under review email:', error);
+    return false;
+  }
+}
+
+export async function sendListingReactivatedEmail(
+  dealerEmail: string,
+  dealerName: string,
+  listingData: {
+    title: string;
+    make: string;
+    model: string;
+    year: number;
+    price: number;
+  }
+) {
+  try {
+    const userData: UserData = {
+      name: dealerName,
+      email: dealerEmail
+    };
+
+    const content = {
+      subject: `Vehicle Listing Reactivated: ${listingData.year} ${listingData.make} ${listingData.model}`,
+      headline: '✅ Listing Reactivated!',
+      message: `
+        <p>Good news! Your vehicle listing has been reactivated and is now live again on Cars.na.</p>
+        <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin: 20px 0;">
+          <h3 style="color: #059669; margin-top: 0;">Listing Details</h3>
+          <p><strong>Vehicle:</strong> ${listingData.year} ${listingData.make} ${listingData.model}</p>
+          <p><strong>Price:</strong> N$${listingData.price.toLocaleString()}</p>
+          <p style="margin-bottom: 0;"><strong>Status:</strong> <span style="color: #10b981;">Active</span></p>
+        </div>
+        <p>Your listing is once again visible to potential buyers on our platform.</p>
+      `,
+      ctaText: 'View My Listings',
+      ctaUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/dealer/dashboard`
+    };
+
+    const result = await emailService.sendNewsletterEmail(userData, content);
+    console.log(`Listing reactivated email sent to ${dealerEmail}:`, result);
+    return result;
+  } catch (error) {
+    console.error('Failed to send listing reactivated email:', error);
+    return false;
+  }
 }

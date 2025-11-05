@@ -30,6 +30,7 @@ import { UserDetails } from './UserDetails';
 import { CreateUser } from './CreateUser';
 import { UserActions } from './UserActions';
 import { debounce } from '@/lib/utils';
+import { api } from '@/lib/api';
 
 export type UserStatus = 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'INACTIVE';
 export type UserRole = 'ADMIN' | 'DEALER_PRINCIPAL' | 'SALES_EXECUTIVE' | 'USER';
@@ -73,7 +74,7 @@ export function UserList() {
     isLoading,
     error,
     refetch
-  } = trpc.user.getAll.useQuery({
+  } = api.user.getAll.useQuery({
     page: currentPage,
     limit: pageSize,
     search: filters.search || undefined,
@@ -84,7 +85,7 @@ export function UserList() {
   });
 
   // Get user statistics
-  const { data: stats } = trpc.user.getStats.useQuery();
+  const { data: stats } = api.user.getStats.useQuery();
 
   const users = usersData?.users || [];
   const pagination = usersData?.pagination;

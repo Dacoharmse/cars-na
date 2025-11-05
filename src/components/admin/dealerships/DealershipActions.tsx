@@ -35,26 +35,71 @@ interface DealershipActionsProps {
 export function DealershipActions({ dealership, onClose }: DealershipActionsProps) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [actionType, setActionType] = useState<string>('');
+  const [targetStatus, setTargetStatus] = useState<DealershipStatus | null>(null);
   const [reason, setReason] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleStatusChange = (newStatus: DealershipStatus, action: string) => {
     setActionType(action);
+    setTargetStatus(newStatus);
+    setError(null);
     setShowConfirmModal(true);
   };
 
   const handleConfirmAction = async () => {
+    setIsLoading(true);
+    setError(null);
+
     try {
-      // In real app, this would make an API call
-      console.log(`${actionType} dealership:`, dealership.id, 'Reason:', reason);
+      if (actionType === 'delete') {
+        // DELETE request for deleting dealership
+        const response = await fetch(`/api/admin/dealerships/${dealership.id}`, {
+          method: 'DELETE',
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to delete dealership');
+        }
+
+        alert('Dealership deleted successfully!');
+      } else {
+        // PATCH request for status updates
+        const response = await fetch(`/api/admin/dealerships/${dealership.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: actionType,
+            status: targetStatus,
+            reason: reason || undefined,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to update dealership status');
+        }
+
+        alert(`Dealership ${actionType}d successfully!`);
+      }
 
       // Close modals
       setShowConfirmModal(false);
+      setReason('');
       onClose();
 
-      // In real app, you might want to trigger a refetch of the dealership list
-      // or show a success notification
+      // Refresh the page to show updated data
+      window.location.reload();
     } catch (error) {
       console.error('Error performing action:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -395,20 +440,32 @@ export function DealershipActions({ dealership, onClose }: DealershipActionsProp
                 </div>
               )}
 
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                    <span className="text-sm font-medium text-red-800">Error</span>
+                  </div>
+                  <p className="text-sm text-red-700 mt-1">{error}</p>
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <Button
                   variant="outline"
                   onClick={() => {
                     setShowConfirmModal(false);
                     setReason('');
+                    setError(null);
                   }}
                   className="flex-1"
+                  disabled={isLoading}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleConfirmAction}
-                  disabled={actionType === 'delete' && !reason.trim()}
+                  disabled={(actionType === 'delete' && !reason.trim()) || isLoading}
                   className={`flex-1 ${
                     actionType === 'approve' ? 'bg-green-600 hover:bg-green-700' :
                     actionType === 'suspend' || actionType === 'delete' ? 'bg-red-600 hover:bg-red-700' :
@@ -416,11 +473,20 @@ export function DealershipActions({ dealership, onClose }: DealershipActionsProp
                     'bg-blue-600 hover:bg-blue-700'
                   }`}
                 >
-                  {actionType === 'approve' && 'Approve'}
-                  {actionType === 'suspend' && 'Suspend'}
-                  {actionType === 'reject' && 'Reject'}
-                  {actionType === 'reactivate' && 'Reactivate'}
-                  {actionType === 'delete' && 'Delete'}
+                  {isLoading ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      {actionType === 'approve' && 'Approve'}
+                      {actionType === 'suspend' && 'Suspend'}
+                      {actionType === 'reject' && 'Reject'}
+                      {actionType === 'reactivate' && 'Reactivate'}
+                      {actionType === 'delete' && 'Delete'}
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>

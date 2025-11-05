@@ -937,8 +937,8 @@ export default function DealerDashboard() {
                         .map((vehicle) => (
                         <div key={vehicle.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex items-center gap-3">
-                            <img 
-                              src={vehicle.images?.[0]?.url || 'https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'} 
+                            <img
+                              src={vehicle.images?.[0]?.url || 'https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'}
                               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                               className="w-12 h-12 rounded-lg object-cover"
                             />
@@ -997,8 +997,8 @@ export default function DealerDashboard() {
                   {filteredVehicles.map((vehicle) => (
                     <Card key={vehicle.id} className="overflow-hidden">
                       <div className="relative">
-                        <img 
-                          src={vehicle.images[0]} 
+                        <img
+                          src={vehicle.images?.[0]?.url || 'https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'}
                           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                           className="w-full h-48 object-cover"
                         />
