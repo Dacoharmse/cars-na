@@ -60,6 +60,8 @@ interface VehicleData {
   passengerCapacity: string;
   length: string;
   weight: string;
+  entryTimeframe: string;
+  analysisTimeframe: string;
   comfort: string[];
   safety: string[];
   description: string;
@@ -136,6 +138,8 @@ export default function DealerAddVehicleWizard() {
     passengerCapacity: '',
     length: '',
     weight: '',
+    entryTimeframe: '',
+    analysisTimeframe: '',
     comfort: [],
     safety: [],
     description: '',
@@ -783,6 +787,37 @@ export default function DealerAddVehicleWizard() {
                       </select>
                     </div>
                   )}
+
+                  {/* Entry Timeframe */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Entry Timeframe <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      required
+                      type="date"
+                      value={vehicleData.entryTimeframe}
+                      onChange={(e) => updateVehicleData('entryTimeframe', e.target.value)}
+                      className="p-3"
+                      placeholder="When did this vehicle enter inventory?"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">When the vehicle entered your inventory</p>
+                  </div>
+
+                  {/* Analysis Timeframe (Optional) */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Analysis Timeframe <span className="text-gray-400">(Optional)</span>
+                    </label>
+                    <Input
+                      type="date"
+                      value={vehicleData.analysisTimeframe}
+                      onChange={(e) => updateVehicleData('analysisTimeframe', e.target.value)}
+                      className="p-3"
+                      placeholder="When was the vehicle analyzed/inspected?"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Date of last inspection or analysis</p>
+                  </div>
                 </div>
 
                 {/* Features */}

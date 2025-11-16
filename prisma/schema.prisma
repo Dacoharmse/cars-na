@@ -129,6 +129,10 @@ model Vehicle {
   length         Float?   // For boats (in meters)
   weight         Float?   // For industrial machinery (in kg)
 
+  // Timeframe fields
+  entryTimeframe     String?  // When the vehicle entered inventory
+  analysisTimeframe  String?  // Optional analysis/inspection timeframe
+
   isPrivate    Boolean  @default(false)
   status       VehicleStatus @default(AVAILABLE)
   isNew        Boolean  @default(false) // Whether the vehicle is brand new or used

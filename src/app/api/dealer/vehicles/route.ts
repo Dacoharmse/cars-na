@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     const requiredFields = [
       'salespersonId', 'salespersonName', 'manufacturer', 'model',
-      'year', 'price', 'mileage', 'engineCapacity', 'fuelType', 'transmission'
+      'year', 'price', 'mileage', 'engineCapacity', 'fuelType', 'transmission', 'entryTimeframe'
     ];
 
     const missingFields = requiredFields.filter(field => !vehicleData[field]);
@@ -70,6 +70,8 @@ export async function POST(request: NextRequest) {
         passengerCapacity: vehicleData.passengerCapacity ? parseInt(vehicleData.passengerCapacity) : null,
         length: vehicleData.length ? parseFloat(vehicleData.length) : null,
         weight: vehicleData.weight ? parseFloat(vehicleData.weight) : null,
+        entryTimeframe: vehicleData.entryTimeframe || null,
+        analysisTimeframe: vehicleData.analysisTimeframe || null,
         isNew: vehicleData.isNew || false,
         status: 'AVAILABLE',
         dealershipId: user.dealership.id
