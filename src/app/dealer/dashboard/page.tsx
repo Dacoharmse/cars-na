@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import WebsiteManagerContent from '@/components/dealer/WebsiteManagerContent';
 import {
   Car,
   Users,
@@ -27,10 +28,19 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
+  Filter,
+  X,
+  ChevronDown,
+  ChevronUp,
   UserPlus,
   Shield,
   Link,
   Copy,
+  Ban,
+  Key,
+  Lock,
+  Unlock,
+  FileEdit,
   UserCheck,
   UserX,
   MoreHorizontal,
@@ -62,6 +72,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/DropdownMenu';
 
 // Mock data
@@ -374,9 +385,19 @@ const teamRoles = [
 export default function DealerDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [manufacturerFilter, setManufacturerFilter] = useState('ALL');
+  const [transmissionFilter, setTransmissionFilter] = useState('ALL');
+  const [fuelTypeFilter, setFuelTypeFilter] = useState('ALL');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [minYear, setMinYear] = useState('');
+  const [maxYear, setMaxYear] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -403,6 +424,16 @@ export default function DealerDashboard() {
   const [showInviteLink, setShowInviteLink] = useState(false);
   const [teamMembers, setTeamMembers] = useState(mockTeamMembers);
 
+  // New user management modals
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [showEditPermissionsModal, setShowEditPermissionsModal] = useState(false);
+  const [showSuspendUserModal, setShowSuspendUserModal] = useState(false);
+  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [editUserForm, setEditUserForm] = useState({ name: '', email: '', role: '' });
+  const [suspendReason, setSuspendReason] = useState('');
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+
   // tRPC queries for real data
   const { data: vehicleData, isLoading: vehiclesLoading, error: vehiclesError } = api.vehicle.getByDealership.useQuery({
     limit: 50,
@@ -425,6 +456,14 @@ export default function DealerDashboard() {
       router.push('/dealer/login?callbackUrl=/dealer/dashboard');
     }
   }, [session, status, router]);
+
+  // Check for tab parameter in URL
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['overview', 'inventory', 'leads', 'analytics', 'users', 'profile'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   // Helper functions
   const formatPrice = (price: number) => {
@@ -463,12 +502,47 @@ export default function DealerDashboard() {
     }
   };
 
+  // Get unique manufacturers from current inventory
+  const availableManufacturers = Array.from(new Set(vehicles.map(v => v.make))).sort();
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('ALL');
+    setCategoryFilter('ALL');
+    setManufacturerFilter('ALL');
+    setTransmissionFilter('ALL');
+    setFuelTypeFilter('ALL');
+    setMinPrice('');
+    setMaxPrice('');
+    setMinYear('');
+    setMaxYear('');
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = () => {
+    return searchTerm !== '' || statusFilter !== 'ALL' || categoryFilter !== 'ALL' ||
+           manufacturerFilter !== 'ALL' || transmissionFilter !== 'ALL' || fuelTypeFilter !== 'ALL' ||
+           minPrice !== '' || maxPrice !== '' || minYear !== '' || maxYear !== '';
+  };
+
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          vehicle.year.toString().includes(searchTerm);
     const matchesStatus = statusFilter === 'ALL' || vehicle.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesCategory = categoryFilter === 'ALL' || vehicle.category === categoryFilter;
+    const matchesManufacturer = manufacturerFilter === 'ALL' || vehicle.make === manufacturerFilter;
+    const matchesTransmission = transmissionFilter === 'ALL' || vehicle.transmission === transmissionFilter;
+    const matchesFuelType = fuelTypeFilter === 'ALL' || vehicle.fuelType === fuelTypeFilter;
+
+    const matchesPriceRange = (!minPrice || vehicle.price >= parseFloat(minPrice)) &&
+                              (!maxPrice || vehicle.price <= parseFloat(maxPrice));
+    const matchesYearRange = (!minYear || vehicle.year >= parseInt(minYear)) &&
+                             (!maxYear || vehicle.year <= parseInt(maxYear));
+
+    return matchesSearch && matchesStatus && matchesCategory && matchesManufacturer &&
+           matchesTransmission && matchesFuelType && matchesPriceRange && matchesYearRange;
   });
 
   // Enhanced tab switching with loading states
@@ -590,6 +664,95 @@ export default function DealerDashboard() {
     if (confirm('Are you sure you want to remove this team member?')) {
       setTeamMembers(prev => prev.filter(member => member.id !== userId));
     }
+  };
+
+  // New user management handlers
+  const handleEditUser = (user: any) => {
+    setSelectedUser(user);
+    setEditUserForm({ name: user.name, email: user.email, role: user.role });
+    setShowEditUserModal(true);
+  };
+
+  const handleSaveEditUser = () => {
+    setTeamMembers(prev => prev.map(member =>
+      member.id === selectedUser.id
+        ? { ...member, ...editUserForm }
+        : member
+    ));
+    setShowEditUserModal(false);
+    setSelectedUser(null);
+    alert('User information updated successfully!');
+  };
+
+  const handleEditPermissions = (user: any) => {
+    setSelectedUser(user);
+    setSelectedPermissions(user.permissions || []);
+    setShowEditPermissionsModal(true);
+  };
+
+  const handleSavePermissions = () => {
+    setTeamMembers(prev => prev.map(member =>
+      member.id === selectedUser.id
+        ? { ...member, permissions: selectedPermissions }
+        : member
+    ));
+    setShowEditPermissionsModal(false);
+    setSelectedUser(null);
+    alert('Permissions updated successfully!');
+  };
+
+  const handleSuspendUser = (user: any) => {
+    setSelectedUser(user);
+    setSuspendReason('');
+    setShowSuspendUserModal(true);
+  };
+
+  const handleConfirmSuspend = () => {
+    setTeamMembers(prev => prev.map(member =>
+      member.id === selectedUser.id
+        ? { ...member, status: 'SUSPENDED', suspendReason: suspendReason }
+        : member
+    ));
+    setShowSuspendUserModal(false);
+    setSelectedUser(null);
+    setSuspendReason('');
+    alert('User suspended successfully!');
+  };
+
+  const handleUnsuspendUser = (userId: string) => {
+    setTeamMembers(prev => prev.map(member =>
+      member.id === userId
+        ? { ...member, status: 'ACTIVE', suspendReason: undefined }
+        : member
+    ));
+    alert('User unsuspended successfully!');
+  };
+
+  const handleSendPasswordReset = (user: any) => {
+    setSelectedUser(user);
+    setShowPasswordResetModal(true);
+  };
+
+  const handleConfirmPasswordReset = () => {
+    // Generate password reset link
+    const resetLink = `https://cars.na/reset-password?token=${Math.random().toString(36).substring(7)}&email=${selectedUser.email}`;
+    navigator.clipboard.writeText(resetLink);
+    setShowPasswordResetModal(false);
+    setSelectedUser(null);
+    alert(`Password reset link generated and copied to clipboard!\n\nLink: ${resetLink}\n\nThis link has been sent to ${selectedUser.email}`);
+  };
+
+  const handleResendInvite = (user: any) => {
+    const inviteLink = `https://cars.na/dealer/accept-invite?token=${Math.random().toString(36).substring(7)}&email=${user.email}`;
+    alert(`Invite resent to ${user.email}!\n\nInvite link: ${inviteLink}`);
+  };
+
+  const togglePermission = (permission: string) => {
+    setSelectedPermissions(prev =>
+      prev.includes(permission)
+        ? prev.filter(p => p !== permission)
+        : [...prev, permission]
+    );
   };
 
   const copyInviteLink = () => {
@@ -968,27 +1131,179 @@ export default function DealerDashboard() {
             {activeTab === 'inventory' && (
               <div className="space-y-6">
                 {/* Search and Filter Controls */}
-                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                  <div className="flex gap-4 items-center">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        placeholder="Search vehicles..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 w-64"
-                      />
+                <div className="space-y-4">
+                  {/* Top Row - Search and Quick Filters */}
+                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                    <div className="flex gap-4 items-center flex-wrap">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                          placeholder="Search vehicles..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10 w-64"
+                        />
+                      </div>
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      >
+                        <option value="ALL">All Status</option>
+                        <option value="AVAILABLE">Available</option>
+                        <option value="SOLD">Sold</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="RESERVED">Reserved</option>
+                      </select>
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      >
+                        <option value="ALL">All Categories</option>
+                        <option value="CARS">Cars</option>
+                        <option value="TRUCKS">Trucks</option>
+                        <option value="MOTORCYCLES">Motorcycles</option>
+                        <option value="BUSES">Buses</option>
+                        <option value="INDUSTRIAL_MACHINERY">Industrial Machinery</option>
+                        <option value="TRACTORS">Tractors</option>
+                        <option value="BOATS">Boats</option>
+                        <option value="ACCESSORIES">Accessories</option>
+                      </select>
+                      <select
+                        value={manufacturerFilter}
+                        onChange={(e) => setManufacturerFilter(e.target.value)}
+                        className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      >
+                        <option value="ALL">All Manufacturers</option>
+                        {availableManufacturers.map(manufacturer => (
+                          <option key={manufacturer} value={manufacturer}>
+                            {manufacturer}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="border border-gray-300 rounded-md px-3 py-2"
-                    >
-                      <option value="ALL">All Status</option>
-                      <option value="AVAILABLE">Available</option>
-                      <option value="SOLD">Sold</option>
-                      <option value="PENDING">Pending</option>
-                    </select>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="flex items-center gap-2"
+                      >
+                        <Filter className="h-4 w-4" />
+                        {showFilters ? 'Hide' : 'More'} Filters
+                        {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        {hasActiveFilters() && !showFilters && (
+                          <span className="ml-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            {[searchTerm, statusFilter !== 'ALL', categoryFilter !== 'ALL', manufacturerFilter !== 'ALL', transmissionFilter !== 'ALL', fuelTypeFilter !== 'ALL', minPrice, maxPrice, minYear, maxYear].filter(Boolean).length}
+                          </span>
+                        )}
+                      </Button>
+                      {hasActiveFilters() && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={clearFilters}
+                          className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:border-red-300"
+                        >
+                          <X className="h-4 w-4" />
+                          Clear All
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Advanced Filters Panel */}
+                  {showFilters && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3">Advanced Filters</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Transmission Filter */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Transmission</label>
+                          <select
+                            value={transmissionFilter}
+                            onChange={(e) => setTransmissionFilter(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                          >
+                            <option value="ALL">All Transmissions</option>
+                            <option value="Manual">Manual</option>
+                            <option value="Automatic">Automatic</option>
+                            <option value="CVT">CVT</option>
+                            <option value="Semi-Automatic">Semi-Automatic</option>
+                          </select>
+                        </div>
+
+                        {/* Fuel Type Filter */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Fuel Type</label>
+                          <select
+                            value={fuelTypeFilter}
+                            onChange={(e) => setFuelTypeFilter(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                          >
+                            <option value="ALL">All Fuel Types</option>
+                            <option value="Petrol">Petrol</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Electric">Electric</option>
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="Plug-in Hybrid">Plug-in Hybrid</option>
+                          </select>
+                        </div>
+
+                        {/* Price Range */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Min Price (N$)</label>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            value={minPrice}
+                            onChange={(e) => setMinPrice(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Max Price (N$)</label>
+                          <Input
+                            type="number"
+                            placeholder="No limit"
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+
+                        {/* Year Range */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Min Year</label>
+                          <Input
+                            type="number"
+                            placeholder="1900"
+                            value={minYear}
+                            onChange={(e) => setMinYear(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Max Year</label>
+                          <Input
+                            type="number"
+                            placeholder={new Date().getFullYear().toString()}
+                            value={maxYear}
+                            onChange={(e) => setMaxYear(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Results Summary */}
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <span>
+                      Showing <strong>{filteredVehicles.length}</strong> of <strong>{vehicles.length}</strong> vehicles
+                      {hasActiveFilters() && <span className="ml-2 text-blue-600">(filtered)</span>}
+                    </span>
                   </div>
                 </div>
 
@@ -1371,50 +1686,7 @@ export default function DealerDashboard() {
 
             {/* Profile Tab */}
             {activeTab === 'profile' && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Website Manager</CardTitle>
-                    <CardDescription>Manage your dealership information and online presence</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Dealership Name</label>
-                        <Input defaultValue={mockDealership.name} />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Phone Number</label>
-                        <Input defaultValue={mockDealership.phone} />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Email Address</label>
-                        <Input defaultValue={mockDealership.email} />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Website</label>
-                        <Input defaultValue={mockDealership.website} />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-2">Description</label>
-                        <textarea 
-                          className="w-full border border-gray-300 rounded-md p-3"
-                          rows={3}
-                          defaultValue={mockDealership.description}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-2">Address</label>
-                        <Input defaultValue={`${mockDealership.address}, ${mockDealership.city}, ${mockDealership.state}`} />
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <Button className="bg-blue-600 hover:bg-blue-700">Save Changes</Button>
-                      <Button variant="outline">Cancel</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <WebsiteManagerContent />
             )}
 
             {/* Subscription Tab - Only visible to dealership principals */}
@@ -1778,7 +2050,31 @@ export default function DealerDashboard() {
                                       <MoreHorizontal className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
+                                  <DropdownMenuContent align="end" className="w-56">
+                                    <DropdownMenuItem onClick={() => handleEditUser(member)}>
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Edit User Info
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleEditPermissions(member)}>
+                                      <FileEdit className="h-4 w-4 mr-2" />
+                                      Edit Permissions
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleSendPasswordReset(member)}>
+                                      <Key className="h-4 w-4 mr-2" />
+                                      Send Password Reset
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    {member.status === 'SUSPENDED' ? (
+                                      <DropdownMenuItem onClick={() => handleUnsuspendUser(member.id)}>
+                                        <Unlock className="h-4 w-4 mr-2" />
+                                        Unsuspend User
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem onClick={() => handleSuspendUser(member)}>
+                                        <Ban className="h-4 w-4 mr-2" />
+                                        Suspend User
+                                      </DropdownMenuItem>
+                                    )}
                                     <DropdownMenuItem onClick={() => handleToggleUserStatus(member.id)}>
                                       {member.status === 'ACTIVE' ? (
                                         <>
@@ -1793,16 +2089,17 @@ export default function DealerDashboard() {
                                       )}
                                     </DropdownMenuItem>
                                     {member.status === 'PENDING' && (
-                                      <DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleResendInvite(member)}>
                                         <Send className="h-4 w-4 mr-2" />
                                         Resend Invite
                                       </DropdownMenuItem>
                                     )}
+                                    <DropdownMenuSeparator />
                                     <DropdownMenuItem
                                       onClick={() => handleRemoveUser(member.id)}
-                                      className="text-red-600"
+                                      className="text-red-600 focus:text-red-600"
                                     >
-                                      <UserX className="h-4 w-4 mr-2" />
+                                      <Trash2 className="h-4 w-4 mr-2" />
                                       Remove User
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
@@ -2106,6 +2403,212 @@ export default function DealerDashboard() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {showEditUserModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Edit User Information</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowEditUserModal(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <Input
+                    value={editUserForm.name}
+                    onChange={(e) => setEditUserForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <Input
+                    type="email"
+                    value={editUserForm.email}
+                    onChange={(e) => setEditUserForm(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="Enter email"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <select
+                    value={editUserForm.role}
+                    onChange={(e) => setEditUserForm(prev => ({ ...prev, role: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    <option value="SALES_EXECUTIVE">Sales Executive</option>
+                    <option value="DEALER_ADMIN">Dealer Admin</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <Button
+                  onClick={handleSaveEditUser}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                >
+                  Save Changes
+                </Button>
+                <Button
+                  onClick={() => setShowEditUserModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Permissions Modal */}
+      {showEditPermissionsModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Edit User Permissions</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowEditPermissionsModal(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">Managing permissions for: <strong>{selectedUser.name}</strong></p>
+              </div>
+              <div className="space-y-3">
+                {['VEHICLE_MANAGEMENT', 'LEAD_MANAGEMENT', 'VIEW_ANALYTICS', 'MANAGE_TEAM', 'FULL_ACCESS'].map(permission => (
+                  <label key={permission} className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedPermissions.includes(permission)}
+                      onChange={() => togglePermission(permission)}
+                      className="mr-3 h-4 w-4 text-blue-600 rounded"
+                    />
+                    <div>
+                      <div className="font-medium">{permission.replace('_', ' ')}</div>
+                      <div className="text-sm text-gray-500">
+                        {permission === 'VEHICLE_MANAGEMENT' && 'Add, edit, and remove vehicles from inventory'}
+                        {permission === 'LEAD_MANAGEMENT' && 'View and manage customer leads'}
+                        {permission === 'VIEW_ANALYTICS' && 'Access analytics and reports'}
+                        {permission === 'MANAGE_TEAM' && 'Manage team members and permissions'}
+                        {permission === 'FULL_ACCESS' && 'Complete access to all dealership features'}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <div className="flex gap-3 mt-6">
+                <Button
+                  onClick={handleSavePermissions}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                >
+                  Save Permissions
+                </Button>
+                <Button
+                  onClick={() => setShowEditPermissionsModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Suspend User Modal */}
+      {showSuspendUserModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-red-600">Suspend User</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowSuspendUserModal(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="mb-4">
+                <p className="text-gray-700">You are about to suspend: <strong>{selectedUser.name}</strong></p>
+                <p className="text-sm text-gray-500 mt-2">Suspended users cannot log in or access the system.</p>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Reason for suspension</label>
+                <textarea
+                  value={suspendReason}
+                  onChange={(e) => setSuspendReason(e.target.value)}
+                  placeholder="Enter reason for suspension..."
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 min-h-[100px]"
+                  required
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleConfirmSuspend}
+                  disabled={!suspendReason.trim()}
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                >
+                  <Ban className="h-4 w-4 mr-2" />
+                  Suspend User
+                </Button>
+                <Button
+                  onClick={() => setShowSuspendUserModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Password Reset Modal */}
+      {showPasswordResetModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Send Password Reset</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowPasswordResetModal(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="mb-6">
+                <p className="text-gray-700 mb-2">Send password reset link to:</p>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="font-semibold">{selectedUser.name}</p>
+                  <p className="text-sm text-gray-600">{selectedUser.email}</p>
+                </div>
+                <p className="text-sm text-gray-500 mt-3">
+                  A password reset link will be generated and sent to this email address. The link will be valid for 24 hours.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleConfirmPasswordReset}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Key className="h-4 w-4 mr-2" />
+                  Send Reset Link
+                </Button>
+                <Button
+                  onClick={() => setShowPasswordResetModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}

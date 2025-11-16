@@ -58,7 +58,7 @@ export default function DealerLogin() {
 
       // Check if user is dealer after successful login
       const session = await getSession();
-      if (session?.user?.role !== 'DEALER' && session?.user?.role !== 'DEALER_ADMIN' && session?.user?.role !== 'DEALER_PRINCIPAL' && session?.user?.role !== 'SALES_EXECUTIVE') {
+      if (session?.user?.role !== 'DEALER_PRINCIPAL' && session?.user?.role !== 'SALES_EXECUTIVE') {
         setError('Access denied. Dealer account required.');
         return;
       }

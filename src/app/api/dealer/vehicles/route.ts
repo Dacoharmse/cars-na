@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user is a dealer
-    if (!['DEALER', 'DEALER_ADMIN', 'SALES_EXECUTIVE'].includes(session.user.role)) {
+    if (!['DEALER_PRINCIPAL', 'SALES_EXECUTIVE'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Access denied. Dealer account required.' }, { status: 403 });
     }
 
@@ -32,39 +33,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For development, just log the data and return success
-    // In production, this would save to database via Prisma
-    console.log('Vehicle submission received:', {
-      dealer: session.user.email,
-      vehicle: vehicleData,
-      timestamp: new Date().toISOString()
+    // Get user's actual dealership from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email! },
+      include: { dealership: true }
     });
 
-    // Generate a mock vehicle ID for the response
-    const vehicleId = `vehicle-${Date.now()}`;
+    if (!user || !user.dealership) {
+      console.error('User or dealership not found:', { user: user?.id, email: session.user.email });
+      return NextResponse.json({ error: 'No dealership associated with this account' }, { status: 400 });
+    }
 
-    // In production, this would be something like:
-    // const vehicle = await prisma.vehicle.create({
-    //   data: {
-    //     ...vehicleData,
-    //     dealershipId: session.user.dealershipId,
-    //     createdById: session.user.id,
-    //     status: 'AVAILABLE'
-    //   }
-    // });
+    console.log('Creating vehicle for dealership:', {
+      dealershipId: user.dealership.id,
+      dealershipName: user.dealership.name,
+      userEmail: user.email
+    });
+
+    // Save vehicle to database
+    const vehicle = await prisma.vehicle.create({
+      data: {
+        category: vehicleData.category,
+        make: vehicleData.manufacturer,
+        model: vehicleData.model,
+        year: parseInt(vehicleData.year),
+        price: parseFloat(vehicleData.price),
+        mileage: vehicleData.mileage ? parseInt(vehicleData.mileage) : null,
+        color: vehicleData.color || null,
+        description: vehicleData.description || null,
+        transmission: vehicleData.transmission,
+        fuelType: vehicleData.fuelType,
+        bodyType: vehicleData.bodyType || null,
+        engineCapacity: vehicleData.engineCapacity || null,
+        horsepower: vehicleData.horsepower ? parseInt(vehicleData.horsepower) : null,
+        loadCapacity: vehicleData.loadCapacity ? parseFloat(vehicleData.loadCapacity) : null,
+        passengerCapacity: vehicleData.passengerCapacity ? parseInt(vehicleData.passengerCapacity) : null,
+        length: vehicleData.length ? parseFloat(vehicleData.length) : null,
+        weight: vehicleData.weight ? parseFloat(vehicleData.weight) : null,
+        isNew: vehicleData.isNew || false,
+        status: 'AVAILABLE',
+        dealershipId: user.dealership.id
+      }
+    });
+
+    console.log('Vehicle successfully saved to database:', {
+      vehicleId: vehicle.id,
+      dealer: session.user.email,
+      make: vehicle.make,
+      model: vehicle.model
+    });
 
     return NextResponse.json({
       success: true,
       message: 'Vehicle successfully added to inventory',
-      vehicleId: vehicleId,
-      data: {
-        ...vehicleData,
-        id: vehicleId,
-        status: 'AVAILABLE',
-        createdAt: new Date().toISOString(),
-        dealershipId: session.user.dealershipId,
-        createdBy: session.user.name
-      }
+      vehicleId: vehicle.id,
+      data: vehicle
     }, { status: 201 });
 
   } catch (error) {
@@ -86,41 +109,64 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify user is a dealer
-    if (!['DEALER', 'DEALER_ADMIN', 'SALES_EXECUTIVE'].includes(session.user.role)) {
+    if (!['DEALER_PRINCIPAL', 'SALES_EXECUTIVE'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Access denied. Dealer account required.' }, { status: 403 });
     }
 
-    // For development, return mock vehicles
-    // In production, this would query the database
-    const mockVehicles = [
-      {
-        id: 'vehicle-1',
-        manufacturer: 'BMW',
-        model: 'X3',
-        year: 2022,
-        price: 650000,
-        mileage: 25000,
-        status: 'AVAILABLE',
-        salespersonName: 'John Smith',
-        createdAt: '2024-01-20T10:00:00Z'
+    // Get user's actual dealership from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email! },
+      include: { dealership: true }
+    });
+
+    if (!user || !user.dealership) {
+      return NextResponse.json({ error: 'No dealership associated with this account' }, { status: 400 });
+    }
+
+    // Fetch vehicles for this dealership
+    const vehicles = await prisma.vehicle.findMany({
+      where: {
+        dealershipId: user.dealership.id
       },
-      {
-        id: 'vehicle-2',
-        manufacturer: 'Mercedes-Benz',
-        model: 'C-Class',
-        year: 2021,
-        price: 580000,
-        mileage: 35000,
-        status: 'AVAILABLE',
-        salespersonName: 'Sarah Johnson',
-        createdAt: '2024-01-19T15:30:00Z'
+      orderBy: {
+        createdAt: 'desc'
+      },
+      select: {
+        id: true,
+        make: true,
+        model: true,
+        year: true,
+        price: true,
+        mileage: true,
+        status: true,
+        category: true,
+        color: true,
+        transmission: true,
+        fuelType: true,
+        createdAt: true
       }
-    ];
+    });
+
+    // Transform the data to match the expected format
+    const formattedVehicles = vehicles.map(v => ({
+      id: v.id,
+      manufacturer: v.make,
+      model: v.model,
+      year: v.year,
+      price: v.price,
+      mileage: v.mileage,
+      status: v.status,
+      category: v.category,
+      color: v.color,
+      transmission: v.transmission,
+      fuelType: v.fuelType,
+      createdAt: v.createdAt.toISOString()
+    }));
 
     return NextResponse.json({
       success: true,
-      vehicles: mockVehicles,
-      total: mockVehicles.length
+      vehicles: formattedVehicles,
+      total: vehicles.length
     });
 
   } catch (error) {

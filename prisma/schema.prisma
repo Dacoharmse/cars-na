@@ -66,6 +66,7 @@ model User {
 model Dealership {
   id                 String            @id @default(cuid())
   name               String
+  slug               String?           @unique // Unique URL slug for public profile
   businessType       String?
   registrationNumber String?
   taxNumber          String?
@@ -79,12 +80,21 @@ model Dealership {
   googleMapsUrl      String?
   website            String?
   logo               String?
+  coverImage         String?           // Banner/cover image for profile
   description        String?
+  email              String?           // Public contact email
+  whatsappNumber     String?           // WhatsApp contact number
+  facebookUrl        String?           // Social media links
+  instagramUrl       String?
+  twitterUrl         String?
+  linkedinUrl        String?
+  openingHours       String?           // Business hours
+  specializations    String?           // Comma-separated specializations
   status             DealershipStatus  @default(PENDING)
   isVerified         Boolean           @default(false)
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
-  
+
   // Relations
   users              User[]
   vehicles           Vehicle[]
@@ -97,18 +107,28 @@ model Dealership {
 // Vehicle model for car listings
 model Vehicle {
   id           String   @id @default(cuid())
-  make         String
+  category     VehicleCategory @default(CARS) // Vehicle category
+  make         String   // Manufacturer/Brand
   model        String
   year         Int
   price        Float
   originalPrice Float?   // For discounted vehicles
-  mileage      Int
+  mileage      Int?     // Optional for some categories like new equipment
   color        String?
   vin          String?  @unique
   description  String?
   transmission String?
   fuelType     String?
   bodyType     String?
+
+  // Category-specific fields
+  engineCapacity String?  // For cars, motorcycles
+  horsepower     Int?     // For cars, trucks, motorcycles
+  loadCapacity   Float?   // For trucks (in tons)
+  passengerCapacity Int?  // For buses
+  length         Float?   // For boats (in meters)
+  weight         Float?   // For industrial machinery (in kg)
+
   isPrivate    Boolean  @default(false)
   status       VehicleStatus @default(AVAILABLE)
   isNew        Boolean  @default(false) // Whether the vehicle is brand new or used
@@ -117,7 +137,7 @@ model Vehicle {
   viewCount    Int      @default(0)     // Number of times the vehicle listing was viewed
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  
+
   // Relations
   dealership   Dealership @relation(fields: [dealershipId], references: [id])
   dealershipId String
@@ -497,4 +517,15 @@ enum BannerPosition {
   SIDEBAR       // Sidebar banners
   FOOTER        // Footer banners
   BETWEEN       // Between sections
+}
+
+enum VehicleCategory {
+  CARS                    // Passenger vehicles, sedans, hatchbacks, SUVs
+  TRUCKS                  // Pickup trucks, delivery vehicles, commercial trucks
+  MOTORCYCLES             // Motorcycles, scooters, bicycles, ATVs
+  BUSES                   // Passenger buses, minibuses, coaches
+  INDUSTRIAL_MACHINERY    // Construction equipment, industrial machines
+  TRACTORS                // Agricultural tractors, farm machinery
+  BOATS                   // Boats, jet-skis, marine equipment
+  ACCESSORIES             // Vehicle parts, accessories, equipment
 }

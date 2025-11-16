@@ -8,11 +8,11 @@ import clsx from "clsx";
 import { Phone, Pencil, Lock, Search, Menu, X, LogOut, LayoutDashboard, Shield } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import CarFilterSearch from "@/components/CarFilterSearch";
+import DealersDropdown from "@/components/DealersDropdown";
 
 const navLinks = [
   { href: "/vehicles", label: "Buy Cars" },
   { href: "/sell", label: "Sell Your Car" },
-  { href: "/dealers", label: "Dealers" },
   { href: "/financing", label: "Financing" },
   { href: "/help", label: "Help" },
   { href: "/contact", label: "Contact" },
@@ -154,6 +154,9 @@ export default function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8" aria-label="Main navigation">
             <ul role="list" className="flex items-center gap-8">
+              <li>
+                <DealersDropdown />
+              </li>
               {navLinks.map(({ href, label }) => (
                 <li key={href}>
                   <Link
@@ -227,6 +230,9 @@ export default function Header() {
 
               <nav aria-label="Mobile navigation">
                 <ul role="list" className="flex flex-col gap-4">
+                  <li>
+                    <DealersDropdown isMobile={true} />
+                  </li>
                   {navLinks.map(({ href, label }) => (
                     <li key={href}>
                       <Link

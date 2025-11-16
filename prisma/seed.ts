@@ -88,6 +88,26 @@ async function main() {
 
   console.log('✅ Dealerships created successfully!');
 
+  // Create test dealer users
+  console.log('👤 Creating test users...');
+
+  const dealerUser = await prisma.user.upsert({
+    where: { email: 'dealer@premium-motors.com' },
+    update: {},
+    create: {
+      id: 'dealer-001',
+      name: 'Premium Motors Manager',
+      email: 'dealer@premium-motors.com',
+      password: '$2a$10$YourHashedPasswordHere', // In production, this would be properly hashed
+      role: 'DEALER_PRINCIPAL',
+      dealershipId: premiumMotors.id,
+      status: 'ACTIVE',
+      isActive: true,
+    },
+  });
+
+  console.log(`  ✅ Created dealer user: ${dealerUser.email}`);
+
   // Premium Motors - Luxury & German Brands
   const premiumVehicles = [
     {
@@ -728,6 +748,7 @@ async function main() {
   console.log(`\n🎉 Database seeding completed successfully!`);
   console.log(`📊 Summary:`);
   console.log(`   - Dealerships: 5`);
+  console.log(`   - Users: 1`);
   console.log(`   - Vehicles: ${allVehicles.length}`);
   console.log(`   - Images: ${allVehicles.length * 4} (average)`);
   console.log(`   - Banners: ${bannerCount}`);
