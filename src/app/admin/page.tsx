@@ -1312,11 +1312,40 @@ export default function AdminDashboard() {
     setDealerModalOpen(true);
   };
 
-  const handleApproveDealer = (dealerId: string) => {
-    // In a real app, this would make an API call
+  const handleApproveDealer = async (dealerId: string) => {
     console.log('Approving dealer:', dealerId);
-    // Update the dealer's verification status to 'Verified'
-    // This would normally trigger a state update or refetch
+
+    try {
+      const response = await fetch(`/api/admin/dealerships/${dealerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'approve',
+          status: 'APPROVED'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update the dealer in state
+        setDealers(prevDealers =>
+          prevDealers.map(dealer =>
+            dealer.id === dealerId
+              ? { ...dealer, status: 'APPROVED', verificationStatus: 'Verified' }
+              : dealer
+          )
+        );
+        alert('Dealership approved successfully!');
+      } else {
+        alert(`Failed to approve dealership: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error approving dealer:', error);
+      alert('Failed to approve dealership. Please try again.');
+    }
   };
 
   const handleRejectDealer = (dealerId: string) => {
