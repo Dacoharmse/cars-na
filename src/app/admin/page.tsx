@@ -1227,6 +1227,25 @@ export default function AdminDashboard() {
     return VEHICLE_LISTINGS;
   });
 
+  // Fetch dealers from database on mount
+  useEffect(() => {
+    const fetchDealers = async () => {
+      try {
+        const response = await fetch('/api/admin/dealerships');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setDealers(data.dealerships);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching dealers:', error);
+      }
+    };
+
+    fetchDealers();
+  }, []);
+
   // Persist dealers data to localStorage whenever it changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
