@@ -156,17 +156,26 @@ export default function DealerRegisterPage() {
         },
         body: JSON.stringify(formData),
       });
-      
-      const data = await response.json();
-      
+
+      // Try to parse JSON response
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error('Non-JSON response:', text);
+        throw new Error('Server returned an invalid response');
+      }
+
       if (!response.ok) {
         throw new Error(data.error || 'Registration failed');
       }
-      
+
       // Success - redirect to login with success message
       alert(data.message || 'Registration successful! Please check your email to verify your account.');
-      window.location.href = '/auth/login?registered=true';
-      
+      window.location.href = '/dealer/login?registered=true';
+
     } catch (error) {
       console.error('Registration error:', error);
       alert(error instanceof Error ? error.message : 'Registration failed. Please try again.');
