@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 // UPDATE dealership status or details
 export async function PATCH(
@@ -24,25 +25,37 @@ export async function PATCH(
     console.log(`Admin ${session.user.email} performing action: ${action} on dealership ${params.id}`);
     console.log(`New status: ${status}, Reason: ${reason || 'N/A'}`);
 
-    // In a real app, update the database
-    // Example with Prisma:
-    // const updatedDealership = await prisma.dealership.update({
-    //   where: { id: params.id },
-    //   data: {
-    //     status,
-    //     updatedAt: new Date(),
-    //     ...(reason && { suspensionReason: reason })
-    //   }
-    // });
+    // Update the database
+    const updatedDealership = await prisma.dealership.update({
+      where: { id: params.id },
+      data: {
+        status,
+        updatedAt: new Date(),
+        isVerified: status === 'APPROVED' ? true : false
+      }
+    });
 
-    // Mock successful response
+    // If approving, also activate the dealer principal user
+    if (status === 'APPROVED') {
+      await prisma.user.updateMany({
+        where: {
+          dealershipId: params.id,
+          role: 'DEALER_PRINCIPAL'
+        },
+        data: {
+          status: 'ACTIVE',
+          isActive: true
+        }
+      });
+    }
+
     return NextResponse.json({
       success: true,
       message: `Dealership ${action}d successfully`,
       dealership: {
-        id: params.id,
-        status,
-        updatedAt: new Date().toISOString()
+        id: updatedDealership.id,
+        status: updatedDealership.status,
+        updatedAt: updatedDealership.updatedAt.toISOString()
       }
     });
   } catch (error) {
@@ -75,13 +88,11 @@ export async function DELETE(
 
     console.log(`Admin ${session.user.email} deleting dealership ${params.id}`);
 
-    // In a real app, delete from the database
-    // Example with Prisma:
-    // await prisma.dealership.delete({
-    //   where: { id: params.id }
-    // });
+    // Delete from the database (this will cascade delete related records)
+    await prisma.dealership.delete({
+      where: { id: params.id }
+    });
 
-    // Mock successful response
     return NextResponse.json({
       success: true,
       message: 'Dealership deleted successfully',
