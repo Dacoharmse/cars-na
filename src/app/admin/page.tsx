@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Textarea } from '@/components/ui/Textarea';
 import { NotificationPanel } from '@/components/admin/NotificationPanel';
+import { ToastProvider, useToast } from '@/components/ui/Toast';
 import {
   Users,
   Building2,
@@ -1166,7 +1167,8 @@ const BANNER_STATS = {
   avgCTR: 10.2
 };
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
+  const { showToast } = useToast();
   const router = useRouter();
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState('overview');
@@ -1338,13 +1340,28 @@ export default function AdminDashboard() {
               : dealer
           )
         );
-        alert('Dealership approved successfully!');
+        showToast({
+          title: 'Success!',
+          description: 'Dealership approved successfully!',
+          variant: 'success',
+          duration: 5000
+        });
       } else {
-        alert(`Failed to approve dealership: ${data.error}`);
+        showToast({
+          title: 'Error',
+          description: data.error || 'Failed to approve dealership',
+          variant: 'error',
+          duration: 5000
+        });
       }
     } catch (error) {
       console.error('Error approving dealer:', error);
-      alert('Failed to approve dealership. Please try again.');
+      showToast({
+        title: 'Error',
+        description: 'Failed to approve dealership. Please try again.',
+        variant: 'error',
+        duration: 5000
+      });
     }
   };
 
@@ -8439,5 +8456,13 @@ export default function AdminDashboard() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <ToastProvider>
+      <AdminDashboardContent />
+    </ToastProvider>
   );
 }
