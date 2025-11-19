@@ -33,6 +33,11 @@ export async function GET(request: NextRequest) {
             status: true
           }
         },
+        subscription: {
+          include: {
+            plan: true
+          }
+        },
         _count: {
           select: {
             users: true,
@@ -60,13 +65,16 @@ export async function GET(request: NextRequest) {
         city: dealership.city,
         region: dealership.region,
         status: dealership.status, // PENDING, APPROVED, SUSPENDED, REJECTED
-        subscriptionPlan: 'Basic', // TODO: Add subscription logic
-        subscriptionStatus: dealership.status === 'APPROVED' ? 'Active' : 'Pending',
-        monthlyFee: 19900, // N$199.00 - TODO: Get from subscription
+        subscriptionPlan: dealership.subscription?.plan?.name || 'No Plan',
+        subscriptionPlanId: dealership.subscription?.planId || null,
+        subscriptionId: dealership.subscription?.id || null,
+        subscriptionStatus: dealership.subscription?.status || 'NO_SUBSCRIPTION',
+        monthlyFee: dealership.subscription?.plan?.price || 0,
         joinedAt: dealership.createdAt.toISOString(),
         lastLogin: null, // TODO: Track this
         activeListings,
         totalListings,
+        maxListings: dealership.subscription?.plan?.maxListings || 0,
         totalSales: 0, // TODO: Track sales
         monthlyRevenue: 0, // TODO: Calculate revenue
         rating: 0, // TODO: Implement rating system

@@ -12,6 +12,14 @@ import { Textarea } from '@/components/ui/Textarea';
 import { NotificationPanel } from '@/components/admin/NotificationPanel';
 import { ToastProvider, useToast } from '@/components/ui/Toast';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/DropdownMenu';
+import {
   Users,
   Building2,
   Car,
@@ -59,6 +67,7 @@ import {
   CheckCircle2,
   XCircle,
   UserCheck2,
+  MoreVertical,
   Flag as FlagIcon,
   TrendingUp as TrendingUpIcon,
   Globe,
@@ -1185,6 +1194,9 @@ function AdminDashboardContent() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [activeSettingsTab, setActiveSettingsTab] = useState('general');
   const [userFilterOpen, setUserFilterOpen] = useState(false);
+  const [dealerFilterOpen, setDealerFilterOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [verificationFilter, setVerificationFilter] = useState<string>('all');
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
   const [userRoleFilter, setUserRoleFilter] = useState('all');
   const [userStatusFilter, setUserStatusFilter] = useState('all');
@@ -1209,6 +1221,14 @@ function AdminDashboardContent() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingDealerId, setDeletingDealerId] = useState<string | null>(null);
   const [deleteReason, setDeleteReason] = useState('');
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectingDealerId, setRejectingDealerId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [banDialogOpen, setBanDialogOpen] = useState(false);
+  const [banningDealerId, setBanningDealerId] = useState<string | null>(null);
+  const [banReason, setBanReason] = useState('');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingDealer, setEditingDealer] = useState<any>(null);
   const [approveAllPendingDialogOpen, setApproveAllPendingDialogOpen] = useState(false);
   const [suspendingUser, setSuspendingUser] = useState<any>(null);
   const [suspendReason, setSuspendReason] = useState<string>('');
@@ -1286,6 +1306,11 @@ function AdminDashboardContent() {
   const [featuredModalOpen, setFeaturedModalOpen] = useState(false);
   const [bulkSettingsModalOpen, setBulkSettingsModalOpen] = useState(false);
   const [selectedListings, setSelectedListings] = useState<string[]>([]);
+
+  // Subscription management modal state
+  const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<any[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('');
 
   // Banner management state
   const [previewBanner, setPreviewBanner] = useState<any>(null);
@@ -1366,9 +1391,274 @@ function AdminDashboardContent() {
   };
 
   const handleRejectDealer = (dealerId: string) => {
-    // In a real app, this would make an API call
-    console.log('Rejecting dealer:', dealerId);
-    // Update the dealer's verification status to 'Rejected'
+    setRejectingDealerId(dealerId);
+    setRejectDialogOpen(true);
+  };
+
+  const confirmRejectDealer = async () => {
+    if (!rejectingDealerId || !rejectReason.trim()) {
+      showToast({
+        title: 'Error',
+        description: 'Please provide a reason for rejection',
+        variant: 'error',
+        duration: 3000
+      });
+      return;
+    }
+
+    console.log('Rejecting dealer:', rejectingDealerId);
+
+    try {
+      const response = await fetch(`/api/admin/dealerships/${rejectingDealerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'reject',
+          status: 'REJECTED',
+          reason: rejectReason
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setDealers(prevDealers =>
+          prevDealers.map(dealer =>
+            dealer.id === rejectingDealerId
+              ? { ...dealer, status: 'REJECTED', verificationStatus: 'Rejected' }
+              : dealer
+          )
+        );
+        showToast({
+          title: 'Dealership Rejected',
+          description: 'Dealership has been rejected successfully.',
+          variant: 'success',
+          duration: 5000
+        });
+        setRejectDialogOpen(false);
+        setRejectingDealerId(null);
+        setRejectReason('');
+      } else {
+        showToast({
+          title: 'Error',
+          description: data.error || 'Failed to reject dealership',
+          variant: 'error',
+          duration: 5000
+        });
+      }
+    } catch (error) {
+      console.error('Error rejecting dealer:', error);
+      showToast({
+        title: 'Error',
+        description: 'Failed to reject dealership. Please try again.',
+        variant: 'error',
+        duration: 5000
+      });
+    }
+  };
+
+  const handleEditDealer = (dealer: any) => {
+    setEditingDealer(dealer);
+    setEditDialogOpen(true);
+  };
+
+  const handleBanDealer = (dealerId: string) => {
+    setBanningDealerId(dealerId);
+    setBanDialogOpen(true);
+  };
+
+  const confirmBanDealer = async () => {
+    if (!banningDealerId || !banReason.trim()) {
+      showToast({
+        title: 'Error',
+        description: 'Please provide a reason for banning',
+        variant: 'error',
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/dealerships/${banningDealerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'ban',
+          status: 'REJECTED',
+          reason: banReason
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setDealers(prevDealers =>
+          prevDealers.filter(dealer => dealer.id !== banningDealerId)
+        );
+        showToast({
+          title: 'Dealership Banned',
+          description: 'Dealership has been permanently banned.',
+          variant: 'success',
+          duration: 5000
+        });
+        setBanDialogOpen(false);
+        setBanningDealerId(null);
+        setBanReason('');
+      } else {
+        showToast({
+          title: 'Error',
+          description: data.error || 'Failed to ban dealership',
+          variant: 'error',
+          duration: 5000
+        });
+      }
+    } catch (error) {
+      console.error('Error banning dealer:', error);
+      showToast({
+        title: 'Error',
+        description: 'Failed to ban dealership. Please try again.',
+        variant: 'error',
+        duration: 5000
+      });
+    }
+  };
+
+  const handleReactivateDealer = async (dealerId: string) => {
+    try {
+      const response = await fetch(`/api/admin/dealerships/${dealerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'reactivate',
+          status: 'APPROVED'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setDealers(prevDealers =>
+          prevDealers.map(dealer =>
+            dealer.id === dealerId
+              ? { ...dealer, status: 'APPROVED', verificationStatus: 'Verified' }
+              : dealer
+          )
+        );
+        showToast({
+          title: 'Dealership Reactivated',
+          description: 'Dealership has been reactivated successfully.',
+          variant: 'success',
+          duration: 5000
+        });
+      } else {
+        showToast({
+          title: 'Error',
+          description: data.error || 'Failed to reactivate dealership',
+          variant: 'error',
+          duration: 5000
+        });
+      }
+    } catch (error) {
+      console.error('Error reactivating dealer:', error);
+      showToast({
+        title: 'Error',
+        description: 'Failed to reactivate dealership. Please try again.',
+        variant: 'error',
+        duration: 5000
+      });
+    }
+  };
+
+  const handleManageSubscription = async (dealer: any) => {
+    setSelectedDealer(dealer);
+    setSelectedPlanId(dealer.subscriptionPlanId || '');
+
+    // Fetch subscription plans
+    try {
+      const response = await fetch('/api/subscription-plans');
+      const data = await response.json();
+      if (data.success && data.plans) {
+        setSubscriptionPlans(data.plans);
+      }
+    } catch (error) {
+      console.error('Failed to fetch subscription plans:', error);
+      showToast({
+        title: 'Error',
+        description: 'Failed to load subscription plans',
+        variant: 'error',
+        duration: 5000
+      });
+      return;
+    }
+
+    setSubscriptionModalOpen(true);
+  };
+
+  const handleUpdateSubscription = async () => {
+    if (!selectedDealer || !selectedPlanId) return;
+
+    try {
+      const response = await fetch(`/api/admin/dealerships/${selectedDealer.id}/subscription`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planId: selectedPlanId
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update dealer in state
+        setDealers(prevDealers =>
+          prevDealers.map(dealer =>
+            dealer.id === selectedDealer.id
+              ? {
+                  ...dealer,
+                  subscriptionPlan: data.subscription.plan.name,
+                  subscriptionPlanId: data.subscription.planId,
+                  monthlyFee: data.subscription.plan.price,
+                  maxListings: data.subscription.plan.maxListings
+                }
+              : dealer
+          )
+        );
+
+        showToast({
+          title: 'Success!',
+          description: 'Subscription plan updated successfully!',
+          variant: 'success',
+          duration: 5000
+        });
+
+        setSubscriptionModalOpen(false);
+        setSelectedDealer(null);
+        setSelectedPlanId('');
+      } else {
+        showToast({
+          title: 'Error',
+          description: data.error || 'Failed to update subscription',
+          variant: 'error',
+          duration: 5000
+        });
+      }
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+      showToast({
+        title: 'Error',
+        description: 'Failed to update subscription. Please try again.',
+        variant: 'error',
+        duration: 5000
+      });
+    }
   };
 
   const handleSuspendDealer = (dealerId: string) => {
@@ -1449,39 +1739,6 @@ function AdminDashboardContent() {
     } catch (error) {
       console.error('Error deleting dealer:', error);
       alert('An error occurred while deleting the dealer.');
-    }
-  };
-
-  const handleReactivateDealer = async (dealerId: string) => {
-    try {
-      const response = await fetch(`/api/admin/dealerships/${dealerId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'reactivate',
-          status: 'APPROVED',
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Update the dealers state
-        setDealers(prevDealers =>
-          prevDealers.map(dealer =>
-            dealer.id === dealerId
-              ? { ...dealer, status: 'Active' }
-              : dealer
-          )
-        );
-      } else {
-        alert(`Failed to reactivate dealer: ${data.error}`);
-      }
-    } catch (error) {
-      console.error('Error reactivating dealer:', error);
-      alert('An error occurred while reactivating the dealer.');
     }
   };
 
@@ -3222,10 +3479,51 @@ function AdminDashboardContent() {
                       className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filter
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Filter className="h-4 w-4 mr-2" />
+                        Filter
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+                        <CheckCircle className={`mr-2 h-4 w-4 ${statusFilter === 'all' ? 'opacity-100' : 'opacity-0'}`} />
+                        All Statuses
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setStatusFilter('PENDING')}>
+                        <CheckCircle className={`mr-2 h-4 w-4 ${statusFilter === 'PENDING' ? 'opacity-100' : 'opacity-0'}`} />
+                        Pending
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setStatusFilter('APPROVED')}>
+                        <CheckCircle className={`mr-2 h-4 w-4 ${statusFilter === 'APPROVED' ? 'opacity-100' : 'opacity-0'}`} />
+                        Approved
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setStatusFilter('SUSPENDED')}>
+                        <CheckCircle className={`mr-2 h-4 w-4 ${statusFilter === 'SUSPENDED' ? 'opacity-100' : 'opacity-0'}`} />
+                        Suspended
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setStatusFilter('REJECTED')}>
+                        <CheckCircle className={`mr-2 h-4 w-4 ${statusFilter === 'REJECTED' ? 'opacity-100' : 'opacity-0'}`} />
+                        Rejected
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Filter by Verification</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => setVerificationFilter('all')}>
+                        <CheckCircle className={`mr-2 h-4 w-4 ${verificationFilter === 'all' ? 'opacity-100' : 'opacity-0'}`} />
+                        All
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setVerificationFilter('Verified')}>
+                        <CheckCircle className={`mr-2 h-4 w-4 ${verificationFilter === 'Verified' ? 'opacity-100' : 'opacity-0'}`} />
+                        Verified
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setVerificationFilter('Pending')}>
+                        <CheckCircle className={`mr-2 h-4 w-4 ${verificationFilter === 'Pending' ? 'opacity-100' : 'opacity-0'}`} />
+                        Pending
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button variant="outline" size="sm">
                     <Download className="h-4 w-4 mr-2" />
                     Export
@@ -3313,11 +3611,20 @@ function AdminDashboardContent() {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {dealers
-                          .filter(dealer =>
-                            dealer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            dealer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            dealer.city.toLowerCase().includes(searchTerm.toLowerCase())
-                          )
+                          .filter(dealer => {
+                            // Search filter
+                            const matchesSearch = dealer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                              dealer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                              dealer.city.toLowerCase().includes(searchTerm.toLowerCase());
+
+                            // Status filter
+                            const matchesStatus = statusFilter === 'all' || dealer.status === statusFilter;
+
+                            // Verification filter
+                            const matchesVerification = verificationFilter === 'all' || dealer.verificationStatus === verificationFilter;
+
+                            return matchesSearch && matchesStatus && matchesVerification;
+                          })
                           .map((dealer) => (
                           <tr key={dealer.id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -3345,15 +3652,13 @@ function AdminDashboardContent() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <Badge className={
-                                dealer.status === 'Active' ? 'bg-green-100 text-green-800' :
-                                dealer.status === 'Suspended' ? 'bg-red-100 text-red-800' :
-                                'bg-yellow-100 text-yellow-800'
+                                dealer.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                dealer.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                dealer.status === 'SUSPENDED' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
                               }>
                                 {dealer.status}
                               </Badge>
-                              <div className="text-xs text-gray-500 mt-1">
-                                {dealer.subscriptionStatus}
-                              </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <Badge className={
@@ -3373,59 +3678,98 @@ function AdminDashboardContent() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <div className="flex space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-blue-600 hover:text-blue-800"
-                                  onClick={() => handleViewDealer(dealer)}
-                                  title="View Details"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                {dealer.verificationStatus === 'Pending' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-green-600 hover:text-green-800"
-                                    onClick={() => handleApproveDealer(dealer.id)}
-                                    title="Approve Dealer"
-                                  >
-                                    <CheckCircle className="h-4 w-4" />
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreVertical className="h-4 w-4" />
                                   </Button>
-                                )}
-                                {dealer.status === 'Active' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-yellow-600 hover:text-yellow-800"
-                                    onClick={() => handleSuspendDealer(dealer.id)}
-                                    title="Suspend Dealer"
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-56">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuItem onClick={() => handleViewDealer(dealer)}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    <span>View Details</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+
+                                  {dealer.verificationStatus === 'Pending' && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() => handleApproveDealer(dealer.id)}
+                                        className="text-green-600 focus:text-green-600"
+                                      >
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        <span>Approve Dealership</span>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => handleRejectDealer(dealer.id)}
+                                        className="text-red-600 focus:text-red-600"
+                                      >
+                                        <XCircle className="mr-2 h-4 w-4" />
+                                        <span>Reject Application</span>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                    </>
+                                  )}
+
+                                  {dealer.status === 'APPROVED' && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() => handleSuspendDealer(dealer.id)}
+                                        className="text-yellow-600 focus:text-yellow-600"
+                                      >
+                                        <AlertTriangle className="mr-2 h-4 w-4" />
+                                        <span>Suspend Dealership</span>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                    </>
+                                  )}
+
+                                  {dealer.status === 'SUSPENDED' && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() => handleReactivateDealer(dealer.id)}
+                                        className="text-green-600 focus:text-green-600"
+                                      >
+                                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                                        <span>Reactivate Dealership</span>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                    </>
+                                  )}
+
+                                  <DropdownMenuItem onClick={() => handleEditDealer(dealer)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    <span>Edit Details</span>
+                                  </DropdownMenuItem>
+
+                                  <DropdownMenuItem onClick={() => handleManageSubscription(dealer)}>
+                                    <CreditCard className="mr-2 h-4 w-4" />
+                                    <span>Manage Subscription</span>
+                                  </DropdownMenuItem>
+
+                                  <DropdownMenuSeparator />
+
+                                  {dealer.status !== 'REJECTED' && (
+                                    <DropdownMenuItem
+                                      onClick={() => handleBanDealer(dealer.id)}
+                                      className="text-red-600 focus:text-red-600"
+                                    >
+                                      <Ban className="mr-2 h-4 w-4" />
+                                      <span>Ban Permanently</span>
+                                    </DropdownMenuItem>
+                                  )}
+
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteDealer(dealer.id)}
+                                    className="text-red-600 focus:text-red-600"
                                   >
-                                    <AlertTriangle className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                {dealer.status === 'Suspended' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-green-600 hover:text-green-800"
-                                    onClick={() => handleReactivateDealer(dealer.id)}
-                                    title="Reactivate Dealer"
-                                  >
-                                    <CheckCircle className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-red-600 hover:text-red-800"
-                                  onClick={() => handleDeleteDealer(dealer.id)}
-                                  title="Delete Dealer"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
+                                    <X className="mr-2 h-4 w-4" />
+                                    <span>Delete Dealership</span>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </td>
                           </tr>
                         ))}
@@ -8411,6 +8755,389 @@ function AdminDashboardContent() {
               className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Delete Permanently
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Subscription Management Dialog */}
+      <Dialog open={subscriptionModalOpen} onOpenChange={setSubscriptionModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Manage Subscription Plan</DialogTitle>
+            <DialogDescription>
+              {selectedDealer && (
+                <span>Update the subscription plan for <strong>{selectedDealer.name}</strong></span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {subscriptionPlans.length > 0 ? (
+              <div className="grid grid-cols-1 gap-3">
+                {subscriptionPlans.map((plan) => {
+                  const features = Array.isArray(plan.features) ? plan.features : JSON.parse(plan.features);
+                  const isSelected = selectedPlanId === plan.id;
+                  const isCurrent = selectedDealer?.subscriptionPlanId === plan.id;
+
+                  return (
+                    <div
+                      key={plan.id}
+                      onClick={() => setSelectedPlanId(plan.id)}
+                      className={`relative p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-blue-600 bg-blue-50 shadow-md'
+                          : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
+                      }`}
+                    >
+                      {isCurrent && (
+                        <div className="absolute -top-2 right-3">
+                          <Badge className="bg-green-600 text-white text-xs">Current Plan</Badge>
+                        </div>
+                      )}
+
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h4 className="text-lg font-bold text-gray-900">{plan.name}</h4>
+                          <p className="text-sm text-gray-600">{plan.description}</p>
+                        </div>
+                        <div className="text-right ml-4">
+                          <div className="text-2xl font-bold text-blue-600">
+                            N${(plan.price / 100).toFixed(2)}
+                          </div>
+                          <div className="text-xs text-gray-500">/month</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3 text-green-600" />
+                          <span className="text-gray-700">
+                            {plan.maxListings === 0 ? 'Unlimited' : plan.maxListings} listings
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3 text-green-600" />
+                          <span className="text-gray-700">{plan.maxPhotos} photos/listing</span>
+                        </div>
+                      </div>
+
+                      {isSelected && (
+                        <div className="mt-3 flex items-center gap-2 text-blue-600 font-medium">
+                          <CheckCircle className="w-4 h-4" />
+                          <span className="text-sm">Selected</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSubscriptionModalOpen(false);
+                setSelectedDealer(null);
+                setSelectedPlanId('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateSubscription}
+              disabled={!selectedPlanId || selectedPlanId === selectedDealer?.subscriptionPlanId}
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Update Subscription
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Dealer Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Reject Dealership Application</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this dealership application. This will be sent to the applicant.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Reason for rejection <span className="text-red-600">*</span>
+              </label>
+              <Textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Enter reason for rejection (e.g., incomplete documentation, invalid business license)..."
+                rows={4}
+                className="w-full"
+                required
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectDialogOpen(false);
+                setRejectingDealerId(null);
+                setRejectReason('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmRejectDealer}
+              disabled={!rejectReason.trim()}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Reject Application
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Ban Dealer Dialog */}
+      <Dialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Ban Dealership Permanently</DialogTitle>
+            <DialogDescription>
+              <div className="space-y-2">
+                <p className="font-semibold text-red-600">⚠️ WARNING: This action cannot be undone!</p>
+                <p>Banning will permanently remove this dealership from the platform and prevent them from re-registering.</p>
+                <ul className="list-disc list-inside text-sm mt-2">
+                  <li>All listings will be removed immediately</li>
+                  <li>All users will be deactivated</li>
+                  <li>Email and business name will be blacklisted</li>
+                  <li>Cannot create new accounts</li>
+                </ul>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Reason for ban (REQUIRED) <span className="text-red-600">*</span>
+              </label>
+              <Textarea
+                value={banReason}
+                onChange={(e) => setBanReason(e.target.value)}
+                placeholder="Enter reason for ban (e.g., fraud, policy violations, illegal activity)..."
+                rows={4}
+                className="w-full"
+                required
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setBanDialogOpen(false);
+                setBanningDealerId(null);
+                setBanReason('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmBanDealer}
+              disabled={!banReason.trim()}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Ban Permanently
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dealer Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Dealership Details</DialogTitle>
+            <DialogDescription>
+              Update dealership information. Changes will be reflected immediately.
+            </DialogDescription>
+          </DialogHeader>
+          {editingDealer && (
+            <div className="space-y-6 py-4">
+              {/* Business Information */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-900">Business Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Business Name
+                    </label>
+                    <Input
+                      value={editingDealer.name || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, name: e.target.value})}
+                      placeholder="Business name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Contact Person
+                    </label>
+                    <Input
+                      value={editingDealer.contactPerson || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, contactPerson: e.target.value})}
+                      placeholder="Contact person"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <Input
+                      type="email"
+                      value={editingDealer.email || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, email: e.target.value})}
+                      placeholder="Email address"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone
+                    </label>
+                    <Input
+                      value={editingDealer.phone || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, phone: e.target.value})}
+                      placeholder="Phone number"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Location Information */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-900">Location</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Street Address
+                    </label>
+                    <Input
+                      value={editingDealer.address || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, address: e.target.value})}
+                      placeholder="Street address"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      City
+                    </label>
+                    <Input
+                      value={editingDealer.city || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, city: e.target.value})}
+                      placeholder="City"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Region
+                    </label>
+                    <Input
+                      value={editingDealer.region || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, region: e.target.value})}
+                      placeholder="Region"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Postal Code
+                    </label>
+                    <Input
+                      value={editingDealer.postalCode || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, postalCode: e.target.value})}
+                      placeholder="Postal code"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Registration */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-900">Business Registration</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Business License Number
+                    </label>
+                    <Input
+                      value={editingDealer.businessLicense || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, businessLicense: e.target.value})}
+                      placeholder="Business license"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tax Number
+                    </label>
+                    <Input
+                      value={editingDealer.taxNumber || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, taxNumber: e.target.value})}
+                      placeholder="Tax number"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Business Type
+                    </label>
+                    <Input
+                      value={editingDealer.businessType || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, businessType: e.target.value})}
+                      placeholder="Business type"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Website
+                    </label>
+                    <Input
+                      value={editingDealer.website || ''}
+                      onChange={(e) => setEditingDealer({...editingDealer, website: e.target.value})}
+                      placeholder="Website URL"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditDialogOpen(false);
+                setEditingDealer(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                showToast({
+                  title: 'Coming Soon',
+                  description: 'Edit functionality will be implemented in the next update.',
+                  variant: 'info',
+                  duration: 3000
+                });
+                setEditDialogOpen(false);
+                setEditingDealer(null);
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>

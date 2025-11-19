@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
     const requiredFields = [
       'businessName',
       'businessType',
+      'subscriptionPlanId',
       'email',
       'phone',
       'contactPerson',
@@ -24,6 +25,18 @@ export async function POST(request: NextRequest) {
     if (missingFields.length > 0) {
       return NextResponse.json(
         { error: `Missing required fields: ${missingFields.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    // Validate subscription plan exists
+    const subscriptionPlan = await prisma.subscriptionPlan.findUnique({
+      where: { id: data.subscriptionPlanId }
+    });
+
+    if (!subscriptionPlan) {
+      return NextResponse.json(
+        { error: 'Invalid subscription plan selected' },
         { status: 400 }
       );
     }
@@ -71,7 +84,7 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    // Create dealership and user in a transaction
+    // Create dealership, user, and subscription in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Create dealership
       const dealership = await tx.dealership.create({
@@ -106,7 +119,28 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      return { dealership, user };
+      // Calculate subscription dates
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + subscriptionPlan.duration);
+
+      // Create subscription
+      const subscription = await tx.dealershipSubscription.create({
+        data: {
+          dealershipId: dealership.id,
+          planId: data.subscriptionPlanId,
+          status: 'PENDING_PAYMENT', // Pending until first payment is made
+          startDate,
+          endDate,
+          nextPaymentDate: startDate,
+          autoRenew: true,
+          currentListings: 0,
+          listingsUsed: 0,
+          featuredListingsUsed: 0
+        }
+      });
+
+      return { dealership, user, subscription };
     });
 
     // TODO: Send verification email
@@ -115,7 +149,9 @@ export async function POST(request: NextRequest) {
       dealershipId: result.dealership.id,
       dealershipName: result.dealership.name,
       userId: result.user.id,
-      userEmail: result.user.email
+      userEmail: result.user.email,
+      subscriptionId: result.subscription.id,
+      subscriptionPlan: subscriptionPlan.name
     });
 
     return NextResponse.json({

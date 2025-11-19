@@ -364,7 +364,7 @@ export function NotificationPanel({ onNotificationClick }: NotificationPanelProp
               <button
                 onClick={() => {
                   setIsOpen(false);
-                  window.location.href = '/admin?tab=activity';
+                  window.location.href = '/admin/notifications';
                 }}
                 className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium"
               >

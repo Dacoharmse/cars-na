@@ -18,30 +18,48 @@ import {
   EyeOff
 } from 'lucide-react';
 
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  currency: string;
+  duration: number;
+  features: string[];
+  maxListings: number;
+  maxPhotos: number;
+  priority: number;
+  isActive: boolean;
+}
+
 interface RegistrationData {
   // Business Information
   businessName: string;
   businessType: string;
   registrationNumber: string;
   taxNumber: string;
-  
+
+  // Subscription Plan
+  subscriptionPlanId: string;
+
   // Contact Information
   contactPerson: string;
   email: string;
   phone: string;
   alternatePhone: string;
-  
+
   // Address Information
   streetAddress: string;
   city: string;
   region: string;
   postalCode: string;
   googleMapsUrl: string;
-  
+
   // Account Information
   password: string;
   confirmPassword: string;
-  
+
   // Terms and Conditions
   agreeToTerms: boolean;
   agreeToMarketing: boolean;
@@ -74,6 +92,7 @@ export default function DealerRegisterPage() {
     businessType: '',
     registrationNumber: '',
     taxNumber: '',
+    subscriptionPlanId: '',
     contactPerson: '',
     email: '',
     phone: '',
@@ -89,10 +108,35 @@ export default function DealerRegisterPage() {
     agreeToMarketing: false
   });
 
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<RegistrationData>>({});
+
+  // Fetch subscription plans on mount
+  React.useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const response = await fetch('/api/subscription-plans');
+        const data = await response.json();
+        if (data.success && data.plans) {
+          setSubscriptionPlans(data.plans);
+          // Auto-select the middle plan (Standard) as default
+          const standardPlan = data.plans.find((p: SubscriptionPlan) => p.slug === 'standard');
+          if (standardPlan) {
+            setFormData(prev => ({ ...prev, subscriptionPlanId: standardPlan.id }));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription plans:', error);
+      } finally {
+        setLoadingPlans(false);
+      }
+    };
+    fetchPlans();
+  }, []);
 
   const updateFormData = (field: keyof RegistrationData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -108,6 +152,7 @@ export default function DealerRegisterPage() {
     // Required field validation
     if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
     if (!formData.businessType) newErrors.businessType = 'Business type is required';
+    if (!formData.subscriptionPlanId) newErrors.subscriptionPlanId = 'Please select a subscription plan';
     if (!formData.contactPerson.trim()) newErrors.contactPerson = 'Contact person is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
@@ -302,6 +347,77 @@ export default function DealerRegisterPage() {
                       />
                     </div>
                   </div>
+                </div>
+
+                {/* Subscription Plan Selection */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    Choose Your Subscription Plan
+                  </h3>
+                  {loadingPlans ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {subscriptionPlans.map((plan) => {
+                        const features = Array.isArray(plan.features) ? plan.features : JSON.parse(plan.features as any);
+                        const isSelected = formData.subscriptionPlanId === plan.id;
+                        const isPopular = plan.slug === 'standard';
+
+                        return (
+                          <div
+                            key={plan.id}
+                            onClick={() => updateFormData('subscriptionPlanId', plan.id)}
+                            className={`relative p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-blue-600 bg-blue-50 shadow-lg'
+                                : 'border-slate-200 hover:border-blue-300 hover:shadow-md'
+                            }`}
+                          >
+                            {isPopular && (
+                              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                                <Badge className="bg-blue-600 text-white px-3 py-1">Most Popular</Badge>
+                              </div>
+                            )}
+
+                            <div className="text-center mb-4">
+                              <h4 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h4>
+                              <div className="text-3xl font-bold text-blue-600">
+                                N${(plan.price / 100).toFixed(2)}
+                                <span className="text-sm font-normal text-slate-500">/month</span>
+                              </div>
+                              <p className="text-sm text-slate-600 mt-2">{plan.description}</p>
+                            </div>
+
+                            <div className="space-y-2 mb-4">
+                              {features.map((feature: string, index: number) => (
+                                <div key={index} className="flex items-start gap-2 text-sm">
+                                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                  <span className="text-slate-700">{feature}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="text-center">
+                              {isSelected ? (
+                                <div className="inline-flex items-center gap-2 text-blue-600 font-medium">
+                                  <CheckCircle className="w-5 h-5" />
+                                  Selected
+                                </div>
+                              ) : (
+                                <div className="text-slate-400 font-medium">Click to select</div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {errors.subscriptionPlanId && (
+                    <p className="text-red-500 text-sm mt-2">{errors.subscriptionPlanId}</p>
+                  )}
                 </div>
 
                 {/* Contact Information */}

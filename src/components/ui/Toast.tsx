@@ -71,11 +71,11 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         data-state={isVisible ? "open" : "closed"}
         {...props}
       >
-        <div className="grid gap-1">
+        <div className="grid gap-1 flex-1 min-w-0 pr-2">
           {title && <div className="text-sm font-semibold">{title}</div>}
-          {description && <div className="text-sm opacity-90">{description}</div>}
+          {description && <div className="text-sm opacity-90 break-words">{description}</div>}
         </div>
-        <div className="flex shrink-0 items-center">
+        <div className="flex shrink-0 items-center gap-2">
           {action}
           {onClose && (
             <button
@@ -84,7 +84,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
                 setIsVisible(false);
                 onClose();
               }}
-              className="ml-1 inline-flex h-6 w-6 items-center justify-center rounded-md text-neutral-500 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-400"
+              className="inline-flex h-6 w-6 items-center justify-center rounded-md text-neutral-500 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-400"
               aria-label="Close"
             >
               <svg
