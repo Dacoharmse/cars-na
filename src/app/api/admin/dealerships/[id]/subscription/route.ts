@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // UPDATE dealership subscription plan
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -19,6 +19,7 @@ export async function PATCH(
       );
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { planId } = body;
 
@@ -43,7 +44,7 @@ export async function PATCH(
 
     // Check if dealership exists
     const dealership = await prisma.dealership.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         subscription: true
       }
@@ -56,7 +57,7 @@ export async function PATCH(
       );
     }
 
-    console.log(`Admin ${session.user.email} updating subscription for dealership ${params.id} to plan ${subscriptionPlan.name}`);
+    console.log(`Admin ${session.user.email} updating subscription for dealership ${id} to plan ${subscriptionPlan.name}`);
 
     // Calculate new subscription dates
     const startDate = new Date();
@@ -84,7 +85,7 @@ export async function PATCH(
       // Create new subscription if none exists
       updatedSubscription = await prisma.dealershipSubscription.create({
         data: {
-          dealershipId: params.id,
+          dealershipId: id,
           planId,
           status: 'ACTIVE',
           startDate,

@@ -33,7 +33,7 @@ export async function POST(
       if (!banner) {
         // Banner not found in database, but don't fail the request
         // This could be a placeholder banner
-        console.log(`Banner ${params.id} not found in database (possibly a placeholder)`);
+        console.log(`Banner ${id} not found in database (possibly a placeholder)`);
         return NextResponse.json({ success: true, tracked: false });
       }
 

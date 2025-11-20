@@ -112,10 +112,10 @@ const mockVehicles = [
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const vehicleId = params.id;
+    const { id: vehicleId } = await params;
     
     // Find the vehicle by ID
     const vehicle = mockVehicles.find(v => v.id === vehicleId);

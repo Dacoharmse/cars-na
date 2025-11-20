@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // UPDATE dealership status or details
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -19,15 +19,16 @@ export async function PATCH(
       );
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { action, status, reason } = body;
 
-    console.log(`Admin ${session.user.email} performing action: ${action} on dealership ${params.id}`);
+    console.log(`Admin ${session.user.email} performing action: ${action} on dealership ${id}`);
     console.log(`New status: ${status}, Reason: ${reason || 'N/A'}`);
 
     // Update the database
     const updatedDealership = await prisma.dealership.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status,
         updatedAt: new Date(),
@@ -39,7 +40,7 @@ export async function PATCH(
     if (status === 'APPROVED') {
       await prisma.user.updateMany({
         where: {
-          dealershipId: params.id,
+          dealershipId: id,
           role: 'DEALER_PRINCIPAL'
         },
         data: {
@@ -73,7 +74,7 @@ export async function PATCH(
 // DELETE dealership
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -86,18 +87,58 @@ export async function DELETE(
       );
     }
 
-    console.log(`Admin ${session.user.email} deleting dealership ${params.id}`);
+    const { id } = await params;
 
-    // Delete from the database (this will cascade delete related records)
-    await prisma.dealership.delete({
-      where: { id: params.id }
+    console.log(`Admin ${session.user.email} deleting dealership ${id}`);
+
+    // Delete all related records in a transaction
+    await prisma.$transaction(async (tx) => {
+      // Delete leads first (not cascaded)
+      await tx.lead.deleteMany({
+        where: { dealershipId: id }
+      });
+
+      // Delete all vehicles (this will cascade delete VehicleImages and FeaturedListings)
+      await tx.vehicle.deleteMany({
+        where: { dealershipId: id }
+      });
+
+      // Delete dealership subscription
+      await tx.dealershipSubscription.deleteMany({
+        where: { dealershipId: id }
+      });
+
+      // Delete subscription notifications
+      await tx.subscriptionNotification.deleteMany({
+        where: { dealershipId: id }
+      });
+
+      // Delete usage analytics
+      await tx.usageAnalytics.deleteMany({
+        where: { dealershipId: id }
+      });
+
+      // Delete payments
+      await tx.payment.deleteMany({
+        where: { dealershipId: id }
+      });
+
+      // Delete users associated with the dealership (this will cascade delete Account, Session, UserAuditLog)
+      await tx.user.deleteMany({
+        where: { dealershipId: id }
+      });
+
+      // Finally, delete the dealership
+      await tx.dealership.delete({
+        where: { id }
+      });
     });
 
     return NextResponse.json({
       success: true,
       message: 'Dealership deleted successfully',
       dealership: {
-        id: params.id,
+        id,
         deletedAt: new Date().toISOString()
       }
     });
