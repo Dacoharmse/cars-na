@@ -92,6 +92,7 @@ model Dealership {
   specializations    String?           // Comma-separated specializations
   status             DealershipStatus  @default(PENDING)
   isVerified         Boolean           @default(false)
+  isFeatured         Boolean           @default(false) // Featured dealership on homepage
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
 
@@ -116,6 +117,7 @@ model Vehicle {
   mileage      Int?     // Optional for some categories like new equipment
   color        String?
   vin          String?  @unique
+  internalRef  String?  // Internal reference for dealership use
   description  String?
   transmission String?
   fuelType     String?
@@ -128,6 +130,10 @@ model Vehicle {
   passengerCapacity Int?  // For buses
   length         Float?   // For boats (in meters)
   weight         Float?   // For industrial machinery (in kg)
+
+  // Features
+  comfortFeatures String[] @default([]) // Array of comfort feature names
+  safetyFeatures  String[] @default([]) // Array of safety feature names
 
   isPrivate    Boolean  @default(false)
   status       VehicleStatus @default(AVAILABLE)
@@ -148,11 +154,12 @@ model Vehicle {
 
 // VehicleImage model for car images
 model VehicleImage {
-  id        String   @id @default(cuid())
-  url       String
-  isPrimary Boolean  @default(false)
-  createdAt DateTime @default(now())
-  
+  id           String   @id @default(cuid())
+  url          String   @db.Text // Use Text type to support large base64 strings
+  isPrimary    Boolean  @default(false)
+  displayOrder Int      @default(0) // Order for displaying images
+  createdAt    DateTime @default(now())
+
   // Relations
   vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   vehicleId String
@@ -528,4 +535,36 @@ enum VehicleCategory {
   TRACTORS                // Agricultural tractors, farm machinery
   BOATS                   // Boats, jet-skis, marine equipment
   ACCESSORIES             // Vehicle parts, accessories, equipment
+}
+
+// Promo Code model for discount codes
+model PromoCode {
+  id              String            @id @default(cuid())
+  code            String            @unique
+  discountType    PromoDiscountType @default(PERCENTAGE)
+  discountValue   Float             // Percentage (0-100) or fixed amount in cents
+  startDate       DateTime?
+  endDate         DateTime?
+  usageLimit      Int?              // Null = unlimited
+  usageCount      Int               @default(0)
+  isActive        Boolean           @default(true)
+  applicablePlans String[]          // Array of plan IDs this promo applies to
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdBy       String            // User ID who created the promo code
+}
+
+enum PromoDiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+// Platform Settings model for storing admin configuration
+model PlatformSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique // Unique identifier for the setting (e.g., "general", "security", "payment")
+  value     Json     // JSON object containing all settings for this section
+  updatedAt DateTime @updatedAt
+  updatedBy String?  // User ID who last updated this setting
 }

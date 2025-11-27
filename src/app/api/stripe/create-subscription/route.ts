@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, formatAmountForStripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 
+/**
+ * Create Subscription API Route
+ * NOTE: Stripe integration temporarily disabled
+ * This endpoint will be updated when payment provider (DPO) is integrated
+ */
 export async function POST(req: NextRequest) {
   try {
-    const { dealershipId, planId, priceId } = await req.json();
+    const { dealershipId, planId } = await req.json();
 
     if (!dealershipId || !planId) {
       return NextResponse.json(
@@ -31,69 +35,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create or get Stripe customer
-    let customerId = dealership.subscription?.stripeCustomerId;
-
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        name: dealership.name,
-        email: dealership.users[0]?.email,
-        metadata: {
-          dealershipId: dealership.id,
-        },
-      });
-      customerId = customer.id;
-    }
-
-    // Create Stripe subscription
-    const subscription = await stripe.subscriptions.create({
-      customer: customerId,
-      items: [
-        {
-          price: priceId,
-        },
-      ],
-      payment_behavior: 'default_incomplete',
-      payment_settings: { save_default_payment_method: 'on_subscription' },
-      expand: ['latest_invoice.payment_intent'],
-      metadata: {
-        dealershipId: dealership.id,
-        planId: plan.id,
-      },
-    });
-
     // Calculate end date
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + plan.duration);
 
     // Create or update dealership subscription
-    await prisma.dealershipSubscription.upsert({
+    // Payments will be handled manually until payment provider is integrated
+    const subscription = await prisma.dealershipSubscription.upsert({
       where: { dealershipId },
       update: {
         planId: plan.id,
-        stripeCustomerId: customerId,
-        stripeSubscriptionId: subscription.id,
         endDate,
-        status: 'PENDING_PAYMENT',
-        autoRenew: true,
+        status: 'PENDING_PAYMENT', // Admin will activate manually after payment
+        autoRenew: false, // Disabled until payment provider is integrated
       },
       create: {
         dealershipId,
         planId: plan.id,
-        stripeCustomerId: customerId,
-        stripeSubscriptionId: subscription.id,
         endDate,
         status: 'PENDING_PAYMENT',
-        autoRenew: true,
+        autoRenew: false,
       },
     });
 
-    const invoice = subscription.latest_invoice as any;
-    const paymentIntent = invoice.payment_intent;
-
     return NextResponse.json({
-      subscriptionId: subscription.id,
-      clientSecret: paymentIntent.client_secret,
+      success: true,
+      message: 'Subscription created. Please contact admin for payment details.',
+      subscription: {
+        id: subscription.id,
+        planId: subscription.planId,
+        status: subscription.status,
+        endDate: subscription.endDate,
+      }
     });
   } catch (error) {
     console.error('Error creating subscription:', error);

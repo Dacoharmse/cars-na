@@ -21,12 +21,33 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { action, status, reason } = body;
+    const { action, status, reason, isFeatured } = body;
 
     console.log(`Admin ${session.user.email} performing action: ${action} on dealership ${id}`);
-    console.log(`New status: ${status}, Reason: ${reason || 'N/A'}`);
+    console.log(`New status: ${status}, Reason: ${reason || 'N/A'}, isFeatured: ${isFeatured}`);
 
-    // Update the database
+    // Handle toggle-featured action
+    if (action === 'toggle-featured') {
+      const updatedDealership = await prisma.dealership.update({
+        where: { id },
+        data: {
+          isFeatured: isFeatured,
+          updatedAt: new Date(),
+        }
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `Dealership ${isFeatured ? 'set as featured' : 'removed from featured'} successfully`,
+        dealership: {
+          id: updatedDealership.id,
+          isFeatured: updatedDealership.isFeatured,
+          updatedAt: updatedDealership.updatedAt.toISOString()
+        }
+      });
+    }
+
+    // Update the database for status changes
     const updatedDealership = await prisma.dealership.update({
       where: { id },
       data: {

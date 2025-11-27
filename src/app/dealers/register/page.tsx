@@ -1,21 +1,24 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { 
-  Building2, 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
+import { NotificationDialog } from '@/components/notifications/NotificationDialog';
+import {
+  Building2,
+  User,
+  Mail,
+  Phone,
+  MapPin,
   FileText,
   CheckCircle,
   AlertCircle,
   Eye,
-  EyeOff
+  EyeOff,
+  ArrowLeft
 } from 'lucide-react';
 
 interface SubscriptionPlan {
@@ -87,6 +90,7 @@ const NAMIBIAN_CITIES = [
 ];
 
 export default function DealerRegisterPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState<RegistrationData>({
     businessName: '',
     businessType: '',
@@ -114,6 +118,19 @@ export default function DealerRegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<RegistrationData>>({});
+
+  // Notification dialog state
+  const [notification, setNotification] = useState<{
+    isOpen: boolean;
+    variant: 'success' | 'error';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    variant: 'success',
+    title: '',
+    message: '',
+  });
 
   // Fetch subscription plans on mount
   React.useEffect(() => {
@@ -217,29 +234,72 @@ export default function DealerRegisterPage() {
         throw new Error(data.error || 'Registration failed');
       }
 
-      // Success - redirect to login with success message
-      alert(data.message || 'Registration successful! Please check your email to verify your account.');
-      window.location.href = '/dealer/login?registered=true';
+      // Success - show notification dialog
+      setNotification({
+        isOpen: true,
+        variant: 'success',
+        title: 'Registration Successful!',
+        message: data.message || 'Your application is pending admin approval. You will receive an email once approved.',
+      });
 
     } catch (error) {
       console.error('Registration error:', error);
-      alert(error instanceof Error ? error.message : 'Registration failed. Please try again.');
+      setNotification({
+        isOpen: true,
+        variant: 'error',
+        title: 'Registration Failed',
+        message: error instanceof Error ? error.message : 'Registration failed. Please try again.',
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleNotificationClose = () => {
+    setNotification(prev => ({ ...prev, isOpen: false }));
+    // Redirect to login page on success
+    if (notification.variant === 'success') {
+      window.location.href = '/dealer/login?registered=true';
+    }
+  };
+
   return (
     <MainLayout>
+      <NotificationDialog
+        isOpen={notification.isOpen}
+        onClose={handleNotificationClose}
+        variant={notification.variant}
+        title={notification.title}
+        message={notification.message}
+        primaryAction={{
+          label: notification.variant === 'success' ? 'Go to Login' : 'OK',
+          onClick: () => {
+            if (notification.variant === 'success') {
+              window.location.href = '/dealer/login?registered=true';
+            }
+          },
+        }}
+      />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white py-12">
         <div className="container mx-auto px-4 max-w-4xl">
+          {/* Back to Site Button */}
+          <div className="mb-6">
+            <button
+              onClick={() => router.push('/')}
+              className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-700 transition-all duration-200 group shadow-sm hover:shadow"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm font-medium">Back to Site</span>
+            </button>
+          </div>
+
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-slate-900 mb-4">
               Join Cars.na as a Dealer
             </h1>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Expand your reach and connect with thousands of potential customers across Namibia. 
+              Expand your reach and connect with thousands of potential customers across Namibia.
               Register your dealership today and start selling more cars.
             </p>
           </div>

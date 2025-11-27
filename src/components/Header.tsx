@@ -36,7 +36,10 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [onScroll]);
 
-
+  // Hide header on login pages
+  if (pathname === '/admin/login' || pathname === '/dealer/login') {
+    return null;
+  }
 
   return (
     <>
@@ -49,7 +52,7 @@ export default function Header() {
       </a>
 
       {/* Utility Bar */}
-      <div className="bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 border-b border-slate-200 dark:border-slate-700">
+      <div className="fixed top-0 inset-x-0 z-[60] bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 border-b border-slate-200 dark:border-slate-700">
         <div className="mx-auto max-w-7xl px-4 h-10 flex items-center justify-between">
           {/* Mobile Support Button */}
           <div className="flex md:hidden">
@@ -137,10 +140,10 @@ export default function Header() {
       {/* Main Navigation */}
       <header
         className={clsx(
-          "fixed inset-x-0 z-40 backdrop-blur-md transition-all duration-300 border-b",
+          "fixed inset-x-0 z-50 backdrop-blur-md transition-all duration-300 border-b",
           scrolled
-            ? "top-0 h-14 shadow-lg bg-white/90 dark:bg-slate-900/90 border-slate-200/50 dark:border-slate-700/50"
-            : "top-10 md:top-10 h-16 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+            ? "top-10 h-14 shadow-lg bg-white/90 dark:bg-slate-900/90 border-slate-200/50 dark:border-slate-700/50"
+            : "top-10 h-16 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
         )}
       >
         <div className="mx-auto max-w-7xl h-full flex items-center justify-between px-4">

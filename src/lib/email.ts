@@ -41,41 +41,64 @@ interface VehicleData {
 
 class EmailService {
   private transporter: nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null = null;
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
-    this.initializeTransporter();
+    // Don't initialize during construction - only when actually needed
   }
 
   private async initializeTransporter() {
-    try {
-      // Configuration for multiple email providers
-      const config: EmailConfig = {
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-          user: process.env.SMTP_USER || process.env.EMAIL_USER || '',
-          pass: process.env.SMTP_PASS || process.env.EMAIL_PASS || '',
-        },
-      };
-
-      this.transporter = nodemailer.createTransport(config);
-
-      // Verify connection
-      await this.transporter.verify();
-      console.log('Email service initialized successfully');
-    } catch (error) {
-      console.error('Email service initialization failed:', error);
-      
-      // Fallback to console logging in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Using console fallback for email in development mode');
-      }
+    // Return existing initialization promise if already in progress
+    if (this.initPromise) {
+      return this.initPromise;
     }
+
+    // If already initialized, return immediately
+    if (this.transporter) {
+      return Promise.resolve();
+    }
+
+    // Create new initialization promise
+    this.initPromise = (async () => {
+      try {
+        // Configuration for multiple email providers
+        const config: EmailConfig = {
+          host: process.env.SMTP_HOST || 'smtp.gmail.com',
+          port: parseInt(process.env.SMTP_PORT || '587'),
+          secure: process.env.SMTP_SECURE === 'true',
+          auth: {
+            user: process.env.SMTP_USER || process.env.EMAIL_USER || '',
+            pass: process.env.SMTP_PASS || process.env.EMAIL_PASS || '',
+          },
+        };
+
+        this.transporter = nodemailer.createTransport(config);
+
+        // Verify connection
+        await this.transporter.verify();
+        console.log('Email service initialized successfully');
+      } catch (error) {
+        console.error('Email service initialization failed:', error);
+
+        // Fallback to console logging in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Using console fallback for email in development mode');
+        }
+      } finally {
+        this.initPromise = null;
+      }
+    })();
+
+    return this.initPromise;
   }
 
   private async sendEmail(to: string, template: EmailTemplate): Promise<boolean> {
     try {
+      // Initialize transporter if not already done
+      if (!this.transporter) {
+        await this.initializeTransporter();
+      }
+
       if (!this.transporter) {
         // Fallback for development - log to console
         if (process.env.NODE_ENV === 'development') {

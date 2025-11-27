@@ -48,148 +48,7 @@ interface ShowcaseSection {
   };
 }
 
-// Mock data for development
-const mockVehicles: Vehicle[] = [
-  {
-    id: 1,
-    make: 'Toyota',
-    model: 'Hilux',
-    year: 2023,
-    price: 520000,
-    originalPrice: 580000,
-    mileage: 15000,
-    transmission: 'Manual',
-    fuelType: 'Diesel',
-    color: 'White',
-    image: 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=300&fit=crop&auto=format',
-    dealer: 'Windhoek Motors',
-    location: 'Windhoek',
-    isNew: false,
-    viewsLast30Days: 1250,
-    createdAt: '2024-01-20',
-    popularityRank: 1,
-  },
-  {
-    id: 2,
-    make: 'Ford',
-    model: 'Ranger',
-    year: 2024,
-    price: 650000,
-    mileage: 5000,
-    transmission: 'Automatic',
-    fuelType: 'Diesel',
-    color: 'Blue',
-    image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400&h=300&fit=crop&auto=format',
-    dealer: 'Swakopmund Auto',
-    location: 'Swakopmund',
-    isNew: true,
-    viewsLast30Days: 980,
-    createdAt: '2024-01-21',
-    popularityRank: 2,
-  },
-  {
-    id: 3,
-    make: 'BMW',
-    model: 'X3',
-    year: 2023,
-    price: 850000,
-    originalPrice: 920000,
-    mileage: 12000,
-    transmission: 'Automatic',
-    fuelType: 'Petrol',
-    color: 'Black',
-    image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=300&fit=crop&auto=format',
-    dealer: 'Premium Motors',
-    location: 'Windhoek',
-    isNew: false,
-    viewsLast30Days: 750,
-    createdAt: '2024-01-19',
-    popularityRank: 3,
-  },
-  {
-    id: 4,
-    make: 'Mercedes-Benz',
-    model: 'C-Class',
-    year: 2024,
-    price: 780000,
-    mileage: 2000,
-    transmission: 'Automatic',
-    fuelType: 'Petrol',
-    color: 'Silver',
-    image: 'https://images.unsplash.com/photo-1563720223185-11003d516935?w=400&h=300&fit=crop&auto=format',
-    dealer: 'Luxury Cars Namibia',
-    location: 'Windhoek',
-    isNew: true,
-    viewsLast30Days: 650,
-    createdAt: '2024-01-22',
-    popularityRank: 4,
-  },
-];
-
-const showcaseSections: ShowcaseSection[] = [
-  {
-    id: 'top-dealer-picks',
-    title: 'Top Dealer Picks',
-    description: 'Hand-picked premium vehicles from our top dealers',
-    headerColor: 'bg-[#1F3469]',
-    vehicles: mockVehicles.slice(0, 4),
-    badge: {
-      variant: 'primary',
-      label: 'Dealer Pick',
-      icon: <Star className="w-3 h-3" />,
-    },
-  },
-  {
-    id: 'featured-vehicles',
-    title: 'Featured Vehicles',
-    description: 'Specially selected vehicles with premium features',
-    headerColor: 'bg-white border-b-2 border-[#CB2030]',
-    vehicles: mockVehicles.slice(0, 4),
-    badge: {
-      variant: 'secondary',
-      label: 'Featured',
-    },
-  },
-  {
-    id: 'top-deals',
-    title: 'Top Deals',
-    description: 'Best discounts and savings available now',
-    headerColor: 'bg-white border-b-4 border-[#109B4A]',
-    vehicles: mockVehicles.filter(v => v.originalPrice).slice(0, 4),
-    badge: {
-      variant: 'success',
-      label: 'Great Deal',
-    },
-    ribbon: {
-      text: 'Save 10%',
-      color: 'bg-[#109B4A]',
-    },
-  },
-  {
-    id: 'most-viewed',
-    title: 'Most Viewed',
-    description: 'Popular vehicles that buyers are interested in',
-    headerColor: 'bg-white border-b-4 border-sky-400',
-    vehicles: mockVehicles.sort((a, b) => (b.viewsLast30Days || 0) - (a.viewsLast30Days || 0)).slice(0, 4),
-    badge: {
-      variant: 'info',
-      label: 'Popular',
-      icon: <Eye className="w-3 h-3" />,
-    },
-  },
-  {
-    id: 'new-listings',
-    title: 'New Listings',
-    description: 'Fresh arrivals in the last 72 hours',
-    headerColor: 'bg-white',
-    vehicles: mockVehicles.slice(0, 4),
-    badge: {
-      variant: 'warning',
-      label: 'New',
-      pulse: true,
-    },
-  },
-];
+// All mock data removed - using real API data only
 
 // Helper function to generate browse URL with filters
 const getBrowseUrl = (sectionId: string) => {
@@ -315,12 +174,12 @@ const TopNewUsedSection: React.FC = () => {
   
   // Fetch top new cars using API
   const { data: newCarsData, isLoading: newCarsLoading } = api.showcase.getTopNewCars.useQuery({
-    limit: 10,
+    take: 10,
   });
-  
+
   // Fetch top used cars using API
   const { data: usedCarsData, isLoading: usedCarsLoading } = api.showcase.getTopUsedCars.useQuery({
-    limit: 10,
+    take: 10,
   });
 
   const newCars = (newCarsData?.vehicles || []).map(transformVehicle);
@@ -548,23 +407,23 @@ const transformVehicle = (apiVehicle: any): Vehicle => ({
 
 export const HomeShowcase: React.FC = () => {
   // Fetch featured vehicles using tRPC
-  const { data: featuredData, isLoading: featuredLoading } = api.showcase.getFeatured.useQuery({
-    limit: 4,
+  const { data: featuredData, isLoading: featuredLoading } = api.showcase.getFeaturedVehicles.useQuery({
+    take: 4,
   });
 
-  // Fetch top deals using tRPC  
+  // Fetch top deals using tRPC
   const { data: dealsData, isLoading: dealsLoading } = api.showcase.getTopDeals.useQuery({
-    limit: 4,
+    take: 4,
   });
 
   // Fetch most viewed vehicles using tRPC
   const { data: viewedData, isLoading: viewedLoading } = api.showcase.getMostViewed.useQuery({
-    limit: 4,
+    take: 4,
   });
 
   // Fetch new listings using tRPC
   const { data: newData, isLoading: newLoading } = api.showcase.getNewListings.useQuery({
-    limit: 4,
+    take: 4,
   });
 
   // Create showcase sections with real data

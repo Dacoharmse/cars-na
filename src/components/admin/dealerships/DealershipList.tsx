@@ -46,6 +46,7 @@ export interface DealershipData {
   region: string;
   status: DealershipStatus;
   isVerified: boolean;
+  isFeatured?: boolean;
   createdAt: string;
   updatedAt: string;
   vehiclesCount: number;

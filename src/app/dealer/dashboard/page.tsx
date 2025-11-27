@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
 import { api } from '@/lib/api';
 import WebsiteManagerContent from '@/components/dealer/WebsiteManagerContent';
 import {
@@ -44,7 +47,9 @@ import {
   UserCheck,
   UserX,
   MoreHorizontal,
-  Send
+  Send,
+  Upload,
+  Camera
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -76,18 +81,20 @@ import {
 } from '@/components/ui/DropdownMenu';
 
 // Mock data
+// Mock data removed - using real API data instead
 const mockDealership = {
   id: 'dealer-1',
-  name: 'Premium Auto Namibia',
-  description: 'Namibia\'s leading premium vehicle dealership',
-  address: '123 Independence Avenue',
-  city: 'Windhoek',
-  state: 'Khomas',
-  phone: '+264 61 123 4567',
-  email: 'info@premiumauto.na',
-  website: 'www.premiumauto.na'
+  name: 'Loading...',
+  description: '',
+  address: '',
+  city: '',
+  state: '',
+  phone: '',
+  email: '',
+  website: ''
 };
 
+/* Mock vehicles removed - using real data from API
 const mockVehicles = [
   {
     id: 'v1',
@@ -138,7 +145,9 @@ const mockVehicles = [
     color: 'Black'
   }
 ];
+*/
 
+/* Mock leads removed - using real data from API
 const mockLeads = [
   {
     id: 'l1',
@@ -177,6 +186,7 @@ const mockLeads = [
     createdAt: '2024-01-18T09:45:00Z'
   }
 ];
+*/
 
 // Chart data for analytics
 const monthlyData = [
@@ -382,7 +392,7 @@ const teamRoles = [
   }
 ];
 
-export default function DealerDashboard() {
+function DealerDashboardContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -422,7 +432,7 @@ export default function DealerDashboard() {
   });
   const [inviteLink, setInviteLink] = useState('');
   const [showInviteLink, setShowInviteLink] = useState(false);
-  const [teamMembers, setTeamMembers] = useState(mockTeamMembers);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]); // Using real data from database
 
   // New user management modals
   const [showEditUserModal, setShowEditUserModal] = useState(false);
@@ -433,21 +443,70 @@ export default function DealerDashboard() {
   const [editUserForm, setEditUserForm] = useState({ name: '', email: '', role: '' });
   const [suspendReason, setSuspendReason] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [dealership, setDealership] = useState<any>(mockDealership);
+  const [dealershipLoading, setDealershipLoading] = useState(true);
 
-  // tRPC queries for real data
-  const { data: vehicleData, isLoading: vehiclesLoading, error: vehiclesError } = api.vehicle.getByDealership.useQuery({
-    limit: 50,
-    status: statusFilter === 'ALL' ? undefined : statusFilter as any,
-  });
+  // Fetch dealership data
+  useEffect(() => {
+    const fetchDealership = async () => {
+      try {
+        const response = await fetch('/api/dealer/dealership');
+        if (response.ok) {
+          const data = await response.json();
+          setDealership(data);
+        }
+      } catch (error) {
+        console.error('Error fetching dealership:', error);
+      } finally {
+        setDealershipLoading(false);
+      }
+    };
 
+    fetchDealership();
+  }, []);
+
+  // State for vehicles loaded from REST API
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(true);
+  const [vehiclesError, setVehiclesError] = useState<string | null>(null);
+
+  // tRPC queries for leads and stats
   const { data: leadData, isLoading: leadsLoading, error: leadsError } = api.lead.getByDealership.useQuery({
     limit: 50,
   });
 
   const { data: leadStats, isLoading: statsLoading } = api.lead.getStats.useQuery({});
 
-  const vehicles = vehicleData?.items || [];
   const leads = leadData?.leads || [];
+
+  // Fetch vehicles from REST API
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      if (status === 'loading' || !session) return;
+
+      try {
+        setVehiclesLoading(true);
+        const response = await fetch('/api/dealer/vehicles');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch vehicles');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.vehicles) {
+          setVehicles(data.vehicles);
+        }
+      } catch (error) {
+        console.error('Error fetching vehicles:', error);
+        setVehiclesError('Failed to load vehicles');
+      } finally {
+        setVehiclesLoading(false);
+      }
+    };
+
+    fetchVehicles();
+  }, [session, status]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -519,6 +578,33 @@ export default function DealerDashboard() {
     setMaxYear('');
   };
 
+  // Handle vehicle deletion
+  const handleDeleteVehicle = async (vehicleId: string) => {
+    if (!confirm('Are you sure you want to delete this vehicle? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/dealer/vehicles/${vehicleId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Refresh vehicles list
+        const fetchResponse = await fetch('/api/dealer/vehicles');
+        const data = await fetchResponse.json();
+        if (data.success && data.vehicles) {
+          setVehicles(data.vehicles);
+        }
+      } else {
+        alert('Failed to delete vehicle. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting vehicle:', error);
+      alert('An error occurred while deleting the vehicle.');
+    }
+  };
+
   // Check if any filters are active
   const hasActiveFilters = () => {
     return searchTerm !== '' || statusFilter !== 'ALL' || categoryFilter !== 'ALL' ||
@@ -527,19 +613,29 @@ export default function DealerDashboard() {
   };
 
   const filteredVehicles = vehicles.filter(vehicle => {
-    const matchesSearch = vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.year.toString().includes(searchTerm);
-    const matchesStatus = statusFilter === 'ALL' || vehicle.status === statusFilter;
-    const matchesCategory = categoryFilter === 'ALL' || vehicle.category === categoryFilter;
-    const matchesManufacturer = manufacturerFilter === 'ALL' || vehicle.make === manufacturerFilter;
-    const matchesTransmission = transmissionFilter === 'ALL' || vehicle.transmission === transmissionFilter;
-    const matchesFuelType = fuelTypeFilter === 'ALL' || vehicle.fuelType === fuelTypeFilter;
+    // Handle both 'make' and 'manufacturer' field names, and ensure values are not null/undefined
+    const make = vehicle.make || vehicle.manufacturer || '';
+    const model = vehicle.model || '';
+    const year = vehicle.year || '';
+    const status = vehicle.status || '';
+    const category = vehicle.category || '';
+    const transmission = vehicle.transmission || '';
+    const fuelType = vehicle.fuelType || '';
+    const price = vehicle.price || 0;
 
-    const matchesPriceRange = (!minPrice || vehicle.price >= parseFloat(minPrice)) &&
-                              (!maxPrice || vehicle.price <= parseFloat(maxPrice));
-    const matchesYearRange = (!minYear || vehicle.year >= parseInt(minYear)) &&
-                             (!maxYear || vehicle.year <= parseInt(maxYear));
+    const matchesSearch = make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         year.toString().includes(searchTerm);
+    const matchesStatus = statusFilter === 'ALL' || status === statusFilter;
+    const matchesCategory = categoryFilter === 'ALL' || category === categoryFilter;
+    const matchesManufacturer = manufacturerFilter === 'ALL' || make === manufacturerFilter;
+    const matchesTransmission = transmissionFilter === 'ALL' || transmission === transmissionFilter;
+    const matchesFuelType = fuelTypeFilter === 'ALL' || fuelType === fuelTypeFilter;
+
+    const matchesPriceRange = (!minPrice || price >= parseFloat(minPrice)) &&
+                              (!maxPrice || price <= parseFloat(maxPrice));
+    const matchesYearRange = (!minYear || parseInt(year.toString()) >= parseInt(minYear)) &&
+                             (!maxYear || parseInt(year.toString()) <= parseInt(maxYear));
 
     return matchesSearch && matchesStatus && matchesCategory && matchesManufacturer &&
            matchesTransmission && matchesFuelType && matchesPriceRange && matchesYearRange;
@@ -789,7 +885,7 @@ export default function DealerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="fixed inset-0 bg-gray-50 flex overflow-hidden">
       {/* Sidebar Navigation - Inspired by professional dealer systems */}
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
         {/* Sidebar Header */}
@@ -928,11 +1024,11 @@ export default function DealerDashboard() {
         <div className="p-4 border-t border-gray-200">
           <div className="flex items-center">
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-              {mockDealership.name.charAt(0)}
+              {dealership?.name?.charAt(0) || 'D'}
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-900">{mockDealership.name}</p>
-              <p className="text-xs text-gray-500">Premium Account</p>
+              <p className="text-sm font-medium text-gray-900">{dealership?.name || 'Loading...'}</p>
+              <p className="text-xs text-gray-500">{dealership?.subscription?.plan?.name || 'Free Plan'}</p>
             </div>
           </div>
         </div>
@@ -1071,7 +1167,7 @@ export default function DealerDashboard() {
                           <div className="flex-1">
                             <p className="font-medium">{lead.customerName}</p>
                             <p className="text-sm text-gray-600">
-                              {lead.vehicle ? `${lead.vehicle.year} ${lead.vehicle.make} ${lead.vehicle.model}` : 'Vehicle Info'}
+                              {lead.vehicle ? `${lead.vehicle.year} ${lead.vehicle.make || lead.vehicle.manufacturer} ${lead.vehicle.model}` : 'Vehicle Info'}
                             </p>
                             <p className="text-xs text-gray-500">{lead.source}</p>
                           </div>
@@ -1101,12 +1197,12 @@ export default function DealerDashboard() {
                         <div key={vehicle.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex items-center gap-3">
                             <img
-                              src={vehicle.images?.[0]?.url || 'https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'}
-                              alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                              className="w-12 h-12 rounded-lg object-cover"
+                              src={vehicle.images?.[0]?.url || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext fill="%236b7280" font-family="sans-serif" font-size="12" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E'}
+                              alt={`${vehicle.year} ${vehicle.make || vehicle.manufacturer} ${vehicle.model}`}
+                              className="w-12 h-12 rounded-lg object-cover bg-gray-200"
                             />
                             <div>
-                              <p className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</p>
+                              <p className="font-medium">{vehicle.year} {vehicle.make || vehicle.manufacturer} {vehicle.model}</p>
                               <p className="text-sm text-gray-600">{formatPrice(vehicle.price)}</p>
                             </div>
                           </div>
@@ -1149,33 +1245,33 @@ export default function DealerDashboard() {
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className="border border-gray-300 rounded-md px-3 py-2 text-sm"
                       >
-                        <option value="ALL">All Status</option>
-                        <option value="AVAILABLE">Available</option>
-                        <option value="SOLD">Sold</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="RESERVED">Reserved</option>
+                        <option key="ALL" value="ALL">All Status</option>
+                        <option key="AVAILABLE" value="AVAILABLE">Available</option>
+                        <option key="SOLD" value="SOLD">Sold</option>
+                        <option key="PENDING" value="PENDING">Pending</option>
+                        <option key="RESERVED" value="RESERVED">Reserved</option>
                       </select>
                       <select
                         value={categoryFilter}
                         onChange={(e) => setCategoryFilter(e.target.value)}
                         className="border border-gray-300 rounded-md px-3 py-2 text-sm"
                       >
-                        <option value="ALL">All Categories</option>
-                        <option value="CARS">Cars</option>
-                        <option value="TRUCKS">Trucks</option>
-                        <option value="MOTORCYCLES">Motorcycles</option>
-                        <option value="BUSES">Buses</option>
-                        <option value="INDUSTRIAL_MACHINERY">Industrial Machinery</option>
-                        <option value="TRACTORS">Tractors</option>
-                        <option value="BOATS">Boats</option>
-                        <option value="ACCESSORIES">Accessories</option>
+                        <option key="ALL" value="ALL">All Categories</option>
+                        <option key="CARS" value="CARS">Cars</option>
+                        <option key="TRUCKS" value="TRUCKS">Trucks</option>
+                        <option key="MOTORCYCLES" value="MOTORCYCLES">Motorcycles</option>
+                        <option key="BUSES" value="BUSES">Buses</option>
+                        <option key="INDUSTRIAL_MACHINERY" value="INDUSTRIAL_MACHINERY">Industrial Machinery</option>
+                        <option key="TRACTORS" value="TRACTORS">Tractors</option>
+                        <option key="BOATS" value="BOATS">Boats</option>
+                        <option key="ACCESSORIES" value="ACCESSORIES">Accessories</option>
                       </select>
                       <select
                         value={manufacturerFilter}
                         onChange={(e) => setManufacturerFilter(e.target.value)}
                         className="border border-gray-300 rounded-md px-3 py-2 text-sm"
                       >
-                        <option value="ALL">All Manufacturers</option>
+                        <option key="ALL" value="ALL">All Manufacturers</option>
                         {availableManufacturers.map(manufacturer => (
                           <option key={manufacturer} value={manufacturer}>
                             {manufacturer}
@@ -1226,11 +1322,11 @@ export default function DealerDashboard() {
                             onChange={(e) => setTransmissionFilter(e.target.value)}
                             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                           >
-                            <option value="ALL">All Transmissions</option>
-                            <option value="Manual">Manual</option>
-                            <option value="Automatic">Automatic</option>
-                            <option value="CVT">CVT</option>
-                            <option value="Semi-Automatic">Semi-Automatic</option>
+                            <option key="ALL" value="ALL">All Transmissions</option>
+                            <option key="Manual" value="Manual">Manual</option>
+                            <option key="Automatic" value="Automatic">Automatic</option>
+                            <option key="CVT" value="CVT">CVT</option>
+                            <option key="Semi-Automatic" value="Semi-Automatic">Semi-Automatic</option>
                           </select>
                         </div>
 
@@ -1242,12 +1338,12 @@ export default function DealerDashboard() {
                             onChange={(e) => setFuelTypeFilter(e.target.value)}
                             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                           >
-                            <option value="ALL">All Fuel Types</option>
-                            <option value="Petrol">Petrol</option>
-                            <option value="Diesel">Diesel</option>
-                            <option value="Electric">Electric</option>
-                            <option value="Hybrid">Hybrid</option>
-                            <option value="Plug-in Hybrid">Plug-in Hybrid</option>
+                            <option key="ALL" value="ALL">All Fuel Types</option>
+                            <option key="Petrol" value="Petrol">Petrol</option>
+                            <option key="Diesel" value="Diesel">Diesel</option>
+                            <option key="Electric" value="Electric">Electric</option>
+                            <option key="Hybrid" value="Hybrid">Hybrid</option>
+                            <option key="Plug-in Hybrid" value="Plug-in Hybrid">Plug-in Hybrid</option>
                           </select>
                         </div>
 
@@ -1307,24 +1403,93 @@ export default function DealerDashboard() {
                   </div>
                 </div>
 
-                {/* Vehicle Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredVehicles.map((vehicle) => (
-                    <Card key={vehicle.id} className="overflow-hidden">
-                      <div className="relative">
-                        <img
-                          src={vehicle.images?.[0]?.url || 'https://via.placeholder.com/800x600/e5e7eb/6b7280?text=Car+Image'}
-                          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                          className="w-full h-48 object-cover"
-                        />
-                        <Badge className={`absolute top-2 right-2 ${getVehicleStatusColor(vehicle.status)}`}>
-                          {vehicle.status}
-                        </Badge>
+                {/* Empty State - Show when no vehicles exist */}
+                {vehicles.length === 0 ? (
+                  <Card className="col-span-full">
+                    <CardContent className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                      <div className="mb-6 relative">
+                        <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-50 rounded-full flex items-center justify-center mb-4 mx-auto">
+                          <Car className="w-12 h-12 text-blue-600" />
+                        </div>
+                        <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-br from-yellow-100 to-yellow-50 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+                          <Plus className="w-6 h-6 text-yellow-600" />
+                        </div>
                       </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                        Welcome to Your Stock Manager!
+                      </h3>
+                      <p className="text-gray-600 mb-2 max-w-md">
+                        You haven't added any vehicles to your inventory yet.
+                      </p>
+                      <p className="text-sm text-gray-500 mb-8 max-w-lg">
+                        Start building your vehicle catalog by adding your first listing. You can add cars, trucks, motorcycles, and more to reach potential buyers across Namibia.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-4 items-center">
+                        <Button
+                          onClick={handleAddVehicle}
+                          size="lg"
+                          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                        >
+                          <Plus className="w-5 h-5 mr-2" />
+                          Add Your First Vehicle
+                        </Button>
+                        <a
+                          href="#"
+                          className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View Demo Tutorial
+                        </a>
+                      </div>
+                      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <Upload className="w-6 h-6 text-blue-600" />
+                          </div>
+                          <h4 className="font-semibold text-sm text-gray-900 mb-1">Quick & Easy</h4>
+                          <p className="text-xs text-gray-500">Add vehicles in minutes with our simple form</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <Camera className="w-6 h-6 text-green-600" />
+                          </div>
+                          <h4 className="font-semibold text-sm text-gray-900 mb-1">Multiple Photos</h4>
+                          <p className="text-xs text-gray-500">Upload multiple images to showcase your vehicles</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <Eye className="w-6 h-6 text-purple-600" />
+                          </div>
+                          <h4 className="font-semibold text-sm text-gray-900 mb-1">Track Performance</h4>
+                          <p className="text-xs text-gray-500">Monitor views, inquiries, and engagement</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <>
+                    {/* Vehicle Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredVehicles.length > 0 ? (
+                        filteredVehicles.map((vehicle) => (
+                          <Card key={vehicle.id} className="overflow-hidden">
+                            <div className="relative">
+                              <img
+                                src={vehicle.images?.[0]?.url || '/api/placeholder/800/600'}
+                                alt={`${vehicle.year} ${vehicle.make || vehicle.manufacturer} ${vehicle.model}`}
+                                className="w-full h-48 object-cover bg-gray-200"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600"%3E%3Crect fill="%23e5e7eb" width="800" height="600"/%3E%3Ctext fill="%236b7280" font-family="sans-serif" font-size="24" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+                                }}
+                              />
+                              <Badge className={`absolute top-2 right-2 ${getVehicleStatusColor(vehicle.status)}`}>
+                                {vehicle.status}
+                              </Badge>
+                            </div>
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-semibold text-lg">
-                            {vehicle.year} {vehicle.make} {vehicle.model}
+                            {vehicle.year} {vehicle.make || vehicle.manufacturer} {vehicle.model}
                           </h3>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -1333,15 +1498,15 @@ export default function DealerDashboard() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => router.push(`/dealer/vehicles/${vehicle.id}/edit`)}>
                                 <Edit className="h-4 w-4 mr-2" />
                                 Edit
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => window.open(`/vehicles/${vehicle.id}`, '_blank')}>
                                 <ExternalLink className="h-4 w-4 mr-2" />
                                 View Public
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
+                              <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteVehicle(vehicle.id)}>
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete
                               </DropdownMenuItem>
@@ -1383,8 +1548,48 @@ export default function DealerDashboard() {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
-                </div>
+                        ))
+                      ) : (
+                        // No filtered results empty state
+                        <div className="col-span-full">
+                          <Card>
+                            <CardContent className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                <Filter className="w-8 h-8 text-gray-400" />
+                              </div>
+                              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                No vehicles match your filters
+                              </h3>
+                              <p className="text-sm text-gray-500 mb-4 max-w-md">
+                                Try adjusting your search criteria or clearing some filters to see more results.
+                              </p>
+                              <Button
+                                variant="outline"
+                                onClick={clearFilters}
+                                className="flex items-center gap-2"
+                              >
+                                <X className="w-4 h-4" />
+                                Clear All Filters
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* Floating Add Stock Button */}
+                <button
+                  onClick={handleAddVehicle}
+                  className="fixed bottom-8 right-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 z-50 flex items-center gap-2 group"
+                  title="Add New Vehicle"
+                >
+                  <Plus className="h-6 w-6" />
+                  <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap">
+                    Add Stock
+                  </span>
+                </button>
               </div>
             )}
 
@@ -1405,7 +1610,7 @@ export default function DealerDashboard() {
                               <div>
                                 <h4 className="font-semibold">{lead.customerName}</h4>
                                 <p className="text-sm text-gray-600">
-                                  {lead.vehicle ? `${lead.vehicle.year} ${lead.vehicle.make} ${lead.vehicle.model}` : 'Vehicle Info'}
+                                  {lead.vehicle ? `${lead.vehicle.year} ${lead.vehicle.make || lead.vehicle.manufacturer} ${lead.vehicle.model}` : 'Vehicle Info'}
                                 </p>
                               </div>
                             </div>
@@ -2226,8 +2431,8 @@ export default function DealerDashboard() {
                     onChange={(e) => setNewVehicle({...newVehicle, transmission: e.target.value})}
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
-                    <option value="Automatic">Automatic</option>
-                    <option value="Manual">Manual</option>
+                    <option key="Automatic" value="Automatic">Automatic</option>
+                    <option key="Manual" value="Manual">Manual</option>
                   </select>
                 </div>
                 <div>
@@ -2237,10 +2442,10 @@ export default function DealerDashboard() {
                     onChange={(e) => setNewVehicle({...newVehicle, fuelType: e.target.value})}
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
-                    <option value="Petrol">Petrol</option>
-                    <option value="Diesel">Diesel</option>
-                    <option value="Electric">Electric</option>
-                    <option value="Hybrid">Hybrid</option>
+                    <option key="Petrol" value="Petrol">Petrol</option>
+                    <option key="Diesel" value="Diesel">Diesel</option>
+                    <option key="Electric" value="Electric">Electric</option>
+                    <option key="Hybrid" value="Hybrid">Hybrid</option>
                   </select>
                 </div>
               </div>
@@ -2443,8 +2648,8 @@ export default function DealerDashboard() {
                     onChange={(e) => setEditUserForm(prev => ({ ...prev, role: e.target.value }))}
                     className="w-full border border-gray-300 rounded-md px-3 py-2"
                   >
-                    <option value="SALES_EXECUTIVE">Sales Executive</option>
-                    <option value="DEALER_ADMIN">Dealer Admin</option>
+                    <option key="SALES_EXECUTIVE" value="SALES_EXECUTIVE">Sales Executive</option>
+                    <option key="DEALER_ADMIN" value="DEALER_ADMIN">Dealer Admin</option>
                   </select>
                 </div>
               </div>
@@ -2613,5 +2818,13 @@ export default function DealerDashboard() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DealerDashboard() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div>Loading dashboard...</div></div>}>
+      <DealerDashboardContent />
+    </Suspense>
   );
 }

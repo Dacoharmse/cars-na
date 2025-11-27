@@ -14,7 +14,8 @@ import {
   User,
   Lock,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  ArrowLeft
 } from 'lucide-react';
 
 export default function DealerLogin() {
@@ -81,7 +82,7 @@ export default function DealerLogin() {
   const isFormValid = formData.email.trim() && formData.password.trim();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1F3469] via-[#2A4A7A] to-[#1F3469] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#1F3469] via-[#2A4A7A] to-[#1F3469] flex items-center justify-center p-4 -mt-[104px] pt-[104px] relative">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:20px_20px]" />
@@ -90,6 +91,16 @@ export default function DealerLogin() {
       {/* Decorative Elements */}
       <div className="absolute top-10 left-10 w-32 h-32 bg-[#CB2030]/10 rounded-full blur-3xl" />
       <div className="absolute bottom-10 right-10 w-40 h-40 bg-[#109B4A]/10 rounded-full blur-3xl" />
+
+      {/* Back to Site Button */}
+      <button
+        onClick={() => router.push('/')}
+        className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg text-white transition-all duration-200 group"
+        style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999 }}
+      >
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        <span className="text-sm font-medium">Back to Site</span>
+      </button>
 
       <div className="relative w-full max-w-md">
         {/* Header */}

@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       userEmail: user.email
     });
 
-    // Save vehicle to database
+    // Save vehicle to database with images
     const vehicle = await prisma.vehicle.create({
       data: {
         category: vehicleData.category,
@@ -60,11 +60,12 @@ export async function POST(request: NextRequest) {
         price: parseFloat(vehicleData.price),
         mileage: vehicleData.mileage ? parseInt(vehicleData.mileage) : null,
         color: vehicleData.color || null,
+        internalRef: vehicleData.internalRef || null,
         description: vehicleData.description || null,
         transmission: vehicleData.transmission,
         fuelType: vehicleData.fuelType,
         bodyType: vehicleData.bodyType || null,
-        engineCapacity: vehicleData.engineCapacity || null,
+        engineCapacity: vehicleData.engineCapacity ? vehicleData.engineCapacity.toString() : null,
         horsepower: vehicleData.horsepower ? parseInt(vehicleData.horsepower) : null,
         loadCapacity: vehicleData.loadCapacity ? parseFloat(vehicleData.loadCapacity) : null,
         passengerCapacity: vehicleData.passengerCapacity ? parseInt(vehicleData.passengerCapacity) : null,
@@ -72,7 +73,17 @@ export async function POST(request: NextRequest) {
         weight: vehicleData.weight ? parseFloat(vehicleData.weight) : null,
         isNew: vehicleData.isNew || false,
         status: 'AVAILABLE',
-        dealershipId: user.dealership.id
+        comfortFeatures: vehicleData.comfort || [],
+        safetyFeatures: vehicleData.safety || [],
+        dealershipId: user.dealership.id,
+        // Create VehicleImage records for uploaded images
+        images: vehicleData.images && vehicleData.images.length > 0 ? {
+          create: vehicleData.images.map((imageUrl: string, index: number) => ({
+            url: imageUrl,
+            isPrimary: index === 0, // First image is primary
+            displayOrder: index
+          }))
+        } : undefined
       }
     });
 
@@ -80,7 +91,8 @@ export async function POST(request: NextRequest) {
       vehicleId: vehicle.id,
       dealer: session.user.email,
       make: vehicle.make,
-      model: vehicle.model
+      model: vehicle.model,
+      imageCount: vehicleData.images?.length || 0
     });
 
     return NextResponse.json({
@@ -143,7 +155,17 @@ export async function GET(request: NextRequest) {
         color: true,
         transmission: true,
         fuelType: true,
-        createdAt: true
+        createdAt: true,
+        images: {
+          select: {
+            id: true,
+            url: true,
+            isPrimary: true
+          },
+          orderBy: {
+            isPrimary: 'desc'
+          }
+        }
       }
     });
 
@@ -160,6 +182,7 @@ export async function GET(request: NextRequest) {
       color: v.color,
       transmission: v.transmission,
       fuelType: v.fuelType,
+      images: v.images,
       createdAt: v.createdAt.toISOString()
     }));
 

@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic rendering - no static generation
+export const dynamic = 'force-dynamic';
+
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -22,15 +25,27 @@ export default function Home() {
   const [selectedLocation, setSelectedLocation] = useState('');
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [featuredDealership, setFeaturedDealership] = useState<any>(null);
+  const [dealershipLoading, setDealershipLoading] = useState(true);
 
-  // Dealership data for the contact modal
-  const featuredDealership = {
-    name: 'Namibia Motors',
-    address: '101 Robert Mugabe Avenue',
-    city: 'Windhoek, Khomas',
-    phone: '+264 61 123 456',
-    email: 'info@namibiamotors.na'
-  };
+  // Fetch featured dealership on mount
+  React.useEffect(() => {
+    const fetchFeaturedDealership = async () => {
+      try {
+        const response = await fetch('/api/dealerships/featured');
+        const data = await response.json();
+        if (data.success && data.dealership) {
+          setFeaturedDealership(data.dealership);
+        }
+      } catch (error) {
+        console.error('Error fetching featured dealership:', error);
+      } finally {
+        setDealershipLoading(false);
+      }
+    };
+
+    fetchFeaturedDealership();
+  }, []);
 
   // Handle main search form submission
   const handleMainSearch = () => {
@@ -77,9 +92,9 @@ export default function Home() {
           <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-gradient-radial from-white to-transparent opacity-60 rounded-full blur-2xl" />
         </div>
         
-        <div className="relative container mx-auto px-4 py-12 lg:py-16">
+        <div className="relative container mx-auto px-4 py-6 lg:py-8">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               {/* Hero Content - Left Side */}
               <div className="text-left z-10 relative space-y-8">
                 {/* Trust Badge */}
@@ -207,47 +222,65 @@ export default function Home() {
                   
                   {/* Current Dealership Display */}
                   <div className="p-8 bg-gradient-to-br from-white to-slate-50/50">
-                    {/* Dealership Logo & Info */}
-                    <div className="flex items-start gap-6 mb-8">
-                      <div className="relative">
-                        <div className="w-24 h-24 bg-gradient-to-br from-[#1F3469] via-[#2A4A7A] to-[#3B4F86] rounded-2xl flex items-center justify-center shadow-xl border-2 border-white">
-                          <span className="text-3xl font-bold text-white">NM</span>
-                        </div>
-                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-[#109B4A] rounded-full flex items-center justify-center border-2 border-white">
-                          <span className="text-white text-xs font-bold">✓</span>
-                        </div>
+                    {dealershipLoading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1F3469]"></div>
                       </div>
-                      <div className="flex-1">
-                        <h4 className="text-2xl font-bold text-neutral-900 mb-2 tracking-tight">Namibia Motors</h4>
-                        <p className="text-neutral-600 mb-4 leading-relaxed">Premium automotive dealer serving Windhoek and surrounding areas since 1995</p>
-                        <div className="flex flex-wrap items-center gap-4">
-                          <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2">
-                            <MapPin className="w-4 h-4 text-[#CB2030]" />
-                            <span className="text-sm font-semibold text-neutral-700">Windhoek Central</span>
+                    ) : !featuredDealership ? (
+                      <div className="text-center py-12">
+                        <p className="text-neutral-600">No featured dealership available</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Dealership Logo & Info */}
+                        <div className="flex items-start gap-6 mb-8">
+                          <div className="relative">
+                            <div className="w-24 h-24 bg-gradient-to-br from-[#1F3469] via-[#2A4A7A] to-[#3B4F86] rounded-2xl flex items-center justify-center shadow-xl border-2 border-white">
+                              <span className="text-3xl font-bold text-white">{featuredDealership.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}</span>
+                            </div>
+                            {featuredDealership.isVerified && (
+                              <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-[#109B4A] rounded-full flex items-center justify-center border-2 border-white">
+                                <span className="text-white text-xs font-bold">✓</span>
+                              </div>
+                            )}
                           </div>
-                          <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2">
-                            <Phone className="w-4 h-4 text-[#109B4A]" />
-                            <span className="text-sm font-semibold text-neutral-700">+264 61 123 456</span>
+                          <div className="flex-1">
+                            <h4 className="text-2xl font-bold text-neutral-900 mb-2 tracking-tight">{featuredDealership.name}</h4>
+                            <p className="text-neutral-600 mb-4 leading-relaxed">{featuredDealership.description || 'Premium automotive dealer'}</p>
+                            <div className="flex flex-wrap items-center gap-4">
+                              {featuredDealership.city && (
+                                <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2">
+                                  <MapPin className="w-4 h-4 text-[#CB2030]" />
+                                  <span className="text-sm font-semibold text-neutral-700">{featuredDealership.city}</span>
+                                </div>
+                              )}
+                              {featuredDealership.phone && (
+                                <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2">
+                                  <Phone className="w-4 h-4 text-[#109B4A]" />
+                                  <span className="text-sm font-semibold text-neutral-700">{featuredDealership.phone}</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    
-                    {/* Dealership Stats */}
-                    <div className="grid grid-cols-3 gap-4 mb-8">
-                      <div className="text-center p-5 bg-gradient-to-br from-[#109B4A]/10 via-[#109B4A]/5 to-transparent rounded-xl border border-[#109B4A]/20 hover:border-[#109B4A]/30 transition-all duration-200 hover:shadow-md">
-                        <div className="text-3xl font-bold text-[#109B4A] mb-2">150+</div>
-                        <div className="text-xs text-neutral-600 font-semibold uppercase tracking-wide">Vehicles</div>
-                      </div>
-                      <div className="text-center p-5 bg-gradient-to-br from-[#FFDD11]/10 via-[#FFDD11]/5 to-transparent rounded-xl border border-[#FFDD11]/30 hover:border-[#FFDD11]/40 transition-all duration-200 hover:shadow-md">
-                        <div className="text-3xl font-bold text-[#1F3469] mb-2">4.9</div>
-                        <div className="text-xs text-neutral-600 font-semibold uppercase tracking-wide">Rating</div>
-                      </div>
-                      <div className="text-center p-5 bg-gradient-to-br from-[#CB2030]/10 via-[#CB2030]/5 to-transparent rounded-xl border border-[#CB2030]/20 hover:border-[#CB2030]/30 transition-all duration-200 hover:shadow-md">
-                        <div className="text-3xl font-bold text-[#CB2030] mb-2">28yrs</div>
-                        <div className="text-xs text-neutral-600 font-semibold uppercase tracking-wide">Experience</div>
-                      </div>
-                    </div>
+
+                        {/* Dealership Stats */}
+                        <div className="grid grid-cols-3 gap-4 mb-8">
+                          <div className="text-center p-5 bg-gradient-to-br from-[#109B4A]/10 via-[#109B4A]/5 to-transparent rounded-xl border border-[#109B4A]/20 hover:border-[#109B4A]/30 transition-all duration-200 hover:shadow-md">
+                            <div className="text-3xl font-bold text-[#109B4A] mb-2">{featuredDealership.stats.vehiclesCount}</div>
+                            <div className="text-xs text-neutral-600 font-semibold uppercase tracking-wide">Vehicles</div>
+                          </div>
+                          <div className="text-center p-5 bg-gradient-to-br from-[#FFDD11]/10 via-[#FFDD11]/5 to-transparent rounded-xl border border-[#FFDD11]/30 hover:border-[#FFDD11]/40 transition-all duration-200 hover:shadow-md">
+                            <div className="text-3xl font-bold text-[#1F3469] mb-2">{featuredDealership.stats.rating}</div>
+                            <div className="text-xs text-neutral-600 font-semibold uppercase tracking-wide">Rating</div>
+                          </div>
+                          <div className="text-center p-5 bg-gradient-to-br from-[#CB2030]/10 via-[#CB2030]/5 to-transparent rounded-xl border border-[#CB2030]/20 hover:border-[#CB2030]/30 transition-all duration-200 hover:shadow-md">
+                            <div className="text-3xl font-bold text-[#CB2030] mb-2">{featuredDealership.stats.yearsInBusiness}</div>
+                            <div className="text-xs text-neutral-600 font-semibold uppercase tracking-wide">Experience</div>
+                          </div>
+                        </div>
+                      </>
+                    )}
                     
                     {/* Special Offers */}
                     <div className="bg-gradient-to-r from-yellow-100 to-yellow-50 dark:from-yellow-900 dark:to-yellow-800 border border-yellow-200 dark:border-yellow-700 rounded-xl p-5 mb-8 relative overflow-hidden">

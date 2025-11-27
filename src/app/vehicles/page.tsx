@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MainLayout } from '@/components/layout/MainLayout';
+
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -10,7 +13,7 @@ import { VehicleCard } from '@/components/examples/VehicleCard';
 import { DynamicBanner } from '@/components/DynamicBanner';
 import { api } from '@/lib/api';
 
-export default function VehiclesPage() {
+function VehiclesContent() {
   const searchParams = useSearchParams();
   const dealerParam = searchParams.get('dealer');
   const searchParam = searchParams.get('search');
@@ -356,5 +359,13 @@ export default function VehiclesPage() {
         </div>
       </div>
     </MainLayout>
+  );
+}
+
+export default function VehiclesPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div>Loading...</div></div>}>
+      <VehiclesContent />
+    </Suspense>
   );
 }

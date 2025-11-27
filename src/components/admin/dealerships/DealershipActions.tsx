@@ -39,6 +39,40 @@ export function DealershipActions({ dealership, onClose }: DealershipActionsProp
   const [reason, setReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFeatured, setIsFeatured] = useState(dealership.isFeatured || false);
+
+  const handleToggleFeatured = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/admin/dealerships/${dealership.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'toggle-featured',
+          isFeatured: !isFeatured,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to update featured status');
+      }
+
+      setIsFeatured(!isFeatured);
+      alert(`Dealership ${!isFeatured ? 'set as featured' : 'removed from featured'}!`);
+      window.location.reload();
+    } catch (error) {
+      console.error('Error toggling featured status:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleStatusChange = (newStatus: DealershipStatus, action: string) => {
     setActionType(action);
@@ -214,6 +248,14 @@ export function DealershipActions({ dealership, onClose }: DealershipActionsProp
 
   const advancedActions = [
     {
+      id: 'featured',
+      label: isFeatured ? 'Remove from Featured' : 'Set as Featured',
+      icon: Star,
+      color: isFeatured ? 'text-yellow-600 hover:text-yellow-700 font-semibold' : 'text-gray-600 hover:text-yellow-600',
+      bgColor: isFeatured ? 'bg-yellow-50 border border-yellow-200' : '',
+      action: handleToggleFeatured
+    },
+    {
       id: 'payments',
       label: 'View Payments',
       icon: DollarSign,
@@ -347,10 +389,16 @@ export function DealershipActions({ dealership, onClose }: DealershipActionsProp
                 <button
                   key={action.id}
                   onClick={action.action}
-                  className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors ${action.color} hover:bg-gray-50`}
+                  disabled={isLoading && action.id === 'featured'}
+                  className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-sm rounded-md transition-colors ${action.color} hover:bg-gray-50 ${action.bgColor || ''} ${isLoading && action.id === 'featured' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <Icon className="w-4 h-4" />
-                  {action.label}
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-4 h-4" />
+                    {action.label}
+                  </div>
+                  {action.id === 'featured' && isFeatured && (
+                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-semibold">Active</span>
+                  )}
                 </button>
               );
             })}

@@ -38,7 +38,9 @@
     "@trpc/server": "^10.45.2",
     "@types/bcrypt": "^6.0.0",
     "@types/nodemailer": "^7.0.1",
+    "@uploadthing/react": "^7.3.3",
     "bcrypt": "^6.0.0",
+    "browser-image-compression": "^2.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -56,6 +58,7 @@
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.2.2",
     "tailwindcss-animate": "^1.0.7",
+    "uploadthing": "^7.7.4",
     "zod": "^3.25.76",
     "zustand": "^4.5.2"
   },

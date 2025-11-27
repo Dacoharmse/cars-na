@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import imageCompression from 'browser-image-compression';
 import {
   User,
   Car,
@@ -63,7 +66,9 @@ interface VehicleData {
   comfort: string[];
   safety: string[];
   description: string;
-  images: File[];
+  images: string[]; // All images (for display)
+  existingImages: string[]; // Images already in database (don't send to server)
+  newImages: string[]; // New images to upload (send to server)
   internalRef: string;
   financing: boolean;
   isNew: boolean;
@@ -91,32 +96,31 @@ const CATEGORY_ICONS: Record<VehicleCategoryKey, any> = {
   ACCESSORIES: Package
 };
 
-// Mock salespeople data for the dealership (in real app, this would come from API)
-const SALESPEOPLE = [
-  { id: '1', name: 'John Smith', email: 'john@premium-motors.com', phone: '+264 81 123 4567' },
-  { id: '2', name: 'Sarah Johnson', email: 'sarah@premium-motors.com', phone: '+264 81 234 5678' },
-  { id: '3', name: 'Mike Wilson', email: 'mike@premium-motors.com', phone: '+264 81 345 6789' },
-  { id: '4', name: 'Lisa Brown', email: 'lisa@premium-motors.com', phone: '+264 81 456 7890' }
-];
-
-// Mock current user (in real app, this would come from session)
-const CURRENT_USER = {
-  id: '1',
-  name: 'Premium Motors Manager',
-  email: 'dealer@premium-motors.com',
-  phone: '+264 81 123 4567'
-};
+interface DealershipUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export default function DealerAddVehicleWizard() {
+  const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [dealershipUsers, setDealershipUsers] = useState<DealershipUser[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [errorModal, setErrorModal] = useState<{ show: boolean; message: string }>({ show: false, message: '' });
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editVehicleId, setEditVehicleId] = useState<string | null>(null);
+  const [isLoadingVehicle, setIsLoadingVehicle] = useState(false);
   const [vehicleData, setVehicleData] = useState<VehicleData>({
-    // Salesperson (default to current user)
-    salespersonId: CURRENT_USER.id,
-    salespersonName: CURRENT_USER.name,
-    salespersonEmail: CURRENT_USER.email,
-    salespersonPhone: CURRENT_USER.phone,
+    // Salesperson (will be set when users are loaded)
+    salespersonId: '',
+    salespersonName: '',
+    salespersonEmail: '',
+    salespersonPhone: '',
 
     // Vehicle details
     category: 'CARS',
@@ -140,10 +144,124 @@ export default function DealerAddVehicleWizard() {
     safety: [],
     description: '',
     images: [],
+    existingImages: [],
+    newImages: [],
     internalRef: '',
     financing: true,
     isNew: false
   });
+
+  // Fetch dealership users on component mount
+  useEffect(() => {
+    const fetchDealershipUsers = async () => {
+      if (status === 'loading') return;
+
+      if (!session?.user) {
+        setIsLoadingUsers(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/dealer/users');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch dealership users');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.users) {
+          setDealershipUsers(data.users);
+
+          // Set current user as default salesperson
+          const currentUser = data.users.find((user: DealershipUser) =>
+            user.email === session.user?.email
+          );
+
+          if (currentUser) {
+            setVehicleData(prev => ({
+              ...prev,
+              salespersonId: currentUser.id,
+              salespersonName: currentUser.name,
+              salespersonEmail: currentUser.email,
+              salespersonPhone: '' // Phone not in API response
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching dealership users:', error);
+        setErrorModal({
+          show: true,
+          message: 'Failed to load dealership team members. Please refresh the page.'
+        });
+      } finally {
+        setIsLoadingUsers(false);
+      }
+    };
+
+    fetchDealershipUsers();
+  }, [session, status]);
+
+  // Check for edit mode and load vehicle data
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId) {
+      setIsEditMode(true);
+      setEditVehicleId(editId);
+      setIsLoadingVehicle(true);
+
+      fetch(`/api/dealer/vehicles/${editId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.vehicle) {
+            const v = data.vehicle;
+            setVehicleData({
+              salespersonId: '',
+              salespersonName: '',
+              salespersonEmail: '',
+              salespersonPhone: '',
+              category: v.category || 'CARS',
+              manufacturer: v.manufacturer || '',
+              model: v.model || '',
+              year: v.year?.toString() || '',
+              price: v.price?.toString() || '',
+              color: v.color || '',
+              mileage: v.mileage?.toString() || '',
+              engineCapacity: v.engineCapacity || '',
+              fuelType: v.fuelType || 'Petrol',
+              transmission: v.transmission || 'Automatic',
+              bodyType: v.bodyType || '',
+              condition: 'Very Good',
+              horsepower: v.horsepower?.toString() || '',
+              loadCapacity: v.loadCapacity?.toString() || '',
+              passengerCapacity: v.passengerCapacity?.toString() || '',
+              length: v.length?.toString() || '',
+              weight: v.weight?.toString() || '',
+              comfort: v.comfort || [],
+              safety: v.safety || [],
+              description: v.description || '',
+              images: v.images?.map((img: any) => img.url) || [],
+              existingImages: v.images?.map((img: any) => img.url) || [],
+              newImages: [],
+              internalRef: v.internalRef || '',
+              financing: true,
+              isNew: v.isNew || false
+            });
+
+            if (v.images && v.images.length > 0) {
+              setImagePreviews(v.images.map((img: any) => img.url));
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error loading vehicle:', error);
+          setErrorModal({ show: true, message: 'Failed to load vehicle data' });
+        })
+        .finally(() => {
+          setIsLoadingVehicle(false);
+        });
+    }
+  }, [searchParams]);
 
   // Cleanup on component unmount (data URLs don't need to be revoked)
   useEffect(() => {
@@ -184,33 +302,44 @@ export default function DealerAddVehicleWizard() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newImages = Array.from(e.target.files);
-      console.log('Files selected:', newImages.length);
-
-      // Use FileReader to convert images to base64 data URLs
-      const newPreviewPromises = newImages.map(file => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            const dataUrl = event.target?.result as string;
-            console.log('Created data URL for file:', file.name);
-            resolve(dataUrl);
-          };
-          reader.onerror = (error) => {
-            console.error('FileReader error:', error);
-            reject(error);
-          };
-          reader.readAsDataURL(file);
-        });
-      });
+      const selectedFiles = Array.from(e.target.files);
+      console.log('Files selected:', selectedFiles.length);
 
       try {
-        const newPreviews = await Promise.all(newPreviewPromises);
-        console.log('All preview data URLs created:', newPreviews.length);
+        // Compression options - very aggressive compression for database storage
+        const options = {
+          maxSizeMB: 0.1, // Compress to max 100KB (very small for database storage)
+          maxWidthOrHeight: 600, // Max dimension 600px
+          useWebWorker: true,
+          initialQuality: 0.6 // Lower quality for smaller file size
+        };
 
+        // Compress and convert images to base64
+        const newPreviewPromises = selectedFiles.map(async (file) => {
+          // Compress the image
+          const compressedFile = await imageCompression(file, options);
+          console.log(`Compressed ${file.name}: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+
+          // Convert to base64
+          return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const dataUrl = event.target?.result as string;
+              resolve(dataUrl);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(compressedFile);
+          });
+        });
+
+        const newPreviews = await Promise.all(newPreviewPromises);
+        console.log('All compressed images ready:', newPreviews.length);
+
+        // Store data URLs in vehicleData
         setVehicleData(prev => ({
           ...prev,
-          images: [...prev.images, ...newImages].slice(0, 12)
+          images: [...prev.images, ...newPreviews].slice(0, 12),
+          newImages: [...prev.newImages, ...newPreviews].slice(0, 12 - prev.existingImages.length)
         }));
 
         setImagePreviews(prev => {
@@ -219,8 +348,8 @@ export default function DealerAddVehicleWizard() {
           return updated;
         });
       } catch (error) {
-        console.error('Error creating image previews:', error);
-        setErrorModal({ show: true, message: 'Error loading images. Please try again.' });
+        console.error('Error processing images:', error);
+        setErrorModal({ show: true, message: 'Error processing images. Please try again.' });
       }
     }
   };
@@ -228,32 +357,61 @@ export default function DealerAddVehicleWizard() {
   const removeImage = (index: number) => {
     console.log('Removing image at index:', index);
 
-    setVehicleData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
+    setVehicleData(prev => {
+      const imageToRemove = prev.images[index];
+      const isExisting = prev.existingImages.includes(imageToRemove);
+
+      return {
+        ...prev,
+        images: prev.images.filter((_, i) => i !== index),
+        existingImages: isExisting
+          ? prev.existingImages.filter(img => img !== imageToRemove)
+          : prev.existingImages,
+        newImages: !isExisting
+          ? prev.newImages.filter(img => img !== imageToRemove)
+          : prev.newImages
+      };
+    });
 
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('/api/dealer/vehicles', {
-        method: 'POST',
+      const url = isEditMode && editVehicleId
+        ? `/api/dealer/vehicles/${editVehicleId}`
+        : '/api/dealer/vehicles';
+
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      // Prepare vehicle data with images (base64 encoded)
+      const dataToSend = {
+        ...vehicleData,
+        images: vehicleData.images // Send all images (base64 data URIs)
+      };
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(vehicleData),
+        body: JSON.stringify(dataToSend),
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        console.log('Vehicle successfully added:', result);
-        setCurrentStep(7); // Go to success step
+        console.log(`Vehicle successfully ${isEditMode ? 'updated' : 'added'}:`, result);
+
+        if (isEditMode) {
+          // Redirect to dashboard on successful edit
+          router.push('/dealer/dashboard?tab=inventory');
+        } else {
+          setCurrentStep(7); // Go to success step for new vehicles
+        }
       } else {
-        console.error('Error adding vehicle:', result.error);
-        setErrorModal({ show: true, message: result.error || 'Failed to add vehicle' });
+        console.error(`Error ${isEditMode ? 'updating' : 'adding'} vehicle:`, result.error);
+        setErrorModal({ show: true, message: result.error || `Failed to ${isEditMode ? 'update' : 'add'} vehicle` });
       }
     } catch (error) {
       console.error('Network error:', error);
@@ -277,8 +435,12 @@ export default function DealerAddVehicleWizard() {
                 Back to Dashboard
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Add Vehicle to Inventory</h1>
-                <p className="text-gray-600">Professional vehicle listing wizard</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {isEditMode ? 'Edit Vehicle' : 'Add Vehicle to Inventory'}
+                </h1>
+                <p className="text-gray-600">
+                  {isEditMode ? 'Update vehicle information' : 'Professional vehicle listing wizard'}
+                </p>
               </div>
             </div>
             <div className="text-sm text-gray-500">
@@ -350,8 +512,20 @@ export default function DealerAddVehicleWizard() {
                   </CardDescription>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {SALESPEOPLE.map((person) => {
+                {isLoadingUsers ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-600">Loading team members...</p>
+                  </div>
+                ) : dealershipUsers.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <User className="w-12 h-12 text-gray-400 mb-4" />
+                    <p className="text-gray-600 mb-2">No team members found</p>
+                    <p className="text-sm text-gray-500">Please contact support to add users to your dealership.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {dealershipUsers.map((person) => {
                     const isSelected = vehicleData.salespersonId === person.id;
                     return (
                       <Card 
@@ -367,7 +541,7 @@ export default function DealerAddVehicleWizard() {
                             salespersonId: person.id,
                             salespersonName: person.name,
                             salespersonEmail: person.email,
-                            salespersonPhone: person.phone
+                            salespersonPhone: '' // Phone not available in API
                           }));
                         }}
                       >
@@ -385,7 +559,9 @@ export default function DealerAddVehicleWizard() {
                                 {person.name}
                               </h3>
                               <p className="text-sm text-gray-600">{person.email}</p>
-                              <p className="text-sm text-gray-500">{person.phone}</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {person.role === 'DEALER_PRINCIPAL' ? 'Dealer Principal' : 'Sales Executive'}
+                              </p>
                             </div>
                             {isSelected && (
                               <div className="text-center">
@@ -398,9 +574,11 @@ export default function DealerAddVehicleWizard() {
                       </Card>
                     );
                   })}
-                </div>
+                  </div>
+                )}
 
-                {vehicleData.salespersonId === CURRENT_USER.id && (
+                {vehicleData.salespersonId && session?.user?.email &&
+                 vehicleData.salespersonEmail === session.user.email && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <div className="flex items-center">
                       <User className="w-5 h-5 text-blue-600 mr-2" />
@@ -555,10 +733,10 @@ export default function DealerAddVehicleWizard() {
                       onChange={(e) => updateVehicleData('condition', e.target.value)}
                       className="w-full p-3 border border-gray-300 rounded-md"
                     >
-                      <option value="Excellent">Excellent</option>
-                      <option value="Very Good">Very Good</option>
-                      <option value="Good">Good</option>
-                      <option value="Fair">Fair</option>
+                      <option key="Excellent" value="Excellent">Excellent</option>
+                      <option key="Very Good" value="Very Good">Very Good</option>
+                      <option key="Good" value="Good">Good</option>
+                      <option key="Fair" value="Fair">Fair</option>
                     </select>
                   </div>
 
@@ -840,7 +1018,7 @@ export default function DealerAddVehicleWizard() {
                 <div>
                   <CardTitle className="text-xl mb-2">Upload Vehicle Pictures</CardTitle>
                   <CardDescription>
-                    High-quality photos help sell vehicles faster
+                    High-quality photos help sell vehicles faster (up to 12 images)
                   </CardDescription>
                 </div>
 
@@ -848,7 +1026,7 @@ export default function DealerAddVehicleWizard() {
                   <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                   <Button
                     type="button"
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-blue-600 hover:bg-blue-700"
                     onClick={() => document.getElementById('file-upload')?.click()}
                   >
                     Choose Pictures
@@ -862,7 +1040,7 @@ export default function DealerAddVehicleWizard() {
                     className="hidden"
                   />
                   <p className="text-sm text-gray-500 mt-2">
-                    Upload up to 12 images
+                    Upload up to 12 images. First image will be the primary photo.
                   </p>
                 </div>
 
@@ -1044,13 +1222,18 @@ export default function DealerAddVehicleWizard() {
                       // Clear image previews
                       setImagePreviews([]);
 
+                      // Reset to current user from session
+                      const currentUser = dealershipUsers.find((user: DealershipUser) =>
+                        user.email === session?.user?.email
+                      );
+
                       setCurrentStep(1);
                       setVehicleData({
                         // Salesperson (default to current user)
-                        salespersonId: CURRENT_USER.id,
-                        salespersonName: CURRENT_USER.name,
-                        salespersonEmail: CURRENT_USER.email,
-                        salespersonPhone: CURRENT_USER.phone,
+                        salespersonId: currentUser?.id || '',
+                        salespersonName: currentUser?.name || '',
+                        salespersonEmail: currentUser?.email || '',
+                        salespersonPhone: '',
 
                         // Vehicle details
                         category: 'CARS',
@@ -1102,7 +1285,7 @@ export default function DealerAddVehicleWizard() {
                 onClick={currentStep === 7 ? () => window.location.href = '/dealer/dashboard?tab=inventory' : currentStep === 6 ? handleSubmit : nextStep}
                 className="flex items-center bg-blue-600 hover:bg-blue-700"
               >
-                {currentStep === 7 ? 'Finish' : currentStep === 6 ? 'Add to Inventory' : 'Next Step'}
+                {currentStep === 7 ? 'Finish' : currentStep === 6 ? (isEditMode ? 'Update Vehicle' : 'Add to Inventory') : 'Next Step'}
                 {currentStep < 6 && <ArrowRight className="h-4 w-4 ml-2" />}
               </Button>
             </div>
