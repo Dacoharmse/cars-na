@@ -82,7 +82,7 @@ export default function DealerLogin() {
   const isFormValid = formData.email.trim() && formData.password.trim();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1F3469] via-[#2A4A7A] to-[#1F3469] flex items-center justify-center p-4 -mt-[104px] pt-[104px] relative">
+    <div className="h-screen bg-gradient-to-br from-[#1F3469] via-[#2A4A7A] to-[#1F3469] flex items-center justify-center p-4 -mt-[40px] pt-[40px] relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:20px_20px]" />
@@ -231,16 +231,6 @@ export default function DealerLogin() {
               </div>
             </div>
 
-            {/* Demo Credentials Info */}
-            <div className="mt-4 p-3 bg-[#1F3469]/20 rounded-lg border border-[#1F3469]/30">
-              <div className="text-center">
-                <p className="text-xs text-slate-200 mb-2">Demo Dealer Credentials:</p>
-                <div className="font-mono text-xs text-slate-100">
-                  <p>Email: dealer@premium-motors.com</p>
-                  <p>Password: dealer123</p>
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
 

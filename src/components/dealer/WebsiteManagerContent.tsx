@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { useToast } from '@/components/ui/Toast';
 import {
   Save,
   Globe,
@@ -22,41 +24,39 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-// Mock current dealership data
-const mockDealership = {
-  id: 'dealer-1',
-  name: 'Premium Auto Namibia',
-  slug: 'premium-auto-namibia',
-  description: "Namibia's leading premium vehicle dealership",
-  phone: '+264 61 123 4567',
-  alternatePhone: '+264 81 123 4567',
-  email: 'info@premiumauto.na',
-  whatsappNumber: '+264 81 123 4567',
-  streetAddress: '123 Independence Avenue',
-  city: 'Windhoek',
-  region: 'Khomas',
-  postalCode: '10001',
-  website: 'www.premiumauto.na',
-  googleMapsUrl: 'https://maps.google.com',
-  openingHours: 'Mon-Fri: 8:00 AM - 5:00 PM\nSat: 9:00 AM - 1:00 PM\nSun: Closed',
-  specializations: 'Luxury Cars, SUVs, Electric Vehicles',
-  facebookUrl: 'https://facebook.com/premiumauto',
-  instagramUrl: 'https://instagram.com/premiumauto',
-  twitterUrl: '',
-  linkedinUrl: '',
-  logo: '',
-  coverImage: ''
-};
-
 export default function WebsiteManagerContent() {
-  const [profileData, setProfileData] = useState(mockDealership);
+  const { data: session } = useSession();
+  const { showToast } = useToast();
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
 
-  const profileUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/dealership/${profileData.slug}`;
+  useEffect(() => {
+    fetchDealership();
+  }, []);
+
+  const fetchDealership = async () => {
+    try {
+      const response = await fetch('/api/dealer/dealership');
+      const data = await response.json();
+
+      if (data.success && data.dealership) {
+        setProfileData(data.dealership);
+      }
+    } catch (error) {
+      console.error('Error fetching dealership:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const profileUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/dealership/${profileData?.slug || ''}`;
 
   const updateField = (field: string, value: string) => {
-    setProfileData(prev => ({ ...prev, [field]: value }));
+    setProfileData((prev: any) => ({ ...prev, [field]: value }));
   };
 
   const generateSlug = (name: string) => {
@@ -69,7 +69,7 @@ export default function WebsiteManagerContent() {
   const handleNameChange = (name: string) => {
     updateField('name', name);
     // Auto-generate slug if it hasn't been manually changed
-    if (!profileData.slug || profileData.slug === generateSlug(profileData.name)) {
+    if (profileData && (!profileData.slug || profileData.slug === generateSlug(profileData.name))) {
       updateField('slug', generateSlug(name));
     }
   };
@@ -82,12 +82,185 @@ export default function WebsiteManagerContent() {
 
   const handleSave = async () => {
     setSaving(true);
-    // TODO: Implement API call to save profile data
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/dealer/dealership', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setProfileData(data.dealership);
+        showToast({
+          title: 'Success!',
+          description: 'Profile updated successfully!',
+          variant: 'success'
+        });
+      } else {
+        showToast({
+          title: 'Error',
+          description: data.error || 'Failed to update profile',
+          variant: 'error'
+        });
+      }
+    } catch (error) {
+      showToast({
+        title: 'Error',
+        description: 'Failed to save changes',
+        variant: 'error'
+      });
+    } finally {
       setSaving(false);
-      alert('Profile updated successfully!');
-    }, 1000);
+    }
   };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast({
+        title: 'File Too Large',
+        description: 'File size must be less than 5MB',
+        variant: 'error'
+      });
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      showToast({
+        title: 'Invalid File Type',
+        description: 'Please upload an image file',
+        variant: 'error'
+      });
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'logo');
+
+      const response = await fetch('/api/dealer/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setProfileData((prev: any) => ({ ...prev, logo: data.url }));
+        showToast({
+          title: 'Success!',
+          description: 'Logo uploaded successfully!',
+          variant: 'success'
+        });
+      } else {
+        showToast({
+          title: 'Upload Failed',
+          description: data.error || 'Failed to upload logo',
+          variant: 'error'
+        });
+      }
+    } catch (error) {
+      showToast({
+        title: 'Error',
+        description: 'Failed to upload logo',
+        variant: 'error'
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleCoverUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast({
+        title: 'File Too Large',
+        description: 'File size must be less than 5MB',
+        variant: 'error'
+      });
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      showToast({
+        title: 'Invalid File Type',
+        description: 'Please upload an image file',
+        variant: 'error'
+      });
+      return;
+    }
+
+    setUploadingCover(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'cover');
+
+      const response = await fetch('/api/dealer/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setProfileData((prev: any) => ({ ...prev, coverImage: data.url }));
+        showToast({
+          title: 'Success!',
+          description: 'Cover image uploaded successfully!',
+          variant: 'success'
+        });
+      } else {
+        showToast({
+          title: 'Upload Failed',
+          description: data.error || 'Failed to upload cover image',
+          variant: 'error'
+        });
+      }
+    } catch (error) {
+      showToast({
+        title: 'Error',
+        description: 'Failed to upload cover image',
+        variant: 'error'
+      });
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dealership data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <p className="text-red-600 text-lg font-semibold">No dealership found</p>
+          <p className="text-gray-600 mt-2">Please contact support</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -163,9 +336,9 @@ export default function WebsiteManagerContent() {
                       Dealership Name <span className="text-red-500">*</span>
                     </label>
                     <Input
-                      value={profileData.name}
+                      value={profileData?.name || ''}
                       onChange={(e) => handleNameChange(e.target.value)}
-                      placeholder="Premium Auto Namibia"
+                      placeholder="Enter dealership name"
                     />
                   </div>
 
@@ -176,9 +349,9 @@ export default function WebsiteManagerContent() {
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-500">/dealership/</span>
                       <Input
-                        value={profileData.slug}
+                        value={profileData?.slug || ''}
                         onChange={(e) => updateField('slug', generateSlug(e.target.value))}
-                        placeholder="premium-auto-namibia"
+                        placeholder="dealership-name"
                       />
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Only lowercase letters, numbers, and hyphens</p>
@@ -187,7 +360,7 @@ export default function WebsiteManagerContent() {
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium mb-2">Description</label>
                     <textarea
-                      value={profileData.description}
+                      value={profileData?.description || ''}
                       onChange={(e) => updateField('description', e.target.value)}
                       className="w-full p-3 border border-gray-300 rounded-md h-24 resize-none"
                       placeholder="Brief description of your dealership..."
@@ -197,9 +370,9 @@ export default function WebsiteManagerContent() {
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium mb-2">Specializations</label>
                     <Input
-                      value={profileData.specializations}
+                      value={profileData?.specializations || ''}
                       onChange={(e) => updateField('specializations', e.target.value)}
-                      placeholder="e.g. Luxury Cars, SUVs, Electric Vehicles"
+                      placeholder="e.g. Luxury Cars, SUVs, Trucks"
                     />
                     <p className="text-xs text-gray-500 mt-1">Comma-separated list of your specialties</p>
                   </div>
@@ -222,7 +395,7 @@ export default function WebsiteManagerContent() {
                     Phone Number <span className="text-red-500">*</span>
                   </label>
                   <Input
-                    value={profileData.phone}
+                    value={profileData?.phone || ''}
                     onChange={(e) => updateField('phone', e.target.value)}
                     placeholder="+264 61 123 4567"
                   />
@@ -234,7 +407,7 @@ export default function WebsiteManagerContent() {
                     Alternate Phone
                   </label>
                   <Input
-                    value={profileData.alternatePhone}
+                    value={profileData?.alternatePhone || ''}
                     onChange={(e) => updateField('alternatePhone', e.target.value)}
                     placeholder="+264 81 123 4567"
                   />
@@ -247,9 +420,9 @@ export default function WebsiteManagerContent() {
                   </label>
                   <Input
                     type="email"
-                    value={profileData.email}
+                    value={profileData?.email || ''}
                     onChange={(e) => updateField('email', e.target.value)}
-                    placeholder="info@premiumauto.na"
+                    placeholder="info@dealership.na"
                   />
                 </div>
 
@@ -258,7 +431,7 @@ export default function WebsiteManagerContent() {
                     WhatsApp Number
                   </label>
                   <Input
-                    value={profileData.whatsappNumber}
+                    value={profileData?.whatsappNumber || ''}
                     onChange={(e) => updateField('whatsappNumber', e.target.value)}
                     placeholder="+264 81 123 4567"
                   />
@@ -270,9 +443,9 @@ export default function WebsiteManagerContent() {
                     Website
                   </label>
                   <Input
-                    value={profileData.website}
+                    value={profileData?.website || ''}
                     onChange={(e) => updateField('website', e.target.value)}
-                    placeholder="www.premiumauto.na"
+                    placeholder="www.dealership.na"
                   />
                 </div>
               </div>
@@ -293,7 +466,7 @@ export default function WebsiteManagerContent() {
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium mb-2">Street Address</label>
                   <Input
-                    value={profileData.streetAddress}
+                    value={profileData?.streetAddress || ''}
                     onChange={(e) => updateField('streetAddress', e.target.value)}
                     placeholder="123 Independence Avenue"
                   />
@@ -302,7 +475,7 @@ export default function WebsiteManagerContent() {
                 <div>
                   <label className="block text-sm font-medium mb-2">City</label>
                   <Input
-                    value={profileData.city}
+                    value={profileData?.city || ''}
                     onChange={(e) => updateField('city', e.target.value)}
                     placeholder="Windhoek"
                   />
@@ -311,7 +484,7 @@ export default function WebsiteManagerContent() {
                 <div>
                   <label className="block text-sm font-medium mb-2">Region</label>
                   <Input
-                    value={profileData.region}
+                    value={profileData?.region || ''}
                     onChange={(e) => updateField('region', e.target.value)}
                     placeholder="Khomas"
                   />
@@ -320,7 +493,7 @@ export default function WebsiteManagerContent() {
                 <div>
                   <label className="block text-sm font-medium mb-2">Postal Code</label>
                   <Input
-                    value={profileData.postalCode}
+                    value={profileData?.postalCode || ''}
                     onChange={(e) => updateField('postalCode', e.target.value)}
                     placeholder="10001"
                   />
@@ -329,7 +502,7 @@ export default function WebsiteManagerContent() {
                 <div>
                   <label className="block text-sm font-medium mb-2">Google Maps URL</label>
                   <Input
-                    value={profileData.googleMapsUrl}
+                    value={profileData?.googleMapsUrl || ''}
                     onChange={(e) => updateField('googleMapsUrl', e.target.value)}
                     placeholder="https://maps.google.com/..."
                   />
@@ -349,7 +522,7 @@ export default function WebsiteManagerContent() {
             </CardHeader>
             <CardContent>
               <textarea
-                value={profileData.openingHours}
+                value={profileData?.openingHours || ''}
                 onChange={(e) => updateField('openingHours', e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md h-32 resize-none"
                 placeholder="Mon-Fri: 8:00 AM - 5:00 PM&#10;Sat: 9:00 AM - 1:00 PM&#10;Sun: Closed"
@@ -371,7 +544,7 @@ export default function WebsiteManagerContent() {
                     Facebook
                   </label>
                   <Input
-                    value={profileData.facebookUrl}
+                    value={profileData?.facebookUrl || ''}
                     onChange={(e) => updateField('facebookUrl', e.target.value)}
                     placeholder="https://facebook.com/yourpage"
                   />
@@ -383,7 +556,7 @@ export default function WebsiteManagerContent() {
                     Instagram
                   </label>
                   <Input
-                    value={profileData.instagramUrl}
+                    value={profileData?.instagramUrl || ''}
                     onChange={(e) => updateField('instagramUrl', e.target.value)}
                     placeholder="https://instagram.com/yourpage"
                   />
@@ -395,7 +568,7 @@ export default function WebsiteManagerContent() {
                     Twitter / X
                   </label>
                   <Input
-                    value={profileData.twitterUrl}
+                    value={profileData?.twitterUrl || ''}
                     onChange={(e) => updateField('twitterUrl', e.target.value)}
                     placeholder="https://twitter.com/yourpage"
                   />
@@ -407,11 +580,66 @@ export default function WebsiteManagerContent() {
                     LinkedIn
                   </label>
                   <Input
-                    value={profileData.linkedinUrl}
+                    value={profileData?.linkedinUrl || ''}
                     onChange={(e) => updateField('linkedinUrl', e.target.value)}
                     placeholder="https://linkedin.com/company/yourcompany"
                   />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Special Offer / Highlight Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Special Offer / Highlight</CardTitle>
+              <CardDescription>Add a highlighted message to showcase special offers or promotions on your profile</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <label className="flex items-center space-x-2 mb-4">
+                    <input
+                      type="checkbox"
+                      checked={profileData?.highlightActive || false}
+                      onChange={(e) => updateField('highlightActive', e.target.checked)}
+                      className="h-4 w-4 text-blue-600 rounded"
+                    />
+                    <span className="text-sm font-medium">Show highlight on profile</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Highlight Title
+                  </label>
+                  <Input
+                    value={profileData?.highlightTitle || ''}
+                    onChange={(e) => updateField('highlightTitle', e.target.value)}
+                    placeholder="e.g. Special Offer, Limited Time Deal"
+                    disabled={!profileData?.highlightActive}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Highlight Description
+                  </label>
+                  <textarea
+                    value={profileData?.highlightDescription || ''}
+                    onChange={(e) => updateField('highlightDescription', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-md h-20 resize-none disabled:bg-gray-50 disabled:text-gray-400"
+                    placeholder="e.g. 0% financing available on selected vehicles. Trade-in bonuses up to N$50,000!"
+                    disabled={!profileData?.highlightActive}
+                  />
+                </div>
+
+                {profileData?.highlightActive && profileData?.highlightTitle && profileData?.highlightDescription && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+                    <p className="text-sm font-semibold text-yellow-900 mb-1">{profileData.highlightTitle}</p>
+                    <p className="text-sm text-yellow-800">{profileData.highlightDescription}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -454,20 +682,68 @@ export default function WebsiteManagerContent() {
             <CardContent className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Logo</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                  <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600">Click to upload logo</p>
-                  <p className="text-xs text-gray-400">Recommended: 200x200px</p>
-                </div>
+                <input
+                  type="file"
+                  id="logo-upload"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="logo-upload"
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center block cursor-pointer hover:border-blue-400 transition-colors"
+                >
+                  {profileData?.logo ? (
+                    <div className="space-y-2">
+                      <img src={profileData.logo} alt="Logo" className="h-20 w-20 mx-auto object-contain rounded" />
+                      <p className="text-sm text-gray-600">Click to change logo</p>
+                    </div>
+                  ) : uploadingLogo ? (
+                    <div className="space-y-2">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                      <p className="text-sm text-gray-600">Uploading...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Upload className="h-8 w-8 mx-auto text-gray-400" />
+                      <p className="text-sm text-gray-600">Click to upload logo</p>
+                    </div>
+                  )}
+                </label>
+                <p className="text-xs text-gray-500 mt-2">Recommended: 200x200px, Max 5MB</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-2">Cover Image</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                  <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600">Click to upload cover</p>
-                  <p className="text-xs text-gray-400">Recommended: 1200x400px</p>
-                </div>
+                <input
+                  type="file"
+                  id="cover-upload"
+                  accept="image/*"
+                  onChange={handleCoverUpload}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="cover-upload"
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center block cursor-pointer hover:border-blue-400 transition-colors"
+                >
+                  {profileData?.coverImage ? (
+                    <div className="space-y-2">
+                      <img src={profileData.coverImage} alt="Cover" className="h-24 w-full mx-auto object-cover rounded" />
+                      <p className="text-sm text-gray-600">Click to change cover</p>
+                    </div>
+                  ) : uploadingCover ? (
+                    <div className="space-y-2">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                      <p className="text-sm text-gray-600">Uploading...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Upload className="h-8 w-8 mx-auto text-gray-400" />
+                      <p className="text-sm text-gray-600">Click to upload cover</p>
+                    </div>
+                  )}
+                </label>
+                <p className="text-xs text-gray-500 mt-2">Recommended: 1200x400px, Max 5MB</p>
               </div>
             </CardContent>
           </Card>
@@ -480,16 +756,16 @@ export default function WebsiteManagerContent() {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Profile Views</span>
-                  <Badge variant="secondary">1,234</Badge>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Active Listings</span>
-                  <Badge variant="secondary">23</Badge>
+                  <Badge variant="secondary">{profileData?._count?.vehicles || 0}</Badge>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Inquiries (30d)</span>
-                  <Badge variant="secondary">45</Badge>
+                  <span className="text-sm text-gray-600">Team Members</span>
+                  <Badge variant="secondary">{profileData?._count?.users || 0}</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Profile Status</span>
+                  <Badge variant="secondary">{profileData?.status || 'Active'}</Badge>
                 </div>
               </div>
             </CardContent>

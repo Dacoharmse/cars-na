@@ -94,7 +94,9 @@ import {
   Trash2,
   Upload,
   ChevronDown,
-  Check
+  Check,
+  Crown,
+  HandCoins
 } from 'lucide-react';
 
 // Admin stats will be fetched from API
@@ -920,6 +922,529 @@ const BANNER_STATS = {
   avgCTR: 10.2
 };
 
+// Sell Your Car Management Component
+function SellYourCarManagement({ showToast }: { showToast: any }) {
+  const [listings, setListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedListing, setSelectedListing] = useState<any>(null);
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [autoModerate, setAutoModerate] = useState(false);
+  const [loadingAutoModerate, setLoadingAutoModerate] = useState(false);
+
+  useEffect(() => {
+    fetchListings();
+    fetchAutoModerate();
+  }, [filterStatus]);
+
+  const fetchAutoModerate = async () => {
+    try {
+      const response = await fetch('/api/admin/settings/auto-moderate');
+      if (response.ok) {
+        const data = await response.json();
+        setAutoModerate(data.enabled);
+      }
+    } catch (error) {
+      console.error('Error fetching auto-moderate setting:', error);
+    }
+  };
+
+  const toggleAutoModerate = async () => {
+    try {
+      setLoadingAutoModerate(true);
+      const newValue = !autoModerate;
+
+      const response = await fetch('/api/admin/settings/auto-moderate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: newValue }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update auto-moderate');
+
+      setAutoModerate(newValue);
+      showToast({
+        title: newValue ? 'Auto-Moderate Enabled' : 'Auto-Moderate Disabled',
+        description: newValue
+          ? 'New listings will be automatically approved.'
+          : 'New listings will require manual approval.',
+        variant: 'success',
+      });
+    } catch (error) {
+      console.error('Error toggling auto-moderate:', error);
+      showToast({
+        title: 'Error',
+        description: 'Failed to update auto-moderate setting',
+        variant: 'error',
+      });
+    } finally {
+      setLoadingAutoModerate(false);
+    }
+  };
+
+  const fetchListings = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (filterStatus !== 'all') {
+        params.append('status', filterStatus.toUpperCase());
+      }
+
+      const response = await fetch(`/api/admin/sell-listings?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch listings');
+
+      const data = await response.json();
+      setListings(data.listings);
+    } catch (error) {
+      console.error('Error fetching listings:', error);
+      showToast({
+        title: 'Error',
+        description: 'Failed to load listings',
+        variant: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!selectedListing) return;
+
+    try {
+      const response = await fetch('/api/admin/sell-listings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          listingId: selectedListing.id,
+          status: 'APPROVED',
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to approve listing');
+
+      showToast({
+        title: 'Listing Approved',
+        description: 'The seller has been notified via email.',
+        variant: 'success',
+      });
+
+      setShowApproveDialog(false);
+      setSelectedListing(null);
+      fetchListings();
+    } catch (error) {
+      console.error('Error approving listing:', error);
+      showToast({
+        title: 'Error',
+        description: 'Failed to approve listing',
+        variant: 'error',
+      });
+    }
+  };
+
+  const handleReject = async () => {
+    if (!selectedListing) return;
+
+    try {
+      const response = await fetch('/api/admin/sell-listings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          listingId: selectedListing.id,
+          status: 'REJECTED',
+          rejectionReason,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to reject listing');
+
+      showToast({
+        title: 'Listing Rejected',
+        description: 'The listing has been marked as rejected.',
+        variant: 'success',
+      });
+
+      setShowRejectDialog(false);
+      setSelectedListing(null);
+      setRejectionReason('');
+      fetchListings();
+    } catch (error) {
+      console.error('Error rejecting listing:', error);
+      showToast({
+        title: 'Error',
+        description: 'Failed to reject listing',
+        variant: 'error',
+      });
+    }
+  };
+
+  const handleDelete = async (listingId: string) => {
+    if (!confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/sell-listings?id=${listingId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete listing');
+
+      showToast({
+        title: 'Listing Deleted',
+        description: 'The listing has been permanently removed.',
+        variant: 'success',
+      });
+
+      fetchListings();
+    } catch (error) {
+      console.error('Error deleting listing:', error);
+      showToast({
+        title: 'Error',
+        description: 'Failed to delete listing',
+        variant: 'error',
+      });
+    }
+  };
+
+  const filteredListings = listings.filter(listing => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      listing.make.toLowerCase().includes(searchLower) ||
+      listing.model.toLowerCase().includes(searchLower) ||
+      listing.userName.toLowerCase().includes(searchLower) ||
+      listing.userEmail.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, { bg: string; text: string; label: string }> = {
+      PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pending' },
+      APPROVED: { bg: 'bg-green-100', text: 'text-green-800', label: 'Approved' },
+      REJECTED: { bg: 'bg-red-100', text: 'text-red-800', label: 'Rejected' },
+    };
+    const variant = variants[status] || variants.PENDING;
+    return (
+      <Badge className={`${variant.bg} ${variant.text}`}>{variant.label}</Badge>
+    );
+  };
+
+  const stats = {
+    total: listings.length,
+    pending: listings.filter(l => l.status === 'PENDING').length,
+    approved: listings.filter(l => l.status === 'APPROVED').length,
+    rejected: listings.filter(l => l.status === 'REJECTED').length,
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">Sell Your Car Listings</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Auto-Moderate: {autoModerate ? 'Enabled' : 'Disabled'}
+          </p>
+        </div>
+        <div className="flex gap-3 items-center">
+          {/* Auto-Moderate Toggle */}
+          <div className="flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className={`h-4 w-4 ${autoModerate ? 'text-green-600' : 'text-gray-400'}`} />
+              <span className="text-sm font-medium text-gray-700">Auto-Approve</span>
+            </div>
+            <button
+              onClick={toggleAutoModerate}
+              disabled={loadingAutoModerate}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                autoModerate ? 'bg-green-600' : 'bg-gray-300'
+              } ${loadingAutoModerate ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  autoModerate ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Search listings..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <Button variant="outline" size="sm" onClick={() => fetchListings()}>
+            <Download className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Listings</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
+              </div>
+              <Car className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Pending Approval</p>
+                <p className="text-2xl font-bold">{stats.pending}</p>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Approved</p>
+                <p className="text-2xl font-bold">{stats.approved}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Rejected</p>
+                <p className="text-2xl font-bold">{stats.rejected}</p>
+              </div>
+              <XCircle className="h-8 w-8 text-red-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex gap-2 border-b">
+        {['all', 'pending', 'approved', 'rejected'].map((status) => (
+          <button
+            key={status}
+            onClick={() => setFilterStatus(status)}
+            className={`px-4 py-2 -mb-px font-medium text-sm border-b-2 transition-colors ${
+              filterStatus === status
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+            }`}
+          >
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {/* Listings Table */}
+      <Card>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading listings...</p>
+              </div>
+            </div>
+          ) : filteredListings.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Car className="h-16 w-16 text-gray-300 mb-4" />
+              <p className="text-gray-600 text-lg font-medium">No listings found</p>
+              <p className="text-gray-500 text-sm mt-1">Try adjusting your filters or search term</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Vehicle
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Seller
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Price
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Submitted
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredListings.map((listing) => (
+                    <tr key={listing.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded flex items-center justify-center">
+                            <Car className="h-6 w-6 text-gray-500" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {listing.year} {listing.make} {listing.model}
+                            </div>
+                            <div className="text-sm text-gray-500">{listing.category}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{listing.userName}</div>
+                        <div className="text-sm text-gray-500">{listing.userEmail}</div>
+                        <div className="text-sm text-gray-500">{listing.userPhone}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          N$ {listing.price?.toLocaleString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(listing.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(listing.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                          {listing.status === 'PENDING' && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedListing(listing);
+                                  setShowApproveDialog(true);
+                                }}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedListing(listing);
+                                  setShowRejectDialog(true);
+                                }}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDelete(listing.id)}
+                            className="text-gray-600 hover:text-gray-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Approve Dialog */}
+      {showApproveDialog && selectedListing && (
+        <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Approve Listing</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to approve this listing? The seller will be notified via email.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <div className="text-sm">
+                <p><strong>Vehicle:</strong> {selectedListing.year} {selectedListing.make} {selectedListing.model}</p>
+                <p><strong>Seller:</strong> {selectedListing.userName} ({selectedListing.userEmail})</p>
+                <p><strong>Price:</strong> N$ {selectedListing.price?.toLocaleString()}</p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowApproveDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Approve Listing
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Reject Dialog */}
+      {showRejectDialog && selectedListing && (
+        <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reject Listing</DialogTitle>
+              <DialogDescription>
+                Please provide a reason for rejecting this listing (optional).
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <div className="text-sm mb-4">
+                <p><strong>Vehicle:</strong> {selectedListing.year} {selectedListing.make} {selectedListing.model}</p>
+                <p><strong>Seller:</strong> {selectedListing.userName} ({selectedListing.userEmail})</p>
+              </div>
+              <Textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Enter rejection reason (optional)..."
+                className="w-full"
+                rows={4}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setShowRejectDialog(false);
+                setRejectionReason('');
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={handleReject} className="bg-red-600 hover:bg-red-700">
+                <XCircle className="h-4 w-4 mr-2" />
+                Reject Listing
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
 function AdminDashboardContent() {
   const { showToast } = useToast();
   const router = useRouter();
@@ -995,6 +1520,12 @@ function AdminDashboardContent() {
   });
   const [topDealers, setTopDealers] = useState<any[]>([]);
   const [recentPayments, setRecentPayments] = useState<any[]>([]);
+  const [featuredRequests, setFeaturedRequests] = useState<any[]>([]);
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [rejectFeaturedDialogOpen, setRejectFeaturedDialogOpen] = useState(false);
+  const [viewFeaturedDialogOpen, setViewFeaturedDialogOpen] = useState(false);
+  const [selectedFeaturedRequest, setSelectedFeaturedRequest] = useState<any>(null);
+  const [featuredRejectionReason, setFeaturedRejectionReason] = useState('');
   const [todayStats, setTodayStats] = useState({
     newUsers: 0,
     newDealers: 0,
@@ -2788,6 +3319,27 @@ function AdminDashboardContent() {
     }
   }, [isAuthenticated, activeTab]);
 
+  // Fetch featured requests
+  useEffect(() => {
+    const fetchFeaturedRequests = async () => {
+      try {
+        const response = await fetch('/api/admin/featured-requests');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setFeaturedRequests(data.requests);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching featured requests:', error);
+      }
+    };
+
+    if (isAuthenticated && activeTab === 'featured-requests') {
+      fetchFeaturedRequests();
+    }
+  }, [isAuthenticated, activeTab]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -2808,7 +3360,9 @@ function AdminDashboardContent() {
     { name: 'Users', icon: Users, id: 'users', current: activeTab === 'users' },
     { name: 'Dealers', icon: Building2, id: 'dealers', current: activeTab === 'dealers' },
     { name: 'Listings', icon: Car, id: 'listings', current: activeTab === 'listings' },
+    { name: 'Sell Your Car', icon: HandCoins, id: 'sell-your-car', current: activeTab === 'sell-your-car' },
     { name: 'Subscriptions', icon: CreditCard, id: 'subscriptions', current: activeTab === 'subscriptions' },
+    { name: 'Featured Requests', icon: Crown, id: 'featured-requests', current: activeTab === 'featured-requests' },
     { name: 'Advertisements', icon: Image, id: 'advertisements', current: activeTab === 'advertisements' },
     { name: 'Moderation', icon: Flag, id: 'moderation', current: activeTab === 'moderation' },
     { name: 'Analytics', icon: BarChart3, id: 'analytics', current: activeTab === 'analytics' },
@@ -2816,7 +3370,80 @@ function AdminDashboardContent() {
   ];
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/admin/login' });
+    try {
+      console.log('Logging out...');
+      await signOut({
+        callbackUrl: '/admin/login',
+        redirect: true
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Featured request handlers
+  const handleApproveFeaturedRequest = async () => {
+    if (!selectedFeaturedRequest) return;
+
+    try {
+      const response = await fetch('/api/admin/featured-requests', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          requestId: selectedFeaturedRequest.id,
+          action: 'approve',
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh featured requests
+        const fetchResponse = await fetch('/api/admin/featured-requests');
+        const data = await fetchResponse.json();
+        if (data.success) {
+          setFeaturedRequests(data.requests);
+        }
+        setApproveDialogOpen(false);
+        setSelectedFeaturedRequest(null);
+      }
+    } catch (error) {
+      console.error('Error approving featured request:', error);
+      alert('Failed to approve request');
+    }
+  };
+
+  const handleRejectFeaturedRequest = async () => {
+    if (!selectedFeaturedRequest) return;
+
+    try {
+      const response = await fetch('/api/admin/featured-requests', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          requestId: selectedFeaturedRequest.id,
+          action: 'reject',
+          rejectionReason: featuredRejectionReason,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh featured requests
+        const fetchResponse = await fetch('/api/admin/featured-requests');
+        const data = await fetchResponse.json();
+        if (data.success) {
+          setFeaturedRequests(data.requests);
+        }
+        setRejectFeaturedDialogOpen(false);
+        setSelectedFeaturedRequest(null);
+        setFeaturedRejectionReason('');
+      }
+    } catch (error) {
+      console.error('Error rejecting featured request:', error);
+      alert('Failed to reject request');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -3171,6 +3798,7 @@ function AdminDashboardContent() {
                     {activeTab === 'users' && 'Manage platform users'}
                     {activeTab === 'dealers' && 'Manage dealership accounts'}
                     {activeTab === 'listings' && 'Manage vehicle listings'}
+                    {activeTab === 'sell-your-car' && 'Review and approve user-submitted vehicle listings'}
                     {activeTab === 'moderation' && 'Content moderation tools'}
                     {activeTab === 'analytics' && 'Platform analytics and reports'}
                     {activeTab === 'settings' && 'Platform configuration'}
@@ -3194,7 +3822,7 @@ function AdminDashboardContent() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-6 pt-[50px]">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
@@ -3208,7 +3836,7 @@ function AdminDashboardContent() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-blue-900">{adminStats.totalUsers.toLocaleString()}</div>
+                    <div className="text-3xl font-bold text-blue-900">{(adminStats.totalUsers || 0).toLocaleString()}</div>
                     <div className="mt-3 pt-3 border-t border-blue-200">
                       <p className="text-xs text-blue-700">Total registered users</p>
                     </div>
@@ -3238,9 +3866,9 @@ function AdminDashboardContent() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-green-900">{adminStats.totalListings.toLocaleString()}</div>
+                    <div className="text-3xl font-bold text-green-900">{(adminStats.totalListings || 0).toLocaleString()}</div>
                     <div className="mt-3 pt-3 border-t border-green-200">
-                      <p className="text-xs text-green-700">Available: {adminStats.availableListings}</p>
+                      <p className="text-xs text-green-700">Available: {adminStats.availableListings || adminStats.activeListings || 0}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -3253,7 +3881,7 @@ function AdminDashboardContent() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-amber-900">N${adminStats.monthlyRevenue.toLocaleString()}</div>
+                    <div className="text-3xl font-bold text-amber-900">N${(adminStats.monthlyRevenue || 0).toLocaleString()}</div>
                     <div className="mt-3 pt-3 border-t border-amber-200">
                       <p className="text-xs text-amber-700">From completed payments</p>
                     </div>
@@ -4037,7 +4665,7 @@ function AdminDashboardContent() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      N${dealers.reduce((sum, dealer) => sum + dealer.monthlyFee, 0).toLocaleString()}
+                      N${dealers.reduce((sum, dealer) => sum + (dealer.monthlyFee || 0), 0).toLocaleString()}
                     </div>
                     <p className="text-xs text-green-600 flex items-center">
                       <ArrowUpRight className="h-3 w-3 mr-1" />
@@ -4391,7 +5019,7 @@ function AdminDashboardContent() {
                                 <div>
                                   <div className="text-sm font-medium text-gray-900">{listing.title}</div>
                                   <div className="text-sm text-gray-500">
-                                    {listing.year} • {listing.mileage.toLocaleString()} km • {listing.fuelType}
+                                    {listing.year} • {(listing.mileage || 0).toLocaleString()} km • {listing.fuelType}
                                   </div>
                                 </div>
                               </div>
@@ -4402,7 +5030,7 @@ function AdminDashboardContent() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm font-medium text-gray-900">
-                                N${listing.price.toLocaleString()}
+                                N${(listing.price || 0).toLocaleString()}
                               </div>
                               <div className="text-sm text-gray-500">{listing.condition}</div>
                             </td>
@@ -4683,7 +5311,7 @@ function AdminDashboardContent() {
                     <Activity className="h-4 w-4 text-blue-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{bannerStats.totalClicks.toLocaleString()}</div>
+                    <div className="text-2xl font-bold">{(bannerStats.totalClicks || 0).toLocaleString()}</div>
                     <p className="text-xs text-blue-600">Last 30 days</p>
                   </CardContent>
                 </Card>
@@ -4694,7 +5322,7 @@ function AdminDashboardContent() {
                     <TrendingUp className="h-4 w-4 text-green-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{bannerStats.totalImpressions.toLocaleString()}</div>
+                    <div className="text-2xl font-bold">{(bannerStats.totalImpressions || 0).toLocaleString()}</div>
                     <p className="text-xs text-green-600">+15% from last month</p>
                   </CardContent>
                 </Card>
@@ -5085,7 +5713,7 @@ function AdminDashboardContent() {
                         <TrendingUp className="h-4 w-4 text-blue-500" />
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold">{bannerStats.totalImpressions.toLocaleString()}</div>
+                        <div className="text-2xl font-bold">{(bannerStats.totalImpressions || 0).toLocaleString()}</div>
                         <p className="text-xs text-blue-600">Last 30 days</p>
                       </CardContent>
                     </Card>
@@ -5096,7 +5724,7 @@ function AdminDashboardContent() {
                         <Activity className="h-4 w-4 text-green-500" />
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold">{bannerStats.totalClicks.toLocaleString()}</div>
+                        <div className="text-2xl font-bold">{(bannerStats.totalClicks || 0).toLocaleString()}</div>
                         <p className="text-xs text-green-600">Last 30 days</p>
                       </CardContent>
                     </Card>
@@ -5594,10 +6222,10 @@ function AdminDashboardContent() {
                     <MousePointer className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.overview.totalPageViews.toLocaleString()}</div>
+                    <div className="text-2xl font-bold">{(analyticsData?.overview?.totalPageViews || 0).toLocaleString()}</div>
                     <p className="text-xs text-green-600 flex items-center">
                       <TrendingUpIcon className="h-3 w-3 mr-1" />
-                      +{analyticsData.overview.growthRate}% from last month
+                      +{analyticsData?.overview?.growthRate || 0}% from last month
                     </p>
                   </CardContent>
                 </Card>
@@ -5608,9 +6236,9 @@ function AdminDashboardContent() {
                     <Users className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.overview.uniqueVisitors.toLocaleString()}</div>
+                    <div className="text-2xl font-bold">{(analyticsData?.overview?.uniqueVisitors || 0).toLocaleString()}</div>
                     <p className="text-xs text-muted-foreground">
-                      Avg session: {analyticsData.overview.avgSessionDuration}
+                      Avg session: {analyticsData?.overview?.avgSessionDuration || '0:00'}
                     </p>
                   </CardContent>
                 </Card>
@@ -5634,7 +6262,7 @@ function AdminDashboardContent() {
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">N${(analyticsData.overview.totalRevenue / 100).toLocaleString()}</div>
+                    <div className="text-2xl font-bold">N${((analyticsData?.overview?.totalRevenue || 0) / 100).toLocaleString()}</div>
                     <p className="text-xs text-green-600 flex items-center">
                       <ArrowUpRight className="h-3 w-3 mr-1" />
                       +15% from last month
@@ -5811,19 +6439,19 @@ function AdminDashboardContent() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{analyticsData.users.engagement.activeUsers.toLocaleString()}</div>
+                      <div className="text-2xl font-bold text-blue-600">{(analyticsData?.users?.engagement?.activeUsers || 0).toLocaleString()}</div>
                       <p className="text-sm text-gray-600">Active Users</p>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{analyticsData.users.engagement.returningUsers.toLocaleString()}</div>
+                      <div className="text-2xl font-bold text-green-600">{(analyticsData?.users?.engagement?.returningUsers || 0).toLocaleString()}</div>
                       <p className="text-sm text-gray-600">Returning Users</p>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-yellow-600">{analyticsData.users.engagement.pagesPerSession}</div>
+                      <div className="text-2xl font-bold text-yellow-600">{analyticsData?.users?.engagement?.pagesPerSession || 0}</div>
                       <p className="text-sm text-gray-600">Pages/Session</p>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{analyticsData.users.engagement.messagesSent.toLocaleString()}</div>
+                      <div className="text-2xl font-bold text-purple-600">{(analyticsData?.users?.engagement?.messagesSent || 0).toLocaleString()}</div>
                       <p className="text-sm text-gray-600">Messages Sent</p>
                     </div>
                   </div>
@@ -5876,6 +6504,217 @@ function AdminDashboardContent() {
             </div>
           )}
 
+          {/* Featured Requests Tab */}
+          {activeTab === 'featured-requests' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <Crown className="h-6 w-6 text-yellow-600" />
+                  Featured Dealership Requests
+                </h2>
+              </div>
+
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+                    <Crown className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{featuredRequests.length}</div>
+                    <p className="text-xs text-muted-foreground">All time</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                    <Clock className="h-4 w-4 text-yellow-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {featuredRequests.filter(r => r.status === 'PENDING').length}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Awaiting review</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active</CardTitle>
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {featuredRequests.filter(r => r.status === 'ACTIVE').length}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Currently featured</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      N${featuredRequests
+                        .filter(r => r.status === 'ACTIVE' || r.status === 'APPROVED')
+                        .reduce((sum, r) => sum + r.amount, 0)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">From featured placements</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Requests Table */}
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Dealership
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Duration
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Amount
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Requested
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Active Period
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {featuredRequests.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="px-6 py-12 text-center">
+                              <div className="flex flex-col items-center justify-center text-gray-500">
+                                <Crown className="h-12 w-12 mb-4 text-gray-300" />
+                                <p className="font-medium">No featured requests yet</p>
+                                <p className="text-sm mt-1">Requests will appear here when dealerships apply</p>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          featuredRequests.map((request) => (
+                            <tr key={request.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4">
+                                <div>
+                                  <div className="font-medium text-gray-900">{request.dealership.name}</div>
+                                  <div className="text-sm text-gray-500">{request.dealership.city}</div>
+                                  <div className="text-xs text-gray-400">{request.dealership.email}</div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-gray-900">{request.duration} days</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-gray-900">N${request.amount}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <Badge className={`${
+                                  request.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                                  request.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                  request.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
+                                  request.status === 'EXPIRED' ? 'bg-gray-100 text-gray-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {request.status}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">
+                                  {new Date(request.requestedAt).toLocaleDateString()}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {new Date(request.requestedAt).toLocaleTimeString()}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                {request.startDate && request.endDate ? (
+                                  <div className="text-sm text-gray-900">
+                                    <div>{new Date(request.startDate).toLocaleDateString()}</div>
+                                    <div className="text-xs text-gray-500">
+                                      to {new Date(request.endDate).toLocaleDateString()}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-sm text-gray-400">-</div>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                {request.status === 'PENDING' ? (
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="bg-green-50 text-green-700 hover:bg-green-100 border-green-300"
+                                      onClick={() => {
+                                        setSelectedFeaturedRequest(request);
+                                        setApproveDialogOpen(true);
+                                      }}
+                                    >
+                                      <CheckCircle className="h-4 w-4 mr-1" />
+                                      Approve
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="bg-red-50 text-red-700 hover:bg-red-100 border-red-300"
+                                      onClick={() => {
+                                        setSelectedFeaturedRequest(request);
+                                        setRejectFeaturedDialogOpen(true);
+                                      }}
+                                    >
+                                      <X className="h-4 w-4 mr-1" />
+                                      Reject
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setSelectedFeaturedRequest(request);
+                                      setViewFeaturedDialogOpen(true);
+                                    }}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View
+                                  </Button>
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Sell Your Car Tab */}
+          {activeTab === 'sell-your-car' && (
+            <SellYourCarManagement showToast={showToast} />
+          )}
+
           {/* Subscriptions Tab */}
           {activeTab === 'subscriptions' && (
             <div className="space-y-6">
@@ -5924,7 +6763,7 @@ function AdminDashboardContent() {
                     <DollarSign className="h-4 w-4 text-green-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">N${(subscriptionStats.monthlyRevenue / 100).toLocaleString()}</div>
+                    <div className="text-2xl font-bold">N${((subscriptionStats.monthlyRevenue || 0) / 100).toLocaleString()}</div>
                     <p className="text-xs text-muted-foreground">From subscription payments</p>
                   </CardContent>
                 </Card>
@@ -6101,11 +6940,13 @@ function AdminDashboardContent() {
                         <div className="mt-3">
                           <label className="block text-sm font-medium text-gray-700 mb-2">Features</label>
                           <div className="flex flex-wrap gap-2">
-                            {plan.features.map((feature, idx) => (
+                            {Array.isArray(plan.features) ? plan.features.map((feature, idx) => (
                               <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                                 {feature}
                               </span>
-                            ))}
+                            )) : (
+                              <span className="text-sm text-gray-500">No features defined</span>
+                            )}
                           </div>
                         </div>
 
@@ -7767,7 +8608,7 @@ function AdminDashboardContent() {
           )}
 
           {/* Other tabs content */}
-          {activeTab !== 'overview' && activeTab !== 'users' && activeTab !== 'dealers' && activeTab !== 'listings' && activeTab !== 'subscriptions' && activeTab !== 'moderation' && activeTab !== 'analytics' && activeTab !== 'settings' && (
+          {activeTab !== 'overview' && activeTab !== 'users' && activeTab !== 'dealers' && activeTab !== 'listings' && activeTab !== 'subscriptions' && activeTab !== 'moderation' && activeTab !== 'analytics' && activeTab !== 'settings' && activeTab !== 'featured-requests' && (
             <div className="text-center py-12">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {navigation.find(nav => nav.id === activeTab)?.name} Section
@@ -7907,7 +8748,7 @@ function AdminDashboardContent() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Monthly Revenue</label>
-                    <p>N${selectedDealer.monthlyRevenue.toLocaleString()}</p>
+                    <p>N${(selectedDealer.monthlyRevenue || 0).toLocaleString()}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -8046,13 +8887,13 @@ function AdminDashboardContent() {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Price</label>
-                      <p className="text-lg font-semibold">N${selectedListing.price.toLocaleString()}</p>
+                      <p className="text-lg font-semibold">N${(selectedListing.price || 0).toLocaleString()}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium text-gray-500">Mileage</label>
-                      <p>{selectedListing.mileage.toLocaleString()} km</p>
+                      <p>{(selectedListing.mileage || 0).toLocaleString()} km</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Condition</label>
@@ -8201,7 +9042,7 @@ function AdminDashboardContent() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium text-gray-500">Views</label>
-                      <p className="text-lg font-semibold">{selectedListing.views.toLocaleString()}</p>
+                      <p className="text-lg font-semibold">{(selectedListing.views || 0).toLocaleString()}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Inquiries</label>
@@ -10850,6 +11691,295 @@ function AdminDashboardContent() {
             >
               <Check className="h-4 w-4 mr-2" />
               Save Settings
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approve Featured Request Dialog */}
+      <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-yellow-600" />
+              Approve Featured Request
+            </DialogTitle>
+            <DialogDescription>
+              Approve this dealership's request to be featured on the homepage?
+            </DialogDescription>
+          </DialogHeader>
+          {selectedFeaturedRequest && (
+            <div className="space-y-4 py-4">
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700">Dealership:</span>
+                  <span className="text-sm text-gray-900">{selectedFeaturedRequest.dealership.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700">Duration:</span>
+                  <span className="text-sm text-gray-900">{selectedFeaturedRequest.duration} days</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700">Amount:</span>
+                  <span className="text-sm font-bold text-green-600">N${selectedFeaturedRequest.amount}</span>
+                </div>
+              </div>
+              {selectedFeaturedRequest.notes && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Notes:</label>
+                  <p className="text-sm text-gray-600 bg-gray-50 rounded p-3">{selectedFeaturedRequest.notes}</p>
+                </div>
+              )}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> Upon approval, the dealership will be featured immediately and the featured period will start today.
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setApproveDialogOpen(false);
+                setSelectedFeaturedRequest(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleApproveFeaturedRequest}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Approve Request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Featured Request Dialog */}
+      <Dialog open={rejectFeaturedDialogOpen} onOpenChange={setRejectFeaturedDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Reject Featured Request</DialogTitle>
+            <DialogDescription>
+              Reject this dealership's request to be featured. Please provide a reason.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedFeaturedRequest && (
+            <div className="space-y-4 py-4">
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700">Dealership:</span>
+                  <span className="text-sm text-gray-900">{selectedFeaturedRequest.dealership.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700">Duration:</span>
+                  <span className="text-sm text-gray-900">{selectedFeaturedRequest.duration} days</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700">Amount:</span>
+                  <span className="text-sm text-gray-900">N${selectedFeaturedRequest.amount}</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason for rejection
+                </label>
+                <Textarea
+                  value={featuredRejectionReason}
+                  onChange={(e) => setFeaturedRejectionReason(e.target.value)}
+                  placeholder="Please explain why this request is being rejected..."
+                  rows={4}
+                  className="w-full"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectFeaturedDialogOpen(false);
+                setSelectedFeaturedRequest(null);
+                setFeaturedRejectionReason('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRejectFeaturedRequest}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={!featuredRejectionReason.trim()}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Reject Request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Featured Request Dialog */}
+      <Dialog open={viewFeaturedDialogOpen} onOpenChange={setViewFeaturedDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-blue-600" />
+              Featured Request Details
+            </DialogTitle>
+            <DialogDescription>
+              View the complete details of this featured dealership request
+            </DialogDescription>
+          </DialogHeader>
+          {selectedFeaturedRequest && (
+            <div className="space-y-4 py-4">
+              {/* Dealership Information */}
+              <div className="bg-blue-50 rounded-lg p-4 space-y-3">
+                <h3 className="font-semibold text-gray-900 mb-2">Dealership Information</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Name:</span>
+                    <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.dealership.name}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Location:</span>
+                    <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.dealership.city}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Email:</span>
+                    <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.dealership.email}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Status:</span>
+                    <Badge className={`mt-1 ${
+                      selectedFeaturedRequest.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                      selectedFeaturedRequest.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                      selectedFeaturedRequest.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
+                      selectedFeaturedRequest.status === 'EXPIRED' ? 'bg-gray-100 text-gray-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {selectedFeaturedRequest.status}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Request Details */}
+              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                <h3 className="font-semibold text-gray-900 mb-2">Request Details</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Duration:</span>
+                    <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.duration} days</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Amount:</span>
+                    <p className="text-sm font-bold text-green-600 mt-1">N${selectedFeaturedRequest.amount}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Requested:</span>
+                    <p className="text-sm text-gray-900 mt-1">
+                      {new Date(selectedFeaturedRequest.requestedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">Payment Status:</span>
+                    <Badge className={`mt-1 ${
+                      selectedFeaturedRequest.paymentStatus === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                      selectedFeaturedRequest.paymentStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {selectedFeaturedRequest.paymentStatus}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Active Period (if approved) */}
+              {selectedFeaturedRequest.startDate && selectedFeaturedRequest.endDate && (
+                <div className="bg-green-50 rounded-lg p-4 space-y-2">
+                  <h3 className="font-semibold text-gray-900 mb-2">Featured Period</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Start Date:</span>
+                      <p className="text-sm text-gray-900 mt-1">
+                        {new Date(selectedFeaturedRequest.startDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">End Date:</span>
+                      <p className="text-sm text-gray-900 mt-1">
+                        {new Date(selectedFeaturedRequest.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Approval/Rejection Details */}
+              {selectedFeaturedRequest.approvedAt && (
+                <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+                  <h3 className="font-semibold text-gray-900 mb-2">Approval Details</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Approved By:</span>
+                      <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.approvedBy || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Approved At:</span>
+                      <p className="text-sm text-gray-900 mt-1">
+                        {new Date(selectedFeaturedRequest.approvedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedFeaturedRequest.rejectedAt && (
+                <div className="bg-red-50 rounded-lg p-4 space-y-2">
+                  <h3 className="font-semibold text-gray-900 mb-2">Rejection Details</h3>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Rejected By:</span>
+                      <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.rejectedBy || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Rejected At:</span>
+                      <p className="text-sm text-gray-900 mt-1">
+                        {new Date(selectedFeaturedRequest.rejectedAt).toLocaleString()}
+                      </p>
+                    </div>
+                    {selectedFeaturedRequest.rejectionReason && (
+                      <div>
+                        <span className="text-sm font-medium text-gray-700">Reason:</span>
+                        <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.rejectionReason}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Notes */}
+              {selectedFeaturedRequest.notes && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Notes from Dealership:</label>
+                  <p className="text-sm text-gray-600 bg-gray-50 rounded p-3 border border-gray-200">
+                    {selectedFeaturedRequest.notes}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setViewFeaturedDialogOpen(false);
+                setSelectedFeaturedRequest(null);
+              }}
+            >
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

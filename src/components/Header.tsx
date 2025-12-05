@@ -9,6 +9,7 @@ import { Phone, Pencil, Lock, Search, Menu, X, LogOut, LayoutDashboard, Shield }
 import { useSession, signOut } from "next-auth/react";
 import CarFilterSearch from "@/components/CarFilterSearch";
 import DealersDropdown from "@/components/DealersDropdown";
+import NotificationBell from "@/components/NotificationBell";
 
 const navLinks = [
   { href: "/vehicles", label: "Buy Cars" },
@@ -101,6 +102,8 @@ export default function Header() {
                     <span className="hidden sm:inline">Dashboard</span>
                   </Link>
                 )}
+                <div className="w-px h-4 bg-slate-300 dark:bg-slate-600"></div>
+                <NotificationBell />
                 <div className="w-px h-4 bg-slate-300 dark:bg-slate-600"></div>
                 <button
                   onClick={() => {

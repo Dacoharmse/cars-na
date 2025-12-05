@@ -80,7 +80,7 @@ export default function Home() {
   return (
     <MainLayout>
       {/* Hero Section */}
-      <section className="relative min-h-[calc(100vh-160px)] bg-gradient-to-br from-white via-neutral-50 to-white overflow-hidden">
+      <section className="relative bg-gradient-to-br from-white via-neutral-50 to-white overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-[radial-gradient(#1F346915_1px,transparent_1px)] [background-size:20px_20px]" />
@@ -92,7 +92,7 @@ export default function Home() {
           <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-gradient-radial from-white to-transparent opacity-60 rounded-full blur-2xl" />
         </div>
         
-        <div className="relative container mx-auto px-4 py-6 lg:py-8">
+        <div className="relative container mx-auto px-4 py-4 lg:py-6">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               {/* Hero Content - Left Side */}
@@ -888,9 +888,7 @@ export default function Home() {
             </Button>
           </div>
         </div>
-      </section> 
-
-
+      </section>
 
       {/* Dynamic Banner Advertisement Space */}
       <section className="py-8 bg-neutral-50">

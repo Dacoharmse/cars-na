@@ -49,12 +49,15 @@ import {
   MoreHorizontal,
   Send,
   Upload,
-  Camera
+  Camera,
+  Tag,
+  MapPin
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
+import { useToast } from '@/components/ui/Toast';
 import {
   BarChart,
   Bar,
@@ -392,10 +395,489 @@ const teamRoles = [
   }
 ];
 
+// Vehicle Listings Tab Component
+function VehicleListingsTab() {
+  const [listings, setListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedListing, setSelectedListing] = useState<any>(null);
+  const [showInterestModal, setShowInterestModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [offerPrice, setOfferPrice] = useState('');
+  const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    fetchListings();
+  }, []);
+
+  const fetchListings = async () => {
+    try {
+      const response = await fetch('/api/dealer/vehicle-listings');
+      const data = await response.json();
+      if (data.success) {
+        setListings(data.listings);
+      }
+    } catch (error) {
+      console.error('Error fetching listings:', error);
+      showToast('Failed to load vehicle listings', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExpressInterest = async () => {
+    if (!selectedListing) return;
+
+    setSubmitting(true);
+    try {
+      const response = await fetch('/api/dealer/interest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          listingId: selectedListing.id,
+          offerPrice: offerPrice ? parseFloat(offerPrice) : null,
+          message,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        showToast('Interest expressed successfully!', 'success');
+        setShowInterestModal(false);
+        setOfferPrice('');
+        setMessage('');
+        fetchListings(); // Refresh listings
+      } else {
+        showToast(data.error || 'Failed to express interest', 'error');
+      }
+    } catch (error) {
+      showToast('An error occurred', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Available Vehicle Listings</CardTitle>
+          <CardDescription>Browse vehicles for sale from users in your region</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {listings.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Car className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-medium mb-2">No listings available</h3>
+              <p className="text-sm">User vehicle listings will appear here</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {listings.map((listing) => (
+                <div key={listing.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                  {/* Image Section */}
+                  {listing.images && listing.images.length > 0 ? (
+                    <div className="relative h-48 bg-gray-100">
+                      <img
+                        src={listing.images[0]}
+                        alt={`${listing.year} ${listing.make} ${listing.model}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {listing.images.length > 1 && (
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          +{listing.images.length - 1} more
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="h-48 bg-gray-200 flex items-center justify-center">
+                      <Car className="h-16 w-16 text-gray-400" />
+                    </div>
+                  )}
+
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          {listing.year} {listing.make} {listing.model}
+                        </h3>
+                        <p className="text-sm text-gray-600">{listing.category}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-bold text-blue-600">
+                          NAD {listing.price.toLocaleString()}
+                        </p>
+                        {listing.negotiable && (
+                          <Badge variant="outline" className="text-xs">Negotiable</Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+                      {listing.mileage && (
+                        <div className="flex items-center gap-1 text-gray-600">
+                          <TrendingUp className="h-4 w-4" />
+                          {listing.mileage.toLocaleString()} km
+                        </div>
+                      )}
+                      {listing.transmission && (
+                        <div className="text-gray-600">{listing.transmission}</div>
+                      )}
+                      {listing.fuelType && (
+                        <div className="text-gray-600">{listing.fuelType}</div>
+                      )}
+                      {listing.condition && (
+                        <div className="text-gray-600">{listing.condition}</div>
+                      )}
+                    </div>
+
+                    {listing.description && (
+                      <p className="text-sm text-gray-700 mb-3 line-clamp-2">{listing.description}</p>
+                    )}
+
+                    <div className="flex items-center gap-2 mb-3 text-xs text-gray-500">
+                      <MapPin className="h-3 w-3" />
+                      {listing.city && listing.region ? `${listing.city}, ${listing.region}` : listing.city || listing.region || 'Location not specified'}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t">
+                      <div className="text-xs text-gray-500">
+                        <p>Posted: {new Date(listing.createdAt).toLocaleDateString()}</p>
+                        {listing.totalInterests > 0 && (
+                          <p className="text-blue-600">{listing.totalInterests} dealer(s) interested</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedListing(listing);
+                            setShowDetailsModal(true);
+                          }}
+                        >
+                          View Details
+                        </Button>
+                        {listing.hasExpressedInterest ? (
+                          <Badge className="bg-green-100 text-green-800">
+                            Interest Expressed
+                          </Badge>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setSelectedListing(listing);
+                              setShowInterestModal(true);
+                            }}
+                          >
+                            <Heart className="h-4 w-4 mr-1" />
+                            Express Interest
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.location.href = `mailto:${listing.userEmail}?subject=Inquiry about ${listing.year} ${listing.make} ${listing.model}`}
+                        >
+                          <Mail className="h-4 w-4 mr-1" />
+                          Email
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.location.href = `tel:${listing.userPhone}`}
+                        >
+                          <Phone className="h-4 w-4 mr-1" />
+                          Call
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Express Interest Modal */}
+      {showInterestModal && selectedListing && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 className="text-xl font-bold mb-4">
+              Express Interest in {selectedListing.year} {selectedListing.make} {selectedListing.model}
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Offer Price (Optional)
+                </label>
+                <Input
+                  type="number"
+                  value={offerPrice}
+                  onChange={(e) => setOfferPrice(e.target.value)}
+                  placeholder={`Asking price: NAD ${selectedListing.price.toLocaleString()}`}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message to Seller (Optional)
+                </label>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Introduce yourself and express your interest..."
+                />
+              </div>
+
+              <div className="bg-blue-50 p-3 rounded-md text-sm text-gray-700">
+                <p className="font-medium mb-1">Contact Information:</p>
+                <p>Name: {selectedListing.userName}</p>
+                <p>Email: {selectedListing.userEmail}</p>
+                <p>Phone: {selectedListing.userPhone}</p>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleExpressInterest}
+                  disabled={submitting}
+                  className="flex-1"
+                >
+                  {submitting ? 'Submitting...' : 'Express Interest'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowInterestModal(false);
+                    setOfferPrice('');
+                    setMessage('');
+                  }}
+                  disabled={submitting}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vehicle Details Modal */}
+      {showDetailsModal && selectedListing && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+              <h3 className="text-2xl font-bold">
+                {selectedListing.year} {selectedListing.make} {selectedListing.model}
+              </h3>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Images Gallery */}
+              {selectedListing.images && selectedListing.images.length > 0 && (
+                <div className="mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedListing.images.map((image: string, index: number) => (
+                      <div key={index} className="rounded-lg overflow-hidden">
+                        <img
+                          src={image}
+                          alt={`${selectedListing.make} ${selectedListing.model} - Image ${index + 1}`}
+                          className="w-full h-64 object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Price and Key Info */}
+              <div className="bg-blue-50 p-6 rounded-lg mb-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-3xl font-bold text-blue-600">
+                      NAD {selectedListing.price.toLocaleString()}
+                    </p>
+                    {selectedListing.negotiable && (
+                      <p className="text-sm text-gray-600 mt-1">Price is negotiable</p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <Badge className="text-lg px-4 py-2">{selectedListing.category}</Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vehicle Specifications */}
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold mb-4">Vehicle Specifications</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="border p-3 rounded">
+                    <p className="text-sm text-gray-500">Year</p>
+                    <p className="font-semibold">{selectedListing.year}</p>
+                  </div>
+                  {selectedListing.mileage && (
+                    <div className="border p-3 rounded">
+                      <p className="text-sm text-gray-500">Mileage</p>
+                      <p className="font-semibold">{selectedListing.mileage.toLocaleString()} km</p>
+                    </div>
+                  )}
+                  {selectedListing.condition && (
+                    <div className="border p-3 rounded">
+                      <p className="text-sm text-gray-500">Condition</p>
+                      <p className="font-semibold">{selectedListing.condition}</p>
+                    </div>
+                  )}
+                  {selectedListing.transmission && (
+                    <div className="border p-3 rounded">
+                      <p className="text-sm text-gray-500">Transmission</p>
+                      <p className="font-semibold">{selectedListing.transmission}</p>
+                    </div>
+                  )}
+                  {selectedListing.fuelType && (
+                    <div className="border p-3 rounded">
+                      <p className="text-sm text-gray-500">Fuel Type</p>
+                      <p className="font-semibold">{selectedListing.fuelType}</p>
+                    </div>
+                  )}
+                  {selectedListing.color && (
+                    <div className="border p-3 rounded">
+                      <p className="text-sm text-gray-500">Color</p>
+                      <p className="font-semibold">{selectedListing.color}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Description */}
+              {selectedListing.description && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold mb-2">Description</h4>
+                  <p className="text-gray-700 whitespace-pre-wrap">{selectedListing.description}</p>
+                </div>
+              )}
+
+              {/* Additional Information */}
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold mb-4">Additional Information</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {selectedListing.hasAccident !== null && (
+                    <div className="border p-3 rounded">
+                      <p className="text-sm text-gray-500">Accident History</p>
+                      <p className="font-semibold">{selectedListing.hasAccident ? 'Yes' : 'No'}</p>
+                    </div>
+                  )}
+                  {selectedListing.serviceHistory !== null && (
+                    <div className="border p-3 rounded">
+                      <p className="text-sm text-gray-500">Service History</p>
+                      <p className="font-semibold">{selectedListing.serviceHistory ? 'Available' : 'Not Available'}</p>
+                    </div>
+                  )}
+                  {selectedListing.numberOfOwners && (
+                    <div className="border p-3 rounded">
+                      <p className="text-sm text-gray-500">Previous Owners</p>
+                      <p className="font-semibold">{selectedListing.numberOfOwners}</p>
+                    </div>
+                  )}
+                  {selectedListing.availableForTest !== null && (
+                    <div className="border p-3 rounded">
+                      <p className="text-sm text-gray-500">Test Drive</p>
+                      <p className="font-semibold">{selectedListing.availableForTest ? 'Available' : 'Not Available'}</p>
+                    </div>
+                  )}
+                  {selectedListing.vin && (
+                    <div className="border p-3 rounded">
+                      <p className="text-sm text-gray-500">VIN</p>
+                      <p className="font-semibold text-xs">{selectedListing.vin}</p>
+                    </div>
+                  )}
+                  {selectedListing.registrationNo && (
+                    <div className="border p-3 rounded">
+                      <p className="text-sm text-gray-500">Registration No</p>
+                      <p className="font-semibold">{selectedListing.registrationNo}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold mb-2">Location</h4>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <MapPin className="h-5 w-5" />
+                  <span>{selectedListing.city && selectedListing.region ? `${selectedListing.city}, ${selectedListing.region}` : selectedListing.city || selectedListing.region || 'Location not specified'}</span>
+                </div>
+              </div>
+
+              {/* Seller Contact */}
+              <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                <h4 className="text-lg font-semibold mb-4">Seller Contact Information</h4>
+                <div className="space-y-2">
+                  <p><span className="font-medium">Name:</span> {selectedListing.userName}</p>
+                  <p><span className="font-medium">Email:</span> {selectedListing.userEmail}</p>
+                  <p><span className="font-medium">Phone:</span> {selectedListing.userPhone}</p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                {!selectedListing.hasExpressedInterest && (
+                  <Button
+                    className="flex-1"
+                    onClick={() => {
+                      setShowDetailsModal(false);
+                      setShowInterestModal(true);
+                    }}
+                  >
+                    <Heart className="h-4 w-4 mr-2" />
+                    Express Interest
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.href = `tel:${selectedListing.userPhone}`}
+                >
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call Seller
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDetailsModal(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DealerDashboardContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -445,6 +927,31 @@ function DealerDashboardContent() {
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [dealership, setDealership] = useState<any>(mockDealership);
   const [dealershipLoading, setDealershipLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState<string | null>(null);
+
+  // Featured request state
+  const [selectedFeaturedDuration, setSelectedFeaturedDuration] = useState<number | null>(null);
+  const [featuredRequestNotes, setFeaturedRequestNotes] = useState('');
+  const [submittingFeaturedRequest, setSubmittingFeaturedRequest] = useState(false);
+  const [featuredRequests, setFeaturedRequests] = useState<any[]>([]);
+
+  // Featured listing request state
+  const [showFeaturedListingModal, setShowFeaturedListingModal] = useState(false);
+  const [selectedVehicleForFeatured, setSelectedVehicleForFeatured] = useState<any>(null);
+  const [selectedListingDuration, setSelectedListingDuration] = useState<number | null>(null);
+  const [featuredListingNotes, setFeaturedListingNotes] = useState('');
+  const [submittingListingRequest, setSubmittingListingRequest] = useState(false);
+  const [featuredListingRequests, setFeaturedListingRequests] = useState<any[]>([]);
+
+  // Deal/promotion state
+  const [showDealModal, setShowDealModal] = useState(false);
+  const [selectedVehicleForDeal, setSelectedVehicleForDeal] = useState<any>(null);
+  const [dealPrice, setDealPrice] = useState('');
+  const [dealTitle, setDealTitle] = useState('');
+  const [dealBadge, setDealBadge] = useState('HOT DEAL');
+  const [dealEndDate, setDealEndDate] = useState('');
+  const [submittingDeal, setSubmittingDeal] = useState(false);
 
   // Fetch dealership data
   useEffect(() => {
@@ -519,10 +1026,52 @@ function DealerDashboardContent() {
   // Check for tab parameter in URL
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['overview', 'inventory', 'leads', 'analytics', 'users', 'profile'].includes(tab)) {
+    if (tab && ['overview', 'inventory', 'leads', 'listings', 'analytics', 'users', 'profile'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
+
+  // Fetch featured requests
+  useEffect(() => {
+    const fetchFeaturedRequests = async () => {
+      try {
+        const response = await fetch('/api/dealer/featured-request');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setFeaturedRequests(data.requests);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching featured requests:', error);
+      }
+    };
+
+    if (session?.user?.dealershipId) {
+      fetchFeaturedRequests();
+    }
+  }, [session]);
+
+  // Fetch featured listing requests
+  useEffect(() => {
+    const fetchFeaturedListingRequests = async () => {
+      try {
+        const response = await fetch('/api/dealer/featured-listing');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setFeaturedListingRequests(data.requests);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching featured listing requests:', error);
+      }
+    };
+
+    if (session?.user?.dealershipId) {
+      fetchFeaturedListingRequests();
+    }
+  }, [session]);
 
   // Helper functions
   const formatPrice = (price: number) => {
@@ -578,14 +1127,18 @@ function DealerDashboardContent() {
     setMaxYear('');
   };
 
-  // Handle vehicle deletion
-  const handleDeleteVehicle = async (vehicleId: string) => {
-    if (!confirm('Are you sure you want to delete this vehicle? This action cannot be undone.')) {
-      return;
-    }
+  // Handle vehicle deletion - open confirmation modal
+  const handleDeleteVehicle = (vehicleId: string) => {
+    setVehicleToDelete(vehicleId);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm vehicle deletion
+  const confirmDeleteVehicle = async () => {
+    if (!vehicleToDelete) return;
 
     try {
-      const response = await fetch(`/api/dealer/vehicles/${vehicleId}`, {
+      const response = await fetch(`/api/dealer/vehicles/${vehicleToDelete}`, {
         method: 'DELETE',
       });
 
@@ -596,12 +1149,218 @@ function DealerDashboardContent() {
         if (data.success && data.vehicles) {
           setVehicles(data.vehicles);
         }
+        // Close modal and reset
+        setShowDeleteModal(false);
+        setVehicleToDelete(null);
+        showToast({ title: 'Success', description: 'Vehicle deleted successfully', variant: 'success' });
       } else {
-        alert('Failed to delete vehicle. Please try again.');
+        showToast({ title: 'Error', description: 'Failed to delete vehicle. Please try again.', variant: 'error' });
       }
     } catch (error) {
       console.error('Error deleting vehicle:', error);
-      alert('An error occurred while deleting the vehicle.');
+      showToast({ title: 'Error', description: 'An error occurred while deleting the vehicle.', variant: 'error' });
+    }
+  };
+
+  // Handle featured request submission
+  const handleSubmitFeaturedRequest = async () => {
+    if (!selectedFeaturedDuration) return;
+
+    setSubmittingFeaturedRequest(true);
+    try {
+      const response = await fetch('/api/dealer/featured-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          duration: selectedFeaturedDuration,
+          notes: featuredRequestNotes,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Refresh featured requests list
+        const fetchResponse = await fetch('/api/dealer/featured-request');
+        const fetchData = await fetchResponse.json();
+        if (fetchData.success) {
+          setFeaturedRequests(fetchData.requests);
+        }
+
+        // Reset form
+        setSelectedFeaturedDuration(null);
+        setFeaturedRequestNotes('');
+
+        showToast({ title: 'Request Submitted', description: 'Featured request submitted successfully! Our team will review it shortly.', variant: 'success' });
+      } else {
+        showToast({ title: 'Error', description: data.error || 'Failed to submit featured request. Please try again.', variant: 'error' });
+      }
+    } catch (error) {
+      console.error('Error submitting featured request:', error);
+      showToast({ title: 'Error', description: 'An error occurred while submitting your request.', variant: 'error' });
+    } finally {
+      setSubmittingFeaturedRequest(false);
+    }
+  };
+
+  // Handle featured listing request submission
+  const handleSubmitListingRequest = async () => {
+    if (!selectedVehicleForFeatured || !selectedListingDuration) return;
+
+    setSubmittingListingRequest(true);
+    try {
+      const response = await fetch('/api/dealer/featured-listing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          vehicleId: selectedVehicleForFeatured.id,
+          duration: selectedListingDuration,
+          notes: featuredListingNotes,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Refresh featured listing requests
+        const fetchResponse = await fetch('/api/dealer/featured-listing');
+        const fetchData = await fetchResponse.json();
+        if (fetchData.success) {
+          setFeaturedListingRequests(fetchData.requests);
+        }
+
+        // Close modal and reset form
+        setShowFeaturedListingModal(false);
+        setSelectedVehicleForFeatured(null);
+        setSelectedListingDuration(null);
+        setFeaturedListingNotes('');
+
+        showToast({ title: 'Request Submitted', description: 'Featured listing request submitted successfully! Our team will review it shortly.', variant: 'success' });
+      } else {
+        showToast({ title: 'Error', description: data.error || 'Failed to submit featured listing request. Please try again.', variant: 'error' });
+      }
+    } catch (error) {
+      console.error('Error submitting featured listing request:', error);
+      showToast({ title: 'Error', description: 'An error occurred while submitting your request.', variant: 'error' });
+    } finally {
+      setSubmittingListingRequest(false);
+    }
+  };
+
+  // Handle deal submission
+  const handleSubmitDeal = async () => {
+    if (!selectedVehicleForDeal || !dealPrice) return;
+
+    const discountedPrice = parseFloat(dealPrice);
+    if (isNaN(discountedPrice) || discountedPrice <= 0) {
+      showToast({ title: 'Invalid Price', description: 'Please enter a valid deal price', variant: 'warning' });
+      return;
+    }
+
+    if (discountedPrice >= selectedVehicleForDeal.price) {
+      showToast({ title: 'Invalid Price', description: 'Deal price must be lower than the original price', variant: 'warning' });
+      return;
+    }
+
+    setSubmittingDeal(true);
+    try {
+      const response = await fetch(`/api/dealer/vehicles/${selectedVehicleForDeal.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          originalPrice: selectedVehicleForDeal.price,
+          price: discountedPrice,
+          dealActive: true,
+          dealTitle: dealTitle || null,
+          dealBadge: dealBadge || null,
+          dealEndDate: dealEndDate ? new Date(dealEndDate).toISOString() : null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Refresh vehicles list
+        const fetchResponse = await fetch('/api/dealer/vehicles');
+        const fetchData = await fetchResponse.json();
+        if (fetchData.success && fetchData.vehicles) {
+          setVehicles(fetchData.vehicles);
+        }
+
+        // Close modal and reset form
+        setShowDealModal(false);
+        setSelectedVehicleForDeal(null);
+        setDealPrice('');
+        setDealTitle('');
+        setDealBadge('HOT DEAL');
+        setDealEndDate('');
+
+        showToast({ title: 'Success', description: 'Deal created successfully!', variant: 'success' });
+      } else {
+        showToast({ title: 'Error', description: data.error || 'Failed to create deal. Please try again.', variant: 'error' });
+      }
+    } catch (error) {
+      console.error('Error creating deal:', error);
+      showToast({ title: 'Error', description: 'An error occurred while creating the deal.', variant: 'error' });
+    } finally {
+      setSubmittingDeal(false);
+    }
+  };
+
+  // Handle remove deal
+  const handleRemoveDeal = async () => {
+    if (!selectedVehicleForDeal) return;
+
+    setSubmittingDeal(true);
+    try {
+      const response = await fetch(`/api/dealer/vehicles/${selectedVehicleForDeal.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          price: selectedVehicleForDeal.originalPrice || selectedVehicleForDeal.price,
+          originalPrice: null,
+          dealActive: false,
+          dealTitle: null,
+          dealBadge: null,
+          dealEndDate: null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Refresh vehicles list
+        const fetchResponse = await fetch('/api/dealer/vehicles');
+        const fetchData = await fetchResponse.json();
+        if (fetchData.success && fetchData.vehicles) {
+          setVehicles(fetchData.vehicles);
+        }
+
+        // Close modal and reset form
+        setShowDealModal(false);
+        setSelectedVehicleForDeal(null);
+        setDealPrice('');
+        setDealTitle('');
+        setDealBadge('HOT DEAL');
+        setDealEndDate('');
+
+        showToast({ title: 'Success', description: 'Deal removed successfully!', variant: 'success' });
+      } else {
+        showToast({ title: 'Error', description: data.error || 'Failed to remove deal. Please try again.', variant: 'error' });
+      }
+    } catch (error) {
+      console.error('Error removing deal:', error);
+      showToast({ title: 'Error', description: 'An error occurred while removing the deal.', variant: 'error' });
+    } finally {
+      setSubmittingDeal(false);
     }
   };
 
@@ -675,9 +1434,9 @@ function DealerDashboardContent() {
       fuelType: 'Petrol',
       status: 'AVAILABLE'
     });
-    
+
     // Show success notification
-    alert('Vehicle added successfully!');
+    showToast({ title: 'Success', description: 'Vehicle added successfully!', variant: 'success' });
     setLastUpdated(new Date());
   };
 
@@ -777,7 +1536,7 @@ function DealerDashboardContent() {
     ));
     setShowEditUserModal(false);
     setSelectedUser(null);
-    alert('User information updated successfully!');
+    showToast({ title: 'Success', description: 'User information updated successfully!', variant: 'success' });
   };
 
   const handleEditPermissions = (user: any) => {
@@ -794,7 +1553,7 @@ function DealerDashboardContent() {
     ));
     setShowEditPermissionsModal(false);
     setSelectedUser(null);
-    alert('Permissions updated successfully!');
+    showToast({ title: 'Success', description: 'Permissions updated successfully!', variant: 'success' });
   };
 
   const handleSuspendUser = (user: any) => {
@@ -812,7 +1571,7 @@ function DealerDashboardContent() {
     setShowSuspendUserModal(false);
     setSelectedUser(null);
     setSuspendReason('');
-    alert('User suspended successfully!');
+    showToast({ title: 'Success', description: 'User suspended successfully!', variant: 'success' });
   };
 
   const handleUnsuspendUser = (userId: string) => {
@@ -821,7 +1580,7 @@ function DealerDashboardContent() {
         ? { ...member, status: 'ACTIVE', suspendReason: undefined }
         : member
     ));
-    alert('User unsuspended successfully!');
+    showToast({ title: 'Success', description: 'User unsuspended successfully!', variant: 'success' });
   };
 
   const handleSendPasswordReset = (user: any) => {
@@ -835,12 +1594,20 @@ function DealerDashboardContent() {
     navigator.clipboard.writeText(resetLink);
     setShowPasswordResetModal(false);
     setSelectedUser(null);
-    alert(`Password reset link generated and copied to clipboard!\n\nLink: ${resetLink}\n\nThis link has been sent to ${selectedUser.email}`);
+    showToast({
+      title: 'Password Reset Link Generated',
+      description: `Link copied to clipboard and sent to ${selectedUser.email}`,
+      variant: 'success'
+    });
   };
 
   const handleResendInvite = (user: any) => {
     const inviteLink = `https://cars.na/dealer/accept-invite?token=${Math.random().toString(36).substring(7)}&email=${user.email}`;
-    alert(`Invite resent to ${user.email}!\n\nInvite link: ${inviteLink}`);
+    showToast({
+      title: 'Invite Resent',
+      description: `Invite link sent to ${user.email}`,
+      variant: 'success'
+    });
   };
 
   const togglePermission = (permission: string) => {
@@ -853,7 +1620,7 @@ function DealerDashboardContent() {
 
   const copyInviteLink = () => {
     navigator.clipboard.writeText(inviteLink);
-    alert('Invite link copied to clipboard!');
+    showToast({ title: 'Copied', description: 'Invite link copied to clipboard!', variant: 'success' });
   };
 
   if (status === 'loading' || vehiclesLoading || leadsLoading || statsLoading) {
@@ -951,7 +1718,20 @@ function DealerDashboardContent() {
                   <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1">{newLeads}</span>
                 )}
               </button>
-              
+
+              <button
+                onClick={() => handleTabSwitch('listings')}
+                disabled={isLoading}
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 ${
+                  activeTab === 'listings'
+                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700 shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <Tag className="h-4 w-4 mr-3" />
+                Vehicle Listings
+              </button>
+
               <button
                 onClick={() => handleTabSwitch('analytics')}
                 disabled={isLoading}
@@ -1016,6 +1796,13 @@ function DealerDashboardContent() {
                 <Settings className="h-4 w-4 mr-3" />
                 Website Manager
               </button>
+              <button
+                onClick={() => router.push('/dealer/profile')}
+                className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+              >
+                <UserCheck className="h-4 w-4 mr-3" />
+                My Sales Profile
+              </button>
             </div>
           </div>
         </nav>
@@ -1044,6 +1831,7 @@ function DealerDashboardContent() {
                 {activeTab === 'overview' && 'Dashboard Overview'}
                 {activeTab === 'inventory' && 'Stock Manager'}
                 {activeTab === 'leads' && 'Lead Manager'}
+                {activeTab === 'listings' && 'Vehicle Listings'}
                 {activeTab === 'analytics' && 'Analytics'}
                 {activeTab === 'subscription' && 'Subscription Management'}
                 {activeTab === 'users' && 'Team Management'}
@@ -1053,6 +1841,7 @@ function DealerDashboardContent() {
                 {activeTab === 'overview' && 'Monitor your dealership performance'}
                 {activeTab === 'inventory' && 'Manage your vehicle inventory'}
                 {activeTab === 'leads' && 'Track and manage customer inquiries'}
+                {activeTab === 'listings' && 'Browse vehicles for sale from users'}
                 {activeTab === 'analytics' && 'View detailed performance metrics'}
                 {activeTab === 'subscription' && 'Manage your subscription and billing'}
                 {activeTab === 'users' && 'Manage your dealership team members'}
@@ -1272,8 +2061,8 @@ function DealerDashboardContent() {
                         className="border border-gray-300 rounded-md px-3 py-2 text-sm"
                       >
                         <option key="ALL" value="ALL">All Manufacturers</option>
-                        {availableManufacturers.map(manufacturer => (
-                          <option key={manufacturer} value={manufacturer}>
+                        {availableManufacturers.map((manufacturer, index) => (
+                          <option key={`manufacturer-${manufacturer}-${index}`} value={manufacturer}>
                             {manufacturer}
                           </option>
                         ))}
@@ -1506,6 +2295,20 @@ function DealerDashboardContent() {
                                 <ExternalLink className="h-4 w-4 mr-2" />
                                 View Public
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedVehicleForFeatured(vehicle);
+                                setShowFeaturedListingModal(true);
+                              }}>
+                                <Crown className="h-4 w-4 mr-2 text-yellow-600" />
+                                Request Featured
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedVehicleForDeal(vehicle);
+                                setShowDealModal(true);
+                              }}>
+                                <Tag className="h-4 w-4 mr-2 text-green-600" />
+                                {vehicle.dealActive ? 'Edit Deal' : 'Create Deal'}
+                              </DropdownMenuItem>
                               <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteVehicle(vehicle.id)}>
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete
@@ -1657,6 +2460,11 @@ function DealerDashboardContent() {
                   </CardContent>
                 </Card>
               </div>
+            )}
+
+            {/* Vehicle Listings Tab */}
+            {activeTab === 'listings' && (
+              <VehicleListingsTab />
             )}
 
             {/* Analytics Tab */}
@@ -2125,6 +2933,193 @@ function DealerDashboardContent() {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Featured Dealership Request */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Crown className="h-5 w-5 text-yellow-600" />
+                      Featured Dealership Placement
+                    </CardTitle>
+                    <CardDescription>
+                      Boost your visibility by becoming a featured dealership on the homepage
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {/* Benefits Section */}
+                      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
+                        <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5 text-yellow-600" />
+                          Why Go Featured?
+                        </h3>
+                        <ul className="space-y-2">
+                          <li className="flex items-start gap-2">
+                            <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-sm">Prime placement on the homepage with your logo and showcase</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-sm">Increased visibility to thousands of potential buyers</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-sm">Priority listing in search results and categories</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-sm">Featured badge on all your vehicle listings</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Pricing Options */}
+                      <div>
+                        <h3 className="font-semibold mb-4">Select Duration</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          {[
+                            { days: 7, price: 50, label: '1 Week' },
+                            { days: 14, price: 90, label: '2 Weeks', popular: true },
+                            { days: 30, price: 150, label: '1 Month' },
+                            { days: 60, price: 250, label: '2 Months', savings: 'Save N$50' }
+                          ].map((option) => (
+                            <div
+                              key={option.days}
+                              className={`relative border rounded-lg p-4 cursor-pointer transition-all ${
+                                selectedFeaturedDuration === option.days
+                                  ? 'border-yellow-500 bg-yellow-50 ring-2 ring-yellow-200'
+                                  : 'border-gray-200 hover:border-yellow-300'
+                              }`}
+                              onClick={() => setSelectedFeaturedDuration(option.days)}
+                            >
+                              {option.popular && (
+                                <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-yellow-600">
+                                  Popular
+                                </Badge>
+                              )}
+                              {option.savings && (
+                                <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-green-600">
+                                  {option.savings}
+                                </Badge>
+                              )}
+                              <div className="text-center">
+                                <div className="text-sm font-medium text-gray-600 mb-1">{option.label}</div>
+                                <div className="text-2xl font-bold text-gray-900">
+                                  N${option.price}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  N${(option.price / option.days).toFixed(2)}/day
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Additional Notes */}
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Additional Notes (Optional)
+                        </label>
+                        <textarea
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                          rows={3}
+                          placeholder="Any special requests or information for the admin team..."
+                          value={featuredRequestNotes}
+                          onChange={(e) => setFeaturedRequestNotes(e.target.value)}
+                        />
+                      </div>
+
+                      {/* Submit Button */}
+                      <div className="flex items-center justify-between pt-4 border-t">
+                        <div className="text-sm text-gray-600">
+                          {selectedFeaturedDuration && (
+                            <span>
+                              You'll be featured for <strong>{selectedFeaturedDuration} days</strong> at{' '}
+                              <strong className="text-yellow-600">
+                                N${
+                                  selectedFeaturedDuration === 7 ? 50 :
+                                  selectedFeaturedDuration === 14 ? 90 :
+                                  selectedFeaturedDuration === 30 ? 150 :
+                                  250
+                                }
+                              </strong>
+                            </span>
+                          )}
+                        </div>
+                        <Button
+                          className="bg-yellow-600 hover:bg-yellow-700"
+                          disabled={!selectedFeaturedDuration || submittingFeaturedRequest}
+                          onClick={handleSubmitFeaturedRequest}
+                        >
+                          {submittingFeaturedRequest ? (
+                            <>
+                              <Clock className="h-4 w-4 mr-2 animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            <>
+                              <Crown className="h-4 w-4 mr-2" />
+                              Request Featured Placement
+                            </>
+                          )}
+                        </Button>
+                      </div>
+
+                      {/* Current/Past Requests */}
+                      {featuredRequests.length > 0 && (
+                        <div className="pt-6 border-t">
+                          <h3 className="font-semibold mb-4">Your Featured Requests</h3>
+                          <div className="space-y-3">
+                            {featuredRequests.map((request: any) => (
+                              <div
+                                key={request.id}
+                                className="flex items-center justify-between p-4 border rounded-lg"
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                    request.status === 'ACTIVE' ? 'bg-green-100' :
+                                    request.status === 'PENDING' ? 'bg-yellow-100' :
+                                    request.status === 'APPROVED' ? 'bg-blue-100' :
+                                    request.status === 'EXPIRED' ? 'bg-gray-100' :
+                                    'bg-red-100'
+                                  }`}>
+                                    {request.status === 'ACTIVE' && <Crown className="h-5 w-5 text-green-600" />}
+                                    {request.status === 'PENDING' && <Clock className="h-5 w-5 text-yellow-600" />}
+                                    {request.status === 'APPROVED' && <CheckCircle className="h-5 w-5 text-blue-600" />}
+                                    {request.status === 'EXPIRED' && <Calendar className="h-5 w-5 text-gray-600" />}
+                                    {request.status === 'REJECTED' && <X className="h-5 w-5 text-red-600" />}
+                                  </div>
+                                  <div>
+                                    <p className="font-medium">{request.duration} days featured placement</p>
+                                    <p className="text-sm text-gray-600">
+                                      Requested: {new Date(request.requestedAt).toLocaleDateString()}
+                                      {request.startDate && ` • Active: ${new Date(request.startDate).toLocaleDateString()} - ${new Date(request.endDate).toLocaleDateString()}`}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <div className="text-right">
+                                    <p className="font-medium">N${request.amount}</p>
+                                    <Badge className={`${
+                                      request.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                                      request.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                      request.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
+                                      request.status === 'EXPIRED' ? 'bg-gray-100 text-gray-800' :
+                                      'bg-red-100 text-red-800'
+                                    }`}>
+                                      {request.status}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -2812,6 +3807,379 @@ function DealerDashboardContent() {
                 >
                   Cancel
                 </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Vehicle Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mr-4">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Delete Vehicle</h3>
+                <p className="text-sm text-gray-500">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete this vehicle? All associated data including images and inquiries will be permanently removed.
+            </p>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setVehicleToDelete(null);
+                }}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDeleteVehicle}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Vehicle
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Featured Listing Request Modal */}
+      {showFeaturedListingModal && selectedVehicleForFeatured && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center mb-6">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mr-4">
+                  <Crown className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">Request Featured Listing</h3>
+                  <p className="text-sm text-gray-500">
+                    {selectedVehicleForFeatured.make} {selectedVehicleForFeatured.model} {selectedVehicleForFeatured.year}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowFeaturedListingModal(false);
+                    setSelectedVehicleForFeatured(null);
+                    setSelectedListingDuration(null);
+                    setFeaturedListingNotes('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Benefits */}
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-yellow-600" />
+                  Why Feature This Listing?
+                </h4>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Priority placement in search results and category pages</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Featured badge on listing to attract more attention</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Increased visibility to potential buyers</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Pricing Options */}
+              <div className="mb-6">
+                <h4 className="font-semibold mb-3">Select Duration</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { days: 7, price: 25, label: '1 Week' },
+                    { days: 14, price: 45, label: '2 Weeks', popular: true },
+                    { days: 30, price: 75, label: '1 Month' },
+                    { days: 60, price: 125, label: '2 Months' }
+                  ].map((option) => (
+                    <div
+                      key={option.days}
+                      className={`relative border rounded-lg p-3 cursor-pointer transition-all ${
+                        selectedListingDuration === option.days
+                          ? 'border-yellow-500 bg-yellow-50 ring-2 ring-yellow-200'
+                          : 'border-gray-200 hover:border-yellow-300'
+                      }`}
+                      onClick={() => setSelectedListingDuration(option.days)}
+                    >
+                      {option.popular && (
+                        <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-yellow-600 text-xs">
+                          Popular
+                        </Badge>
+                      )}
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-gray-600 mb-1">{option.label}</div>
+                        <div className="text-lg font-bold text-gray-900">N${option.price}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          N${(option.price / option.days).toFixed(2)}/day
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Additional Notes */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2">
+                  Additional Notes (Optional)
+                </label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  rows={3}
+                  placeholder="Any special requests or information..."
+                  value={featuredListingNotes}
+                  onChange={(e) => setFeaturedListingNotes(e.target.value)}
+                />
+              </div>
+
+              {/* Submit */}
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="text-sm text-gray-600">
+                  {selectedListingDuration && (
+                    <span>
+                      Featured for <strong>{selectedListingDuration} days</strong> at{' '}
+                      <strong className="text-yellow-600">
+                        N${
+                          selectedListingDuration === 7 ? 25 :
+                          selectedListingDuration === 14 ? 45 :
+                          selectedListingDuration === 30 ? 75 :
+                          125
+                        }
+                      </strong>
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowFeaturedListingModal(false);
+                      setSelectedVehicleForFeatured(null);
+                      setSelectedListingDuration(null);
+                      setFeaturedListingNotes('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="bg-yellow-600 hover:bg-yellow-700"
+                    disabled={!selectedListingDuration || submittingListingRequest}
+                    onClick={handleSubmitListingRequest}
+                  >
+                    {submittingListingRequest ? (
+                      <>
+                        <Clock className="h-4 w-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Crown className="h-4 w-4 mr-2" />
+                        Submit Request
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deal/Promotion Modal */}
+      {showDealModal && selectedVehicleForDeal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center mb-6">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                  <Tag className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {selectedVehicleForDeal.dealActive ? 'Edit Deal' : 'Create Deal'}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {selectedVehicleForDeal.make} {selectedVehicleForDeal.model} {selectedVehicleForDeal.year}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDealModal(false);
+                    setSelectedVehicleForDeal(null);
+                    setDealPrice('');
+                    setDealTitle('');
+                    setDealBadge('HOT DEAL');
+                    setDealEndDate('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Current Price Info */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Current Price</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatPrice(selectedVehicleForDeal.originalPrice || selectedVehicleForDeal.price)}
+                    </p>
+                  </div>
+                  {selectedVehicleForDeal.dealActive && selectedVehicleForDeal.originalPrice && (
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Deal Price</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {formatPrice(selectedVehicleForDeal.price)}
+                      </p>
+                      <p className="text-xs text-green-600">
+                        Save {formatPrice(selectedVehicleForDeal.originalPrice - selectedVehicleForDeal.price)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Deal Price */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2">
+                  Deal Price (N$) *
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter discounted price"
+                  value={dealPrice}
+                  onChange={(e) => setDealPrice(e.target.value)}
+                  className="w-full"
+                />
+                {dealPrice && parseFloat(dealPrice) < (selectedVehicleForDeal.originalPrice || selectedVehicleForDeal.price) && (
+                  <p className="text-sm text-green-600 mt-1">
+                    Savings: {formatPrice((selectedVehicleForDeal.originalPrice || selectedVehicleForDeal.price) - parseFloat(dealPrice))}
+                    ({(((selectedVehicleForDeal.originalPrice || selectedVehicleForDeal.price) - parseFloat(dealPrice)) / (selectedVehicleForDeal.originalPrice || selectedVehicleForDeal.price) * 100).toFixed(0)}% off)
+                  </p>
+                )}
+              </div>
+
+              {/* Deal Title */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2">
+                  Deal Title (Optional)
+                </label>
+                <Input
+                  type="text"
+                  placeholder="e.g., Summer Sale, Year-End Clearance"
+                  value={dealTitle}
+                  onChange={(e) => setDealTitle(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Deal Badge */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2">
+                  Deal Badge
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {['HOT DEAL', 'SPECIAL OFFER', 'CLEARANCE', 'LIMITED TIME', 'BEST PRICE', 'REDUCED'].map((badge) => (
+                    <button
+                      key={badge}
+                      onClick={() => setDealBadge(badge)}
+                      className={`px-3 py-2 text-xs font-semibold rounded-md transition-all ${
+                        dealBadge === badge
+                          ? 'bg-red-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {badge}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* End Date */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2">
+                  Deal End Date (Optional)
+                </label>
+                <Input
+                  type="datetime-local"
+                  value={dealEndDate}
+                  onChange={(e) => setDealEndDate(e.target.value)}
+                  className="w-full"
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Leave blank for no expiration date
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-between pt-4 border-t gap-3">
+                {selectedVehicleForDeal.dealActive && (
+                  <Button
+                    variant="outline"
+                    className="text-red-600 border-red-300 hover:bg-red-50"
+                    onClick={handleRemoveDeal}
+                    disabled={submittingDeal}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Remove Deal
+                  </Button>
+                )}
+                <div className="flex gap-3 ml-auto">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowDealModal(false);
+                      setSelectedVehicleForDeal(null);
+                      setDealPrice('');
+                      setDealTitle('');
+                      setDealBadge('HOT DEAL');
+                      setDealEndDate('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={!dealPrice || submittingDeal}
+                    onClick={handleSubmitDeal}
+                  >
+                    {submittingDeal ? (
+                      <>
+                        <Clock className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Tag className="h-4 w-4 mr-2" />
+                        {selectedVehicleForDeal.dealActive ? 'Update Deal' : 'Create Deal'}
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

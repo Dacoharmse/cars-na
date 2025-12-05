@@ -1,18 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Star, 
-  Car, 
-  Users, 
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Star,
+  Car,
+  Users,
   Award,
   Clock,
   CheckCircle,
@@ -21,77 +21,100 @@ import {
   MapPinned
 } from 'lucide-react';
 
-// Mock dealer data
-const FEATURED_DEALERS = [
-  {
-    id: '1',
-    name: 'Premium Motors',
-    location: 'Windhoek',
-    address: '123 Independence Avenue, Windhoek',
-    phone: '+264 61 123 4567',
-    email: 'info@premiummotors.na',
-    rating: 4.8,
-    totalReviews: 156,
-    totalVehicles: 45,
-    yearsInBusiness: 15,
-    specialties: ['Luxury Cars', 'SUVs', 'German Brands'],
-    verified: true,
-    image: '/dealers/premium-motors.jpg'
-  },
-  {
-    id: '2',
-    name: 'City Cars Namibia',
-    location: 'Swakopmund',
-    address: '456 Sam Nujoma Avenue, Swakopmund',
-    phone: '+264 64 234 5678',
-    email: 'sales@citycars.na',
-    rating: 4.6,
-    totalReviews: 89,
-    totalVehicles: 32,
-    yearsInBusiness: 8,
-    specialties: ['Family Cars', 'Economy Vehicles', 'First Time Buyers'],
-    verified: true,
-    image: '/dealers/city-cars.jpg'
-  },
-  {
-    id: '3',
-    name: 'Auto Palace',
-    location: 'Walvis Bay',
-    address: '789 Theo-Ben Gurirab Street, Walvis Bay',
-    phone: '+264 64 345 6789',
-    email: 'contact@autopalace.na',
-    rating: 4.7,
-    totalReviews: 124,
-    totalVehicles: 28,
-    yearsInBusiness: 12,
-    specialties: ['Trucks', 'Commercial Vehicles', 'Off-Road'],
-    verified: true,
-    image: '/dealers/auto-palace.jpg'
-  },
-  {
-    id: '4',
-    name: 'Elite Autos',
-    location: 'Oshakati',
-    address: '321 Oshakati Main Road, Oshakati',
-    phone: '+264 65 456 7890',
-    email: 'info@eliteautos.na',
-    rating: 4.5,
-    totalReviews: 67,
-    totalVehicles: 22,
-    yearsInBusiness: 6,
-    specialties: ['Sports Cars', 'Performance Vehicles', 'Imports'],
-    verified: true,
-    image: '/dealers/elite-autos.jpg'
-  }
-];
-
 export default function DealersPage() {
   const router = useRouter();
-  const [filteredDealers, setFilteredDealers] = useState(FEATURED_DEALERS);
-  const [filterType, setFilterType] = useState<string | null>(null);
+  const [dealers, setDealers] = useState<any[]>([]);
+  const [filteredDealers, setFilteredDealers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Filter states
+  const [selectedRegion, setSelectedRegion] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [featuredOnly, setFeaturedOnly] = useState(false);
+
+  useEffect(() => {
+    fetchDealers();
+  }, []);
+
+  const fetchDealers = async () => {
+    try {
+      const response = await fetch('/api/dealerships');
+      if (response.ok) {
+        const data = await response.json();
+        // Ensure data is an array
+        const dealersArray = Array.isArray(data) ? data : [];
+        setDealers(dealersArray);
+        setFilteredDealers(dealersArray);
+      }
+    } catch (error) {
+      console.error('Error fetching dealers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Apply filters whenever filter states change
+  useEffect(() => {
+    applyFilters();
+  }, [selectedRegion, selectedCity, selectedSpecialty, verifiedOnly, featuredOnly, dealers]);
+
+  const applyFilters = () => {
+    let filtered = [...dealers];
+
+    // Filter by region
+    if (selectedRegion) {
+      filtered = filtered.filter(dealer => dealer.region === selectedRegion);
+    }
+
+    // Filter by city
+    if (selectedCity) {
+      filtered = filtered.filter(dealer => dealer.city === selectedCity);
+    }
+
+    // Filter by specialty
+    if (selectedSpecialty) {
+      filtered = filtered.filter(dealer =>
+        dealer.specializations &&
+        dealer.specializations.toLowerCase().includes(selectedSpecialty.toLowerCase())
+      );
+    }
+
+    // Filter verified only
+    if (verifiedOnly) {
+      filtered = filtered.filter(dealer => dealer.isVerified);
+    }
+
+    // Filter featured only
+    if (featuredOnly) {
+      filtered = filtered.filter(dealer => dealer.isFeatured);
+    }
+
+    setFilteredDealers(filtered);
+  };
+
+  const clearFilters = () => {
+    setSelectedRegion('');
+    setSelectedCity('');
+    setSelectedSpecialty('');
+    setVerifiedOnly(false);
+    setFeaturedOnly(false);
+  };
+
+  // Get unique regions and cities for filter dropdowns
+  const regions = Array.from(new Set(dealers.map(d => d.region).filter(Boolean))).sort();
+  const cities = Array.from(new Set(dealers.map(d => d.city).filter(Boolean))).sort();
+  const specialties = Array.from(
+    new Set(
+      dealers
+        .filter(d => d.specializations)
+        .flatMap(d => d.specializations.split(',').map((s: string) => s.trim()))
+    )
+  ).sort();
 
   const handleBrowseAllDealers = () => {
-    // Scroll to the dealers section or show all dealers
+    // Scroll to the dealers section
     const dealersSection = document.getElementById('all-dealers-section');
     if (dealersSection) {
       dealersSection.scrollIntoView({ behavior: 'smooth' });
@@ -102,12 +125,6 @@ export default function DealersPage() {
     router.push('/dealers/register');
   };
 
-  const handleViewAllDealers = () => {
-    // For now, just scroll to the dealers section. 
-    // In a real app, this would navigate to a full dealers list page
-    handleBrowseAllDealers();
-  };
-
   const handleViewInventory = (dealerId: string, dealerName: string) => {
     // Navigate to dealer's inventory page
     router.push(`/dealers/${dealerId}/inventory`);
@@ -116,53 +133,6 @@ export default function DealersPage() {
   const handleMailDealer = (dealerEmail: string, dealerName: string) => {
     // Open mail client
     window.location.href = `mailto:${dealerEmail}?subject=Inquiry about vehicles at ${dealerName}`;
-  };
-
-  const handleViewRelated = (dealerId: string, specialties: string[]) => {
-    // Filter dealers by similar specialties
-    const targetSpecialty = specialties[0];
-    if (targetSpecialty) {
-      const related = FEATURED_DEALERS.filter(dealer => 
-        dealer.id !== dealerId && 
-        dealer.specialties.some(specialty => 
-          specialty.toLowerCase().includes(targetSpecialty.toLowerCase()) ||
-          targetSpecialty.toLowerCase().includes(specialty.toLowerCase())
-        )
-      );
-      
-      setFilteredDealers(related.length > 0 ? related : FEATURED_DEALERS);
-      setFilterType(`Dealers with "${targetSpecialty}" specialty`);
-    } else {
-      setFilteredDealers(FEATURED_DEALERS);
-      setFilterType(null);
-    }
-    
-    // Scroll to dealers section
-    const dealersSection = document.getElementById('all-dealers-section');
-    if (dealersSection) {
-      dealersSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleViewSameTown = (location: string) => {
-    // Filter dealers in same town
-    const sameTownDealers = FEATURED_DEALERS.filter(dealer => 
-      dealer.location.toLowerCase() === location.toLowerCase()
-    );
-    
-    setFilteredDealers(sameTownDealers.length > 0 ? sameTownDealers : FEATURED_DEALERS);
-    setFilterType(`Dealers in ${location}`);
-    
-    // Scroll to dealers section
-    const dealersSection = document.getElementById('all-dealers-section');
-    if (dealersSection) {
-      dealersSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleClearFilter = () => {
-    setFilteredDealers(FEATURED_DEALERS);
-    setFilterType(null);
   };
 
   return (
@@ -315,139 +285,221 @@ export default function DealersPage() {
           </div>
         </section>
 
-        {/* Featured Dealers */}
+        {/* All Dealers with Filters */}
         <section id="all-dealers-section" className="py-16">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                {filterType ? 'Filtered Dealers' : 'Featured Dealers'}
+                All Dealerships
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                {filterType || 'Discover our top-rated dealers who consistently provide exceptional service and quality vehicles.'}
+                Browse through {dealers.length} verified dealerships across Namibia
               </p>
-              {filterType && (
-                <div className="mt-4">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleClearFilter}
-                    className="mx-auto"
+            </div>
+
+            {/* Filters Section */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Filter Dealerships</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearFilters}
+                >
+                  Clear All Filters
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                {/* Region Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Region
+                  </label>
+                  <select
+                    value={selectedRegion}
+                    onChange={(e) => setSelectedRegion(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    Clear Filter - Show All Dealers
-                  </Button>
+                    <option value="">All Regions</option>
+                    {regions.map(region => (
+                      <option key={region} value={region}>{region}</option>
+                    ))}
+                  </select>
                 </div>
-              )}
+
+                {/* City Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    City/Town
+                  </label>
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => setSelectedCity(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">All Cities</option>
+                    {cities.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Specialty Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Specialty
+                  </label>
+                  <select
+                    value={selectedSpecialty}
+                    onChange={(e) => setSelectedSpecialty(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">All Specialties</option>
+                    {specialties.map(specialty => (
+                      <option key={specialty} value={specialty}>{specialty}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Verified Only Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <label className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={verifiedOnly}
+                      onChange={(e) => setVerifiedOnly(e.target.checked)}
+                      className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Verified Only</span>
+                  </label>
+                </div>
+
+                {/* Featured Only Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Featured
+                  </label>
+                  <label className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={featuredOnly}
+                      onChange={(e) => setFeaturedOnly(e.target.checked)}
+                      className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Featured Only</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Results Count */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600">
+                  Showing <span className="font-semibold text-gray-900">{filteredDealers.length}</span> of <span className="font-semibold text-gray-900">{dealers.length}</span> dealerships
+                </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {filteredDealers.map((dealer) => (
-                <Card key={dealer.id} className="hover:shadow-lg transition-shadow duration-300">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-xl font-bold text-gray-900">{dealer.name}</h3>
-                          {dealer.verified && (
-                            <Badge className="bg-green-100 text-green-800">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Verified
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center text-gray-600 mb-2">
-                          <MapPin className="w-4 h-4 mr-2" />
-                          <span className="text-sm">{dealer.address}</span>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                          <div className="flex items-center">
-                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                            <span className="font-medium">{dealer.rating}</span>
-                            <span className="ml-1">({dealer.totalReviews} reviews)</span>
+              {loading ? (
+                <div className="col-span-2 text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading dealerships...</p>
+                </div>
+              ) : filteredDealers.length === 0 ? (
+                <div className="col-span-2 text-center py-12">
+                  <p className="text-gray-600">No dealerships found</p>
+                </div>
+              ) : (
+                filteredDealers.map((dealer) => (
+                  <Card key={dealer.id} className="hover:shadow-lg transition-shadow duration-300">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-xl font-bold text-gray-900">{dealer.name}</h3>
+                            {dealer.isVerified && (
+                              <Badge className="bg-green-100 text-green-800">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Verified
+                              </Badge>
+                            )}
                           </div>
-                          <div className="flex items-center">
-                            <Car className="w-4 h-4 mr-1" />
-                            <span>{dealer.totalVehicles} vehicles</span>
+                          <div className="flex items-center text-gray-600 mb-2">
+                            <MapPin className="w-4 h-4 mr-2" />
+                            <span className="text-sm">{dealer.streetAddress || dealer.city || 'Location not specified'}</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                            <div className="flex items-center">
+                              <Car className="w-4 h-4 mr-1" />
+                              <span>{dealer._count?.vehicles || 0} vehicles</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="mb-4">
-                      <h4 className="font-medium text-gray-900 mb-2">Specialties:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {dealer.specialties.map((specialty, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {specialty}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="pt-4 border-t border-gray-200">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Clock className="w-4 h-4 mr-1" />
-                          <span>{dealer.yearsInBusiness} years in business</span>
+                      {dealer.specializations && (
+                        <div className="mb-4">
+                          <h4 className="font-medium text-gray-900 mb-2">Specialties:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {dealer.specializations.split(',').map((specialty: string, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {specialty.trim()}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      
-                      {/* Action Buttons */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewInventory(dealer.id, dealer.name)}
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View Inventory
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleMailDealer(dealer.email, dealer.name)}
-                        >
-                          <Mail className="w-4 h-4 mr-1" />
-                          Mail
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewRelated(dealer.id, dealer.specialties)}
-                        >
-                          <Building2 className="w-4 h-4 mr-1" />
-                          View Related
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewSameTown(dealer.location)}
-                        >
-                          <MapPinned className="w-4 h-4 mr-1" />
-                          Same Town
-                        </Button>
-                      </div>
-                      
-                      {/* Call button as primary action */}
-                      <div className="mt-3">
-                        <Button 
-                          size="sm" 
-                          className="w-full"
-                          onClick={() => window.location.href = `tel:${dealer.phone}`}
-                        >
-                          <Phone className="w-4 h-4 mr-1" />
-                          Call {dealer.phone}
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      )}
 
-            <div className="text-center mt-12">
-              <Button size="lg" variant="outline" onClick={handleViewAllDealers}>
-                View All Dealers
-              </Button>
+                      <div className="pt-4 border-t border-gray-200">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Clock className="w-4 h-4 mr-1" />
+                            <span>{Math.floor((new Date().getTime() - new Date(dealer.createdAt).getTime()) / (365 * 24 * 60 * 60 * 1000))} years in business</span>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewInventory(dealer.id, dealer.name)}
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            View Inventory
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleMailDealer(dealer.email || '', dealer.name)}
+                          >
+                            <Mail className="w-4 h-4 mr-1" />
+                            Contact Dealer
+                          </Button>
+                        </div>
+
+                        {/* Call button as primary action */}
+                        {dealer.phone && (
+                          <div className="mt-3">
+                            <Button
+                              size="sm"
+                              className="w-full"
+                              onClick={() => window.location.href = `tel:${dealer.phone}`}
+                            >
+                              <Phone className="w-4 h-4 mr-1" />
+                              Call {dealer.phone}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         </section>

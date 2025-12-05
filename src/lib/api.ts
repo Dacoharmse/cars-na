@@ -18,6 +18,44 @@ import {
 // Use our comprehensive mock data
 const mockVehicles = getVehiclesWithDealership();
 
+// Helper to create async showcase query hook
+const createShowcaseQuery = (type: string) => {
+  return (params: any, options?: any) => {
+    const [data, setData] = React.useState<any>(null);
+    const [isLoading, setIsLoading] = React.useState(true);
+    const [error, setError] = React.useState<Error | null>(null);
+
+    React.useEffect(() => {
+      const fetchData = async () => {
+        try {
+          setIsLoading(true);
+          const response = await fetch(`/api/showcase?type=${type}&take=${params?.take || 4}`);
+          const result = await response.json();
+
+          if (result.success) {
+            setData({ vehicles: result.vehicles });
+          } else {
+            // Fallback to mock data if API fails
+            setData({ vehicles: [] });
+          }
+          setError(null);
+        } catch (err) {
+          console.error(`Error fetching ${type}:`, err);
+          // Fallback to mock data on error
+          setData({ vehicles: [] });
+          setError(err as Error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchData();
+    }, [params?.take]);
+
+    return { data, isLoading, error };
+  };
+};
+
 // Transform our mock data to the format expected by HomeShowcase
 const transformVehicleForShowcase = (vehicle: any) => ({
   id: parseInt(vehicle.id.replace('vehicle-', '')) || 1,
@@ -162,112 +200,28 @@ export const api = {
   },
   showcase: {
     getFeatured: {
-      useQuery: (params: any, options?: any) => {
-        const { limit = 4 } = params || {};
-        const vehicles = getFeaturedVehicles(limit).map(transformVehicleForShowcase);
-        return {
-          data: { vehicles, nextCursor: null },
-          isLoading: false,
-          error: null
-        };
-      }
+      useQuery: createShowcaseQuery('featured')
     },
     getTopDealerPicks: {
-      useQuery: (params: any, options?: any) => {
-        const { limit = 4 } = params || {};
-        const vehicles = getDealerPickVehicles(limit).map(transformVehicleForShowcase);
-        return {
-          data: { vehicles, nextCursor: null },
-          isLoading: false,
-          error: null
-        };
-      }
+      useQuery: createShowcaseQuery('dealerPicks')
     },
     getFeaturedVehicles: {
-      useQuery: (params: any, options?: any) => {
-        const { limit = 4 } = params || {};
-        const vehicles = getFeaturedVehicles(limit).map(transformVehicleForShowcase);
-        return {
-          data: { vehicles, nextCursor: null },
-          isLoading: false,
-          error: null
-        };
-      }
+      useQuery: createShowcaseQuery('featured')
     },
     getTopDeals: {
-      useQuery: (params: any, options?: any) => {
-        const { limit = 4 } = params || {};
-        // Get vehicles with original prices for deals
-        const dealsVehicles = getVehiclesWithDealership()
-          .filter(v => v.originalPrice && v.originalPrice > v.price)
-          .sort((a, b) => {
-            const aDiscount = a.originalPrice ? ((a.originalPrice - a.price) / a.originalPrice) : 0;
-            const bDiscount = b.originalPrice ? ((b.originalPrice - b.price) / b.originalPrice) : 0;
-            return bDiscount - aDiscount;
-          })
-          .slice(0, limit)
-          .map(transformVehicleForShowcase);
-        
-        return {
-          data: { vehicles: dealsVehicles, nextCursor: null },
-          isLoading: false,
-          error: null
-        };
-      }
+      useQuery: createShowcaseQuery('topDeals')
     },
     getMostViewed: {
-      useQuery: (params: any, options?: any) => {
-        const { limit = 4 } = params || {};
-        const vehicles = getMostViewedVehicles(limit).map(transformVehicleForShowcase);
-        return {
-          data: { vehicles, nextCursor: null },
-          isLoading: false,
-          error: null
-        };
-      }
+      useQuery: createShowcaseQuery('mostViewed')
     },
     getNewListings: {
-      useQuery: (params: any, options?: any) => {
-        const { limit = 4 } = params || {};
-        const vehicles = getNewListings(limit).map(transformVehicleForShowcase);
-        return {
-          data: { vehicles, nextCursor: null },
-          isLoading: false,
-          error: null
-        };
-      }
+      useQuery: createShowcaseQuery('newListings')
     },
     getTopNewCars: {
-      useQuery: (params: any, options?: any) => {
-        const { limit = 4 } = params || {};
-        const vehicles = getVehiclesWithDealership()
-          .filter(v => v.isNew)
-          .sort((a, b) => b.viewCount - a.viewCount)
-          .slice(0, limit)
-          .map(transformVehicleForShowcase);
-          
-        return {
-          data: { vehicles, nextCursor: null },
-          isLoading: false,
-          error: null
-        };
-      }
+      useQuery: createShowcaseQuery('topNewCars')
     },
     getTopUsedCars: {
-      useQuery: (params: any, options?: any) => {
-        const { limit = 4 } = params || {};
-        const vehicles = getVehiclesWithDealership()
-          .filter(v => !v.isNew)
-          .sort((a, b) => b.viewCount - a.viewCount)
-          .slice(0, limit)
-          .map(transformVehicleForShowcase);
-          
-        return {
-          data: { vehicles, nextCursor: null },
-          isLoading: false,
-          error: null
-        };
-      }
+      useQuery: createShowcaseQuery('topUsedCars')
     }
   },
   Provider: ({ children }: { children: React.ReactNode }) => children

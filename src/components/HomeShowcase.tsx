@@ -9,7 +9,7 @@ import { api } from '@/lib/api';
 
 // Mock data structure - will be replaced with tRPC calls
 interface Vehicle {
-  id: number;
+  id: string;
   make: string;
   model: string;
   year: number;
@@ -386,7 +386,7 @@ const TopNewUsedSection: React.FC = () => {
 
 // Transform API vehicle data to component format
 const transformVehicle = (apiVehicle: any): Vehicle => ({
-  id: parseInt(apiVehicle.id),
+  id: apiVehicle.id,
   make: apiVehicle.make,
   model: apiVehicle.model,
   year: apiVehicle.year,
@@ -399,29 +399,29 @@ const transformVehicle = (apiVehicle: any): Vehicle => ({
   image: apiVehicle.images?.[0]?.url || 'https://placehold.co/800x600/e5e7eb/6b7280?text=Car+Image',
   dealer: apiVehicle.dealership?.name || 'Unknown Dealer',
   location: apiVehicle.dealership?.city || 'Unknown Location',
-  isNew: apiVehicle.status === 'NEW',
+  isNew: apiVehicle.isNew || false,
   viewsLast30Days: apiVehicle.viewCount || 0,
   createdAt: apiVehicle.createdAt,
   popularityRank: apiVehicle.popularityRank || 1,
 });
 
 export const HomeShowcase: React.FC = () => {
-  // Fetch featured vehicles using tRPC
+  // Fetch featured vehicles using API
   const { data: featuredData, isLoading: featuredLoading } = api.showcase.getFeaturedVehicles.useQuery({
     take: 4,
   });
 
-  // Fetch top deals using tRPC
+  // Fetch top deals using API
   const { data: dealsData, isLoading: dealsLoading } = api.showcase.getTopDeals.useQuery({
     take: 4,
   });
 
-  // Fetch most viewed vehicles using tRPC
+  // Fetch most viewed vehicles using API
   const { data: viewedData, isLoading: viewedLoading } = api.showcase.getMostViewed.useQuery({
     take: 4,
   });
 
-  // Fetch new listings using tRPC
+  // Fetch new listings using API
   const { data: newData, isLoading: newLoading } = api.showcase.getNewListings.useQuery({
     take: 4,
   });

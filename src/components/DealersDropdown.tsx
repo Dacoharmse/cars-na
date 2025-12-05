@@ -116,11 +116,11 @@ export default function DealersDropdown({ isMobile = false }: DealersDropdownPro
     <div
       className="relative group"
       ref={dropdownRef}
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
     >
       <button
         className="relative text-sm font-semibold text-slate-700 dark:text-slate-100 hover:text-[#1F3469] dark:hover:text-white transition-colors py-2 flex items-center space-x-1"
+        onMouseEnter={() => setIsOpen(true)}
+        onClick={() => setIsOpen(!isOpen)}
       >
         <span>Dealers</span>
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -128,7 +128,11 @@ export default function DealersDropdown({ isMobile = false }: DealersDropdownPro
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-neutral-200 max-h-[80vh] overflow-y-auto z-50">
+        <div
+          className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-neutral-200 max-h-[80vh] overflow-y-auto z-50"
+          onMouseEnter={() => setIsOpen(true)}
+          onMouseLeave={() => setIsOpen(false)}
+        >
           <Link
             href="/dealers"
             className="block px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 border-b border-neutral-200 transition-colors"

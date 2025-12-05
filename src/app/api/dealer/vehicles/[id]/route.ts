@@ -218,6 +218,75 @@ export async function PUT(
   }
 }
 
+// PATCH /api/dealer/vehicles/[id] - Partial update (for deals, featured, etc.)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify user is a dealer
+    if (!['DEALER_PRINCIPAL', 'SALES_EXECUTIVE'].includes(session.user.role)) {
+      return NextResponse.json({ error: 'Access denied. Dealer account required.' }, { status: 403 });
+    }
+
+    const updateData = await request.json();
+
+    // Get user's dealership
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email! },
+      include: { dealership: true }
+    });
+
+    if (!user || !user.dealership) {
+      return NextResponse.json({ error: 'No dealership associated with this account' }, { status: 400 });
+    }
+
+    // Verify vehicle belongs to dealer's dealership
+    const existingVehicle = await prisma.vehicle.findFirst({
+      where: {
+        id: id,
+        dealershipId: user.dealership.id
+      }
+    });
+
+    if (!existingVehicle) {
+      return NextResponse.json({ error: 'Vehicle not found or access denied' }, { status: 404 });
+    }
+
+    // Update vehicle with partial data
+    const vehicle = await prisma.vehicle.update({
+      where: { id: id },
+      data: updateData
+    });
+
+    console.log('Vehicle successfully updated (PATCH):', {
+      vehicleId: vehicle.id,
+      dealer: session.user.email,
+      updatedFields: Object.keys(updateData)
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Vehicle successfully updated',
+      vehicle
+    });
+
+  } catch (error) {
+    console.error('Error updating vehicle:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE /api/dealer/vehicles/[id] - Delete vehicle
 export async function DELETE(
   request: NextRequest,

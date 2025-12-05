@@ -77,17 +77,97 @@ const BUSINESS_TYPES = [
 ];
 
 const NAMIBIAN_CITIES = [
+  // Major Cities and Regional Capitals
   'Windhoek',
-  'Swakopmund',
   'Walvis Bay',
-  'Oshakati',
+  'Swakopmund',
   'Rundu',
+  'Oshakati',
   'Katima Mulilo',
+  'Grootfontein',
+  'Rehoboth',
   'Otjiwarongo',
-  'Gobabis',
+  'Tsumeb',
   'Keetmanshoop',
-  'Tsumeb'
-];
+  'Gobabis',
+
+  // Towns - Khomas Region
+  'Okahandja',
+
+  // Towns - Erongo Region
+  'Henties Bay',
+  'Arandis',
+  'Karibib',
+  'Usakos',
+
+  // Towns - Hardap Region
+  'Mariental',
+  'Aranos',
+  'Maltahöhe',
+
+  // Towns - Karas Region
+  'Lüderitz',
+  'Karasburg',
+  'Aus',
+  'Bethanie',
+  'Warmbad',
+  'Oranjemund',
+
+  // Towns - Kunene Region
+  'Opuwo',
+  'Outjo',
+  'Khorixas',
+  'Kamanjab',
+  'Sesfontein',
+
+  // Towns - Ohangwena Region
+  'Eenhana',
+  'Okongo',
+  'Engela',
+  'Ongenga',
+
+  // Towns - Omaheke Region
+  'Otjinene',
+  'Witvlei',
+
+  // Towns - Omusati Region
+  'Outapi',
+  'Okahao',
+  'Oshikuku',
+  'Ruacana',
+
+  // Towns - Oshana Region
+  'Ondangwa',
+  'Ongwediva',
+  'Oshakati',
+
+  // Towns - Oshikoto Region
+  'Omuthiya',
+  'Tsumeb',
+  'Onayena',
+
+  // Towns - Otjozondjupa Region
+  'Okakarara',
+  'Otavi',
+  'Okahandja',
+
+  // Towns - Zambezi Region (Caprivi)
+  'Katima Mulilo',
+  'Bukalo',
+  'Ngoma',
+  'Linyanti',
+
+  // Other Notable Towns
+  'Aroab',
+  'Aranos',
+  'Aminuis',
+  'Gibeon',
+  'Hoachanas',
+  'Leonardville',
+  'Noordoewer',
+  'Stampriet',
+  'Tses'
+].sort();
 
 export default function DealerRegisterPage() {
   const router = useRouter();
@@ -280,7 +360,7 @@ export default function DealerRegisterPage() {
           },
         }}
       />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white py-12">
+      <div className="bg-gradient-to-br from-slate-50 to-white py-4">
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Back to Site Button */}
           <div className="mb-6">

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { api } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
 import { 
   User, 
   Car, 
@@ -241,6 +241,7 @@ interface FormData {
 }
 
 export default function SellYourCarWizard() {
+  const { showToast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     // Step 1: Seller Contact Details
@@ -277,10 +278,89 @@ export default function SellYourCarWizard() {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
-  // tRPC mutation for creating vehicle listing  
-  const createVehicle = api.vehicle.create.useMutation({
-    onSuccess: (data) => {
-      alert('Vehicle listing submitted successfully! Your listing is now being reviewed.');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!formData.sellerName || !formData.manufacturer || !formData.model || !formData.year || !formData.price) {
+      showToast({
+        title: 'Missing Information',
+        description: 'Please fill in all required fields',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Convert images to base64 strings
+      const imagePromises = formData.images.map(img => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(img);
+        });
+      });
+      const imageStrings = await Promise.all(imagePromises);
+
+      // Convert category key to VehicleCategory enum value
+      const categoryMap: Record<string, string> = {
+        'cars': 'CARS',
+        'trucks': 'TRUCKS',
+        'bikes': 'MOTORCYCLES',
+        'buses': 'BUSES',
+        'machinery': 'INDUSTRIAL_MACHINERY',
+        'tractors': 'TRACTORS',
+        'boats': 'BOATS',
+        'accessories': 'ACCESSORIES'
+      };
+
+      // Convert form data to API format
+      const vehicleData = {
+        category: categoryMap[formData.category] || 'CARS',
+        make: formData.manufacturer,
+        model: formData.model,
+        year: formData.year,
+        price: formData.price,
+        mileage: formData.mileage || '',
+        transmission: formData.transmission || '',
+        fuelType: formData.fuelType || '',
+        color: '',
+        condition: formData.condition || 'Good',
+        description: formData.description || 'No description provided',
+        images: imageStrings,
+        negotiable: true,
+        hasAccident: false,
+        serviceHistory: true,
+        availableForTest: true,
+        city: formData.sellerLocation || '',
+        region: '', // Could be extracted from location
+        userName: formData.sellerName,
+        userEmail: formData.sellerEmail,
+        userPhone: formData.sellerPhone,
+      };
+
+      const response = await fetch('/api/sell-vehicle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(vehicleData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit listing');
+      }
+
+      showToast({
+        title: 'Listing Submitted Successfully!',
+        description: 'Your listing is now being reviewed and will be visible to dealerships once approved.',
+        variant: 'success',
+        duration: 7000,
+      });
+
       // Reset form
       setFormData({
         sellerName: '',
@@ -298,42 +378,16 @@ export default function SellYourCarWizard() {
         mainImageIndex: 0
       });
       setCurrentStep(1);
-    },
-    onError: (error) => {
-      alert(`Error submitting listing: ${error.message}`);
+    } catch (error: any) {
+      showToast({
+        title: 'Submission Failed',
+        description: error.message || 'Failed to submit listing. Please try again.',
+        variant: 'error',
+        duration: 7000,
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-  });
-
-  const handleSubmit = () => {
-    if (!formData.sellerName || !formData.manufacturer || !formData.model || !formData.year || !formData.price) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    // Convert form data to API format
-    const vehicleData = {
-      make: formData.manufacturer,
-      model: formData.model,
-      year: parseInt(formData.year),
-      price: parseInt(formData.price),
-      mileage: formData.mileage ? parseInt(formData.mileage) : undefined,
-      transmission: formData.transmission || 'MANUAL',
-      fuelType: formData.fuelType || 'PETROL',
-      color: 'Unknown', // Could add color field to form
-      description: formData.description,
-      status: 'PENDING' as const, // For review
-      images: [], // TODO: Handle image upload
-      
-      // Seller contact info (for lead generation)
-      sellerContact: {
-        name: formData.sellerName,
-        email: formData.sellerEmail,
-        phone: formData.sellerPhone,
-        location: formData.sellerLocation,
-      }
-    };
-
-    createVehicle.mutate(vehicleData);
   };
 
   return (
@@ -410,11 +464,11 @@ export default function SellYourCarWizard() {
               />
             )}
             {currentStep === 5 && (
-              <Step5Review 
+              <Step5Review
                 formData={formData}
                 onSubmit={handleSubmit}
                 onPrev={prevStep}
-                isSubmitting={createVehicle.isLoading}
+                isSubmitting={isSubmitting}
               />
             )}
           </CardContent>
@@ -731,6 +785,7 @@ function Step2VehicleDetails({
                 <option value="sedan">Sedan</option>
                 <option value="hatchback">Hatchback</option>
                 <option value="suv">SUV</option>
+                <option value="bakkie">Bakkie</option>
                 <option value="coupe">Coupe</option>
                 <option value="wagon">Wagon</option>
                 <option value="convertible">Convertible</option>

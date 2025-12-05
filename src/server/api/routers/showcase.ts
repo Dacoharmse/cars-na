@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../../trpc";
+import { prisma } from "@/lib/prisma";
 
 const createTRPCRouter = router;
 
@@ -22,40 +23,107 @@ console.log('[SHOWCASE] mockVehicles length:', mockVehicles.length);
 export const showcaseRouter = createTRPCRouter({
   getTopDealerPicks: publicProcedure
     .input(paginationInput)
-    .query(({ input }: { input: z.infer<typeof paginationInput> }) => {
-      // In production: query database for vehicles where isDealerPick = true
-      // ORDER BY dealerPaidTier DESC, createdAt DESC
-      const filtered = mockVehicles
-        .filter(v => v.isDealerPick)
-        .slice(0, input.take);
-      
+    .query(async ({ input }: { input: z.infer<typeof paginationInput> }) => {
+      // Query database for vehicles where dealerPick = true
+      const vehicles = await prisma.vehicle.findMany({
+        where: {
+          dealerPick: true,
+          status: 'AVAILABLE',
+        },
+        include: {
+          dealership: {
+            select: {
+              name: true,
+              city: true,
+            },
+          },
+          images: {
+            orderBy: {
+              isPrimary: 'desc',
+            },
+            take: 1,
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: input.take,
+      });
+
       return {
-        vehicles: filtered,
-        nextCursor: filtered.length === input.take ? filtered[filtered.length - 1]?.id : null,
+        vehicles,
+        nextCursor: vehicles.length === input.take ? vehicles[vehicles.length - 1]?.id : null,
       };
     }),
 
   getFeaturedVehicles: publicProcedure
     .input(paginationInput)
-    .query(({ input }: { input: z.infer<typeof paginationInput> }) => {
-      // In production: query database for vehicles where isFeatured = true
-      // ORDER BY featuredPaidTier DESC, createdAt DESC
-      const filtered = mockVehicles
-        .filter(v => v.isFeatured)
-        .slice(0, input.take);
-      
+    .query(async ({ input }: { input: z.infer<typeof paginationInput> }) => {
+      // Query database for vehicles where featured = true
+      const vehicles = await prisma.vehicle.findMany({
+        where: {
+          featured: true,
+          status: 'AVAILABLE',
+        },
+        include: {
+          dealership: {
+            select: {
+              name: true,
+              city: true,
+            },
+          },
+          images: {
+            orderBy: {
+              isPrimary: 'desc',
+            },
+            take: 1,
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: input.take,
+      });
+
       return {
-        vehicles: filtered,
-        nextCursor: filtered.length === input.take ? filtered[filtered.length - 1]?.id : null,
+        vehicles,
+        nextCursor: vehicles.length === input.take ? vehicles[vehicles.length - 1]?.id : null,
       };
     }),
 
   getTopDeals: publicProcedure
     .input(paginationInput)
-    .query(({ input }: { input: z.infer<typeof paginationInput> }) => {
-      // In production: query database for vehicles with originalPrice > price
-      // ORDER BY ((originalPrice - price) / originalPrice) DESC
-      const filtered = mockVehicles
+    .query(async ({ input }: { input: z.infer<typeof paginationInput> }) => {
+      // Query database for vehicles with originalPrice > price (discounted vehicles)
+      const vehicles = await prisma.vehicle.findMany({
+        where: {
+          originalPrice: {
+            not: null,
+          },
+          status: 'AVAILABLE',
+        },
+        include: {
+          dealership: {
+            select: {
+              name: true,
+              city: true,
+            },
+          },
+          images: {
+            orderBy: {
+              isPrimary: 'desc',
+            },
+            take: 1,
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: input.take * 2, // Get more to filter client-side for discount calculation
+      });
+
+      // Filter and sort by discount percentage
+      const filtered = vehicles
         .filter(v => v.originalPrice && v.originalPrice > v.price)
         .sort((a, b) => {
           const aDiscount = a.originalPrice ? ((a.originalPrice - a.price) / a.originalPrice) : 0;
@@ -63,7 +131,7 @@ export const showcaseRouter = createTRPCRouter({
           return bDiscount - aDiscount;
         })
         .slice(0, input.take);
-      
+
       return {
         vehicles: filtered,
         nextCursor: filtered.length === input.take ? filtered[filtered.length - 1]?.id : null,
@@ -72,62 +140,144 @@ export const showcaseRouter = createTRPCRouter({
 
   getMostViewed: publicProcedure
     .input(paginationInput)
-    .query(({ input }: { input: z.infer<typeof paginationInput> }) => {
-      // In production: query database ORDER BY viewsLast30Days DESC
-      const filtered = mockVehicles
-        .sort((a, b) => (b.viewsLast30Days || 0) - (a.viewsLast30Days || 0))
-        .slice(0, input.take);
-      
+    .query(async ({ input }: { input: z.infer<typeof paginationInput> }) => {
+      // Query database ORDER BY viewCount DESC
+      const vehicles = await prisma.vehicle.findMany({
+        where: {
+          status: 'AVAILABLE',
+        },
+        include: {
+          dealership: {
+            select: {
+              name: true,
+              city: true,
+            },
+          },
+          images: {
+            orderBy: {
+              isPrimary: 'desc',
+            },
+            take: 1,
+          },
+        },
+        orderBy: {
+          viewCount: 'desc',
+        },
+        take: input.take,
+      });
+
       return {
-        vehicles: filtered,
-        nextCursor: filtered.length === input.take ? filtered[filtered.length - 1]?.id : null,
+        vehicles,
+        nextCursor: vehicles.length === input.take ? vehicles[vehicles.length - 1]?.id : null,
       };
     }),
 
   getNewListings: publicProcedure
     .input(paginationInput.merge(dateRangeInput))
-    .query(({ input }: { input: z.infer<typeof paginationInput> & z.infer<typeof dateRangeInput> }) => {
-      // In production: query database WHERE createdAt >= sinceDate ORDER BY createdAt DESC
+    .query(async ({ input }: { input: z.infer<typeof paginationInput> & z.infer<typeof dateRangeInput> }) => {
+      // Query database WHERE createdAt >= sinceDate ORDER BY createdAt DESC
       const sinceDate = input.sinceDate || new Date(Date.now() - 72 * 60 * 60 * 1000); // 72 hours ago
-      
-      const filtered = mockVehicles
-        .filter(v => v.createdAt >= sinceDate)
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-        .slice(0, input.take);
-      
+
+      const vehicles = await prisma.vehicle.findMany({
+        where: {
+          createdAt: {
+            gte: sinceDate,
+          },
+          status: 'AVAILABLE',
+        },
+        include: {
+          dealership: {
+            select: {
+              name: true,
+              city: true,
+            },
+          },
+          images: {
+            orderBy: {
+              isPrimary: 'desc',
+            },
+            take: 1,
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: input.take,
+      });
+
       return {
-        vehicles: filtered,
-        nextCursor: filtered.length === input.take ? filtered[filtered.length - 1]?.id : null,
+        vehicles,
+        nextCursor: vehicles.length === input.take ? vehicles[vehicles.length - 1]?.id : null,
       };
     }),
 
   getTopNewCars: publicProcedure
     .input(paginationInput)
-    .query(({ input }: { input: z.infer<typeof paginationInput> }) => {
-      // In production: query database WHERE isNew = true ORDER BY popularityScore DESC
-      const filtered = mockVehicles
-        .filter(v => v.isNew)
-        .sort((a, b) => b.popularityScore - a.popularityScore)
-        .slice(0, input.take);
-      
+    .query(async ({ input }: { input: z.infer<typeof paginationInput> }) => {
+      // Query database WHERE isNew = true ORDER BY viewCount DESC
+      const vehicles = await prisma.vehicle.findMany({
+        where: {
+          isNew: true,
+          status: 'AVAILABLE',
+        },
+        include: {
+          dealership: {
+            select: {
+              name: true,
+              city: true,
+            },
+          },
+          images: {
+            orderBy: {
+              isPrimary: 'desc',
+            },
+            take: 1,
+          },
+        },
+        orderBy: {
+          viewCount: 'desc',
+        },
+        take: input.take,
+      });
+
       return {
-        vehicles: filtered,
-        nextCursor: filtered.length === input.take ? filtered[filtered.length - 1]?.id : null,
+        vehicles,
+        nextCursor: vehicles.length === input.take ? vehicles[vehicles.length - 1]?.id : null,
       };
     }),
 
   getTopUsedCars: publicProcedure
     .input(paginationInput)
-    .query(({ input }: { input: z.infer<typeof paginationInput> }) => {
-      // In production: query database WHERE isNew = false ORDER BY popularityScore DESC
-      const filtered = mockVehicles
-        .filter(v => !v.isNew)
-        .sort((a, b) => b.popularityScore - a.popularityScore)
-        .slice(0, input.take);
-      
+    .query(async ({ input }: { input: z.infer<typeof paginationInput> }) => {
+      // Query database WHERE isNew = false ORDER BY viewCount DESC
+      const vehicles = await prisma.vehicle.findMany({
+        where: {
+          isNew: false,
+          status: 'AVAILABLE',
+        },
+        include: {
+          dealership: {
+            select: {
+              name: true,
+              city: true,
+            },
+          },
+          images: {
+            orderBy: {
+              isPrimary: 'desc',
+            },
+            take: 1,
+          },
+        },
+        orderBy: {
+          viewCount: 'desc',
+        },
+        take: input.take,
+      });
+
       return {
-        vehicles: filtered,
-        nextCursor: filtered.length === input.take ? filtered[filtered.length - 1]?.id : null,
+        vehicles,
+        nextCursor: vehicles.length === input.take ? vehicles[vehicles.length - 1]?.id : null,
       };
     }),
 });

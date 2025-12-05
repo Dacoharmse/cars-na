@@ -6,7 +6,7 @@ import { Heart, Star, Gauge, Settings, Fuel, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface VehicleCardProps {
-  id: number;
+  id: string;
   make: string;
   model: string;
   year: number;

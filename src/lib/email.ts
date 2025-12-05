@@ -220,6 +220,51 @@ class EmailService {
     return await this.sendEmail(userData.email, template);
   }
 
+  // Seller notification when dealer expresses interest
+  async sendDealerInterestToSeller(sellerData: {
+    sellerName: string;
+    sellerEmail: string;
+    dealershipName: string;
+    dealerPhone?: string;
+    dealerEmail?: string;
+    vehicleDetails: {
+      year: number;
+      make: string;
+      model: string;
+      category: string;
+    };
+    offerPrice?: number;
+    message?: string;
+  }): Promise<boolean> {
+    const template: EmailTemplate = {
+      subject: `${sellerData.dealershipName} is interested in your ${sellerData.vehicleDetails.year} ${sellerData.vehicleDetails.make} ${sellerData.vehicleDetails.model}`,
+      html: this.generateDealerInterestHTML(sellerData),
+      text: this.generateDealerInterestText(sellerData),
+    };
+
+    return await this.sendEmail(sellerData.sellerEmail, template);
+  }
+
+  // Seller notification when listing is approved
+  async sendListingApprovedToSeller(sellerData: {
+    sellerName: string;
+    sellerEmail: string;
+    vehicleDetails: {
+      year: number;
+      make: string;
+      model: string;
+      category: string;
+    };
+  }): Promise<boolean> {
+    const template: EmailTemplate = {
+      subject: `Your ${sellerData.vehicleDetails.year} ${sellerData.vehicleDetails.make} ${sellerData.vehicleDetails.model} listing has been approved!`,
+      html: this.generateListingApprovedHTML(sellerData),
+      text: this.generateListingApprovedText(sellerData),
+    };
+
+    return await this.sendEmail(sellerData.sellerEmail, template);
+  }
+
   // HTML Email Templates
   private generateWelcomeEmailHTML(userData: UserData): string {
     return `
@@ -866,6 +911,314 @@ Unsubscribe: ${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/unsubscribe?
 
 Best regards,
 The Cars.na Team
+    `;
+  }
+
+  private generateDealerInterestHTML(sellerData: {
+    sellerName: string;
+    dealershipName: string;
+    dealerPhone?: string;
+    dealerEmail?: string;
+    vehicleDetails: {
+      year: number;
+      make: string;
+      model: string;
+      category: string;
+    };
+    offerPrice?: number;
+    message?: string;
+  }): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Dealer Interest - Cars.na</title>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 0 auto; background: white; }
+            .header { background: linear-gradient(135deg, #1F3469 0%, #3B4F86 100%); padding: 40px 20px; text-align: center; }
+            .logo { color: white; font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+            .header-text { color: #ffffff; font-size: 16px; opacity: 0.9; }
+            .content { padding: 40px 30px; }
+            .title { color: #1F3469; font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+            .vehicle-details { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1F3469; }
+            .offer-box { background: #dcfce7; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #16a34a; text-align: center; }
+            .contact-info { background: #f0f9f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .message-box { background: #fef3c7; border: 1px solid #fbbf24; padding: 15px; border-radius: 8px; margin: 20px 0; font-style: italic; }
+            .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
+            .info-row { margin: 10px 0; }
+            .label { font-weight: 600; color: #374151; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">Cars.na</div>
+              <div class="header-text">Great News About Your Vehicle!</div>
+            </div>
+
+            <div class="content">
+              <h1 class="title">🎉 A Dealer is Interested in Your Vehicle!</h1>
+
+              <p>Hello ${sellerData.sellerName},</p>
+
+              <p><strong>${sellerData.dealershipName}</strong> has expressed interest in your vehicle listing:</p>
+
+              <div class="vehicle-details">
+                <h3 style="margin-top: 0; color: #1F3469;">Your Vehicle</h3>
+                <div class="info-row">
+                  <span class="label">Year:</span> ${sellerData.vehicleDetails.year}
+                </div>
+                <div class="info-row">
+                  <span class="label">Make:</span> ${sellerData.vehicleDetails.make}
+                </div>
+                <div class="info-row">
+                  <span class="label">Model:</span> ${sellerData.vehicleDetails.model}
+                </div>
+                <div class="info-row">
+                  <span class="label">Category:</span> ${sellerData.vehicleDetails.category}
+                </div>
+              </div>
+
+              ${
+                sellerData.offerPrice
+                  ? `
+              <div class="offer-box">
+                <h3 style="margin-top: 0; color: #16a34a;">Offer Price</h3>
+                <p style="font-size: 28px; font-weight: bold; color: #16a34a; margin: 10px 0;">N$ ${sellerData.offerPrice.toLocaleString()}</p>
+              </div>
+              `
+                  : ''
+              }
+
+              ${
+                sellerData.message
+                  ? `
+              <div class="message-box">
+                <h4 style="margin-top: 0; color: #92400e;">Message from Dealer:</h4>
+                <p style="margin-bottom: 0; color: #92400e;">"${sellerData.message}"</p>
+              </div>
+              `
+                  : ''
+              }
+
+              <div class="contact-info">
+                <h3 style="margin-top: 0; color: #109B4A;">Contact Information</h3>
+                <div class="info-row">
+                  <span class="label">Dealership:</span> ${sellerData.dealershipName}
+                </div>
+                ${
+                  sellerData.dealerPhone
+                    ? `
+                <div class="info-row">
+                  <span class="label">Phone:</span> <a href="tel:${sellerData.dealerPhone}" style="color: #1F3469;">${sellerData.dealerPhone}</a>
+                </div>
+                `
+                    : ''
+                }
+                ${
+                  sellerData.dealerEmail
+                    ? `
+                <div class="info-row">
+                  <span class="label">Email:</span> <a href="mailto:${sellerData.dealerEmail}" style="color: #1F3469;">${sellerData.dealerEmail}</a>
+                </div>
+                `
+                    : ''
+                }
+                <p style="color: #6b7280; font-size: 14px; margin-top: 15px;">
+                  We recommend contacting the dealership directly to discuss the next steps.
+                </p>
+              </div>
+
+              <p>If you have any questions or concerns, please don't hesitate to reach out to us.</p>
+
+              <p>Best regards,<br>The Cars.na Team</p>
+            </div>
+
+            <div class="footer">
+              <p>This is an automated notification from Cars.na</p>
+              <p>© 2024 Cars.na. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  private generateDealerInterestText(sellerData: {
+    sellerName: string;
+    dealershipName: string;
+    dealerPhone?: string;
+    dealerEmail?: string;
+    vehicleDetails: {
+      year: number;
+      make: string;
+      model: string;
+      category: string;
+    };
+    offerPrice?: number;
+    message?: string;
+  }): string {
+    return `
+A Dealer is Interested in Your Vehicle!
+
+Hello ${sellerData.sellerName},
+
+${sellerData.dealershipName} has expressed interest in your vehicle listing:
+
+Your Vehicle:
+- Year: ${sellerData.vehicleDetails.year}
+- Make: ${sellerData.vehicleDetails.make}
+- Model: ${sellerData.vehicleDetails.model}
+- Category: ${sellerData.vehicleDetails.category}
+
+${sellerData.offerPrice ? `Offer Price: N$ ${sellerData.offerPrice.toLocaleString()}` : ''}
+
+${sellerData.message ? `Message from Dealer: "${sellerData.message}"` : ''}
+
+Contact Information:
+- Dealership: ${sellerData.dealershipName}
+${sellerData.dealerPhone ? `- Phone: ${sellerData.dealerPhone}` : ''}
+${sellerData.dealerEmail ? `- Email: ${sellerData.dealerEmail}` : ''}
+
+We recommend contacting the dealership directly to discuss the next steps.
+
+Best regards,
+The Cars.na Team
+
+---
+This is an automated notification from Cars.na
+    `;
+  }
+
+  private generateListingApprovedHTML(sellerData: {
+    sellerName: string;
+    vehicleDetails: {
+      year: number;
+      make: string;
+      model: string;
+      category: string;
+    };
+  }): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Listing Approved - Cars.na</title>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 0 auto; background: white; }
+            .header { background: linear-gradient(135deg, #16a34a 0%, #2EBA6A 100%); padding: 40px 20px; text-align: center; }
+            .logo { color: white; font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+            .header-text { color: #ffffff; font-size: 16px; opacity: 0.9; }
+            .content { padding: 40px 30px; }
+            .title { color: #16a34a; font-size: 24px; font-weight: bold; margin-bottom: 20px; text-align: center; }
+            .success-box { background: #dcfce7; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; border: 2px solid #16a34a; }
+            .vehicle-details { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a; }
+            .info-box { background: #f0f9f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
+            .info-row { margin: 10px 0; }
+            .label { font-weight: 600; color: #374151; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">Cars.na</div>
+              <div class="header-text">Your Listing is Now Live!</div>
+            </div>
+
+            <div class="content">
+              <h1 class="title">✅ Listing Approved!</h1>
+
+              <p>Hello ${sellerData.sellerName},</p>
+
+              <div class="success-box">
+                <h2 style="color: #16a34a; margin: 0; font-size: 20px;">Your listing is now visible to dealerships!</h2>
+              </div>
+
+              <p>Great news! Your vehicle listing has been reviewed and approved. It is now visible to dealerships in your area.</p>
+
+              <div class="vehicle-details">
+                <h3 style="margin-top: 0; color: #16a34a;">Vehicle Details</h3>
+                <div class="info-row">
+                  <span class="label">Year:</span> ${sellerData.vehicleDetails.year}
+                </div>
+                <div class="info-row">
+                  <span class="label">Make:</span> ${sellerData.vehicleDetails.make}
+                </div>
+                <div class="info-row">
+                  <span class="label">Model:</span> ${sellerData.vehicleDetails.model}
+                </div>
+                <div class="info-row">
+                  <span class="label">Category:</span> ${sellerData.vehicleDetails.category}
+                </div>
+              </div>
+
+              <div class="info-box">
+                <h3 style="margin-top: 0; color: #1F3469;">What happens next?</h3>
+                <ul style="color: #374151; line-height: 1.8;">
+                  <li>Dealerships in your area can now view your listing</li>
+                  <li>You'll receive email notifications when dealerships express interest</li>
+                  <li>Dealerships may contact you directly with offers</li>
+                  <li>You can respond to interested dealerships at your convenience</li>
+                </ul>
+              </div>
+
+              <p>We'll keep you updated on any interest from dealerships!</p>
+
+              <p>Best regards,<br>The Cars.na Team</p>
+            </div>
+
+            <div class="footer">
+              <p>This is an automated notification from Cars.na</p>
+              <p>© 2024 Cars.na. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  private generateListingApprovedText(sellerData: {
+    sellerName: string;
+    vehicleDetails: {
+      year: number;
+      make: string;
+      model: string;
+      category: string;
+    };
+  }): string {
+    return `
+Listing Approved!
+
+Hello ${sellerData.sellerName},
+
+Great news! Your vehicle listing has been reviewed and approved. It is now visible to dealerships in your area.
+
+Vehicle Details:
+- Year: ${sellerData.vehicleDetails.year}
+- Make: ${sellerData.vehicleDetails.make}
+- Model: ${sellerData.vehicleDetails.model}
+- Category: ${sellerData.vehicleDetails.category}
+
+What happens next?
+- Dealerships in your area can now view your listing
+- You'll receive email notifications when dealerships express interest
+- Dealerships may contact you directly with offers
+- You can respond to interested dealerships at your convenience
+
+We'll keep you updated on any interest from dealerships!
+
+Best regards,
+The Cars.na Team
+
+---
+This is an automated notification from Cars.na
     `;
   }
 }

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { api } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -56,11 +55,40 @@ export default function VehicleDetailPage() {
   const [showFinanceCalculator, setShowFinanceCalculator] = useState(false);
   const [similarCarsFilter, setSimilarCarsFilter] = useState('All');
 
-  // Use tRPC to fetch vehicle data
-  const { data: vehicle, isLoading, error } = api.vehicle.getById.useQuery(
-    { id: vehicleId },
-    { enabled: !!vehicleId }
-  );
+  // Fetch vehicle data using REST API
+  const [vehicle, setVehicle] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
+
+  // Create lead state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!vehicleId) return;
+
+    const fetchVehicle = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/vehicles/${vehicleId}`);
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Failed to fetch vehicle');
+        }
+
+        setVehicle(data.vehicle);
+        setError(null);
+      } catch (err: any) {
+        console.error('Error fetching vehicle:', err);
+        setError({ message: err.message });
+        setVehicle(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVehicle();
+  }, [vehicleId]);
 
   // Initialize finance form when vehicle loads
   useEffect(() => {
@@ -134,35 +162,42 @@ export default function VehicleDetailPage() {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
-  // tRPC mutation for creating leads
-  const createLead = api.lead.create.useMutation({
-    onSuccess: () => {
-      alert('Thank you for your inquiry! We will contact you soon.');
-      setContactForm({
-        name: '',
-        email: '',
-        phone: '',
-        message: ''
-      });
-    },
-    onError: (error) => {
-      alert(`Error submitting inquiry: ${error.message}`);
-    }
-  });
-
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!vehicle) return;
-    
-    createLead.mutate({
-      vehicleId: vehicle.id,
-      customerName: contactForm.name,
-      customerEmail: contactForm.email,
-      customerPhone: contactForm.phone,
-      message: contactForm.message,
-      source: 'CONTACT_FORM'
-    });
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicleId: vehicle.id,
+          customerName: contactForm.name,
+          customerEmail: contactForm.email,
+          customerPhone: contactForm.phone,
+          message: contactForm.message,
+          source: 'CONTACT_FORM'
+        })
+      });
+
+      if (response.ok) {
+        alert('Thank you for your inquiry! We will contact you soon.');
+        setContactForm({
+          name: '',
+          email: '',
+          phone: '',
+          message: ''
+        });
+      } else {
+        throw new Error('Failed to submit inquiry');
+      }
+    } catch (error: any) {
+      alert(`Error submitting inquiry: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Social Sharing Functions
@@ -595,12 +630,12 @@ export default function VehicleDetailPage() {
                       onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
                     />
                   </div>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full bg-[#CB2030] hover:bg-[#CB2030]/90 text-white"
-                    disabled={createLead.isLoading}
+                    disabled={isSubmitting}
                   >
-                    {createLead.isLoading ? (
+                    {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                         Sending...
@@ -676,85 +711,89 @@ export default function VehicleDetailPage() {
                     )}
                     
                     {/* Sales Team */}
-                    <div>
-                      <h5 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <User className="h-5 w-5 text-[#CB2030]" />
-                        Our Sales Team
-                      </h5>
-                      <div className="space-y-4">
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                              MV
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900">Michiel van Wyk</div>
-                              <div className="text-sm text-blue-600 font-medium">Senior Sales Executive</div>
-                              <div className="flex items-center gap-2 mt-2">
-                                <Phone className="h-4 w-4 text-green-500" />
-                                <span className="text-sm font-medium text-gray-900">+264 81 750 3953</span>
+                    {vehicle.dealership?.users && vehicle.dealership.users.length > 0 && (
+                      <div>
+                        <h5 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <User className="h-5 w-5 text-[#CB2030]" />
+                          Our Sales Team
+                        </h5>
+                        <div className="space-y-4">
+                          {vehicle.dealership.users.map((user: any, index: number) => {
+                            const gradients = [
+                              { bg: 'from-blue-50 to-indigo-50', avatar: 'from-blue-400 to-blue-600', text: 'text-blue-600' },
+                              { bg: 'from-green-50 to-emerald-50', avatar: 'from-green-400 to-green-600', text: 'text-green-600' },
+                              { bg: 'from-purple-50 to-pink-50', avatar: 'from-purple-400 to-pink-500', text: 'text-purple-600' },
+                              { bg: 'from-orange-50 to-amber-50', avatar: 'from-orange-400 to-amber-500', text: 'text-orange-600' },
+                            ];
+                            const gradient = gradients[index % gradients.length];
+                            const initials = user.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'U';
+                            const roleDisplay = user.jobTitle || (user.role === 'DEALER_PRINCIPAL' ? 'Sales Manager' : 'Sales Executive');
+                            const phoneNumber = user.whatsappNumber || user.phone || '';
+                            const whatsappNumber = phoneNumber.replace(/[^0-9]/g, '');
+
+                            return (
+                              <div key={user.id} className={`bg-gradient-to-r ${gradient.bg} rounded-lg p-4`}>
+                                <div className="flex items-start gap-4">
+                                  {user.profileImage ? (
+                                    <img
+                                      src={user.profileImage}
+                                      alt={user.name}
+                                      className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm"
+                                    />
+                                  ) : (
+                                    <div className={`w-16 h-16 bg-gradient-to-br ${gradient.avatar} rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0`}>
+                                      {initials}
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-semibold text-gray-900">{user.name}</div>
+                                    <div className={`text-sm ${gradient.text} font-medium mb-2`}>
+                                      {roleDisplay}
+                                      {user.yearsExperience && (
+                                        <span className="text-gray-600"> • {user.yearsExperience} years exp.</span>
+                                      )}
+                                    </div>
+                                    {user.bio && (
+                                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{user.bio}</p>
+                                    )}
+                                    {user.specialties && (
+                                      <div className="flex flex-wrap gap-1 mb-2">
+                                        {user.specialties.split(',').slice(0, 3).map((specialty: string, idx: number) => (
+                                          <span key={idx} className="text-xs bg-white/70 px-2 py-0.5 rounded">
+                                            {specialty.trim()}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                    {user.languages && (
+                                      <div className="text-xs text-gray-600 mb-2">
+                                        🌐 {user.languages}
+                                      </div>
+                                    )}
+                                    {phoneNumber && (
+                                      <div className="flex items-center gap-2 mt-2">
+                                        <Phone className="h-4 w-4 text-green-500" />
+                                        <span className="text-sm font-medium text-gray-900">{phoneNumber}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {whatsappNumber && (
+                                    <Button
+                                      size="sm"
+                                      className="bg-[#25D366] hover:bg-[#25D366]/90 text-white flex-shrink-0"
+                                      onClick={() => window.open(`https://wa.me/${whatsappNumber}?text=Hi, I'm interested in the ${vehicle.year} ${vehicle.make} ${vehicle.model}`, '_blank')}
+                                    >
+                                      <MessageCircle className="h-4 w-4 mr-1" />
+                                      Chat
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                            <Button 
-                              size="sm" 
-                              className="bg-[#25D366] hover:bg-[#25D366]/90 text-white"
-                              onClick={() => window.open(`https://wa.me/26481750395?text=Hi, I'm interested in the ${vehicle.year} ${vehicle.make} ${vehicle.model}`, '_blank')}
-                            >
-                              <MessageCircle className="h-4 w-4 mr-1" />
-                              WhatsApp
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                              WV
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900">William Versloos</div>
-                              <div className="text-sm text-green-600 font-medium">Sales Manager</div>
-                              <div className="flex items-center gap-2 mt-2">
-                                <Phone className="h-4 w-4 text-green-500" />
-                                <span className="text-sm font-medium text-gray-900">+264 81 278 6890</span>
-                              </div>
-                            </div>
-                            <Button 
-                              size="sm" 
-                              className="bg-[#25D366] hover:bg-[#25D366]/90 text-white"
-                              onClick={() => window.open(`https://wa.me/26481278689?text=Hi, I'm interested in the ${vehicle.year} ${vehicle.make} ${vehicle.model}`, '_blank')}
-                            >
-                              <MessageCircle className="h-4 w-4 mr-1" />
-                              WhatsApp
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                              JJ
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900">Jamie-Lee Jasson</div>
-                              <div className="text-sm text-purple-600 font-medium">Sales Consultant</div>
-                              <div className="flex items-center gap-2 mt-2">
-                                <Phone className="h-4 w-4 text-green-500" />
-                                <span className="text-sm font-medium text-gray-900">+264 81 854 4251</span>
-                              </div>
-                            </div>
-                            <Button 
-                              size="sm" 
-                              className="bg-[#25D366] hover:bg-[#25D366]/90 text-white"
-                              onClick={() => window.open(`https://wa.me/26481854425?text=Hi, I'm interested in the ${vehicle.year} ${vehicle.make} ${vehicle.model}`, '_blank')}
-                            >
-                              <MessageCircle className="h-4 w-4 mr-1" />
-                              WhatsApp
-                            </Button>
-                          </div>
+                            );
+                          })}
                         </div>
                       </div>
-                    </div>
+                    )}
                     
                     {/* Dealer Actions */}
                     <div className="pt-4 border-t">
