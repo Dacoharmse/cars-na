@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user || session.user.role !== 'DEALER') {
+    if (!session?.user || (session.user.role !== 'DEALER_PRINCIPAL' && session.user.role !== 'SALES_EXECUTIVE')) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized. Dealer access required.' },
         { status: 401 }
@@ -142,7 +142,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user || session.user.role !== 'DEALER') {
+    if (!session?.user || (session.user.role !== 'DEALER_PRINCIPAL' && session.user.role !== 'SALES_EXECUTIVE')) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized. Dealer access required.' },
         { status: 401 }

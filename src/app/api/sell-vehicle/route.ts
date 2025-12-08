@@ -133,7 +133,9 @@ export async function POST(req: NextRequest) {
         include: {
           users: {
             where: {
-              role: 'DEALER',
+              role: {
+                in: ['DEALER_PRINCIPAL', 'SALES_EXECUTIVE'],
+              },
             },
             select: {
               id: true,
