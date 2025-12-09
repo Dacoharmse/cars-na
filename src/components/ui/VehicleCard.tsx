@@ -80,6 +80,7 @@ const VehicleCard = React.forwardRef<HTMLDivElement, VehicleCardProps>(
             src={image}
             alt={`${year} ${make} ${model} - ${color} color, ${formatMileage(mileage)}`}
             className="w-full h-48 object-cover"
+            loading="lazy"
           />
           
           {/* Featured/Dealer Boost Badge */}
