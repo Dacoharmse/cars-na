@@ -163,7 +163,7 @@ export default function NotificationBell() {
                 <div
                   key={notification.id}
                   className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${
-                    !notification.read ? 'bg-blue-50' : ''
+                    !notification.read ? 'bg-blue-50/80' : 'bg-white'
                   }`}
                   onClick={() => {
                     if (!notification.read) {
@@ -187,7 +187,7 @@ export default function NotificationBell() {
                           <div className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-1"></div>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2 break-words">
                         {notification.message}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">

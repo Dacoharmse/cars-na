@@ -133,7 +133,7 @@ export default function Header() {
                   href="/dealers/register"
                   className="flex items-center gap-1 md:gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#1F3469] dark:hover:text-white transition-colors group"
                 >
-                  <Pencil className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> 
+                  <Pencil className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                   <span className="whitespace-nowrap">Dealership Register</span>
                 </Link>
               </>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { emailService } from '@/lib/email';
 
 // UPDATE dealership status or details
 export async function PATCH(
@@ -57,7 +58,7 @@ export async function PATCH(
       }
     });
 
-    // If approving, also activate the dealer principal user
+    // If approving, also activate the dealer principal user and send approval email
     if (status === 'APPROVED') {
       await prisma.user.updateMany({
         where: {
@@ -69,6 +70,19 @@ export async function PATCH(
           isActive: true
         }
       });
+
+      // Send approval email to the dealer
+      try {
+        await emailService.sendDealerApprovalEmail({
+          name: updatedDealership.name,
+          email: updatedDealership.email,
+          dealershipName: updatedDealership.name,
+        });
+        console.log(`Approval email sent to ${updatedDealership.email}`);
+      } catch (emailError) {
+        console.error('Failed to send approval email:', emailError);
+        // Continue even if email fails - approval was successful
+      }
     }
 
     return NextResponse.json({
