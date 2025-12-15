@@ -3372,12 +3372,24 @@ function AdminDashboardContent() {
   const handleLogout = async () => {
     try {
       console.log('Logging out...');
-      await signOut({
-        callbackUrl: '/admin/login',
-        redirect: true
-      });
+      // Clear localStorage auth
+      localStorage.removeItem('adminLoggedIn');
+      localStorage.removeItem('adminUser');
+
+      // Also try to sign out from NextAuth if session exists
+      if (session) {
+        await signOut({
+          callbackUrl: '/admin-auth',
+          redirect: true
+        });
+      } else {
+        // Redirect manually if no NextAuth session
+        router.push('/admin-auth');
+      }
     } catch (error) {
       console.error('Logout error:', error);
+      // Fallback: redirect anyway
+      router.push('/admin-auth');
     }
   };
 
@@ -3816,6 +3828,30 @@ function AdminDashboardContent() {
                   />
                 </div>
                 <NotificationPanel />
+
+                {/* Admin User Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                        <Shield className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="text-left hidden md:block">
+                        <p className="text-sm font-medium text-gray-900">Admin</p>
+                        <p className="text-xs text-gray-500">System Administrator</p>
+                      </div>
+                      <ChevronDown className="h-4 w-4 text-gray-500" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>

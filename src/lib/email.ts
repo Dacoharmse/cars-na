@@ -265,6 +265,61 @@ class EmailService {
     return await this.sendEmail(sellerData.sellerEmail, template);
   }
 
+  // Admin notification when new dealer registers
+  async sendAdminNewDealerNotification(dealershipData: {
+    dealershipName: string;
+    contactPerson: string;
+    email: string;
+    phone: string;
+    city: string;
+    region: string;
+    businessType: string;
+    subscriptionPlan: string;
+    dealershipId: string;
+  }): Promise<boolean> {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@cars.na';
+    const template: EmailTemplate = {
+      subject: `New Dealer Registration - ${dealershipData.dealershipName}`,
+      html: this.generateAdminNewDealerHTML(dealershipData),
+      text: this.generateAdminNewDealerText(dealershipData),
+    };
+
+    return await this.sendEmail(adminEmail, template);
+  }
+
+  // Dealer confirmation when they register
+  async sendDealerRegistrationConfirmation(dealerData: {
+    name: string;
+    email: string;
+    dealershipName: string;
+    subscriptionPlan: string;
+  }): Promise<boolean> {
+    const template: EmailTemplate = {
+      subject: 'Registration Successful - Welcome to Cars.na!',
+      html: this.generateDealerRegistrationHTML(dealerData),
+      text: this.generateDealerRegistrationText(dealerData),
+    };
+
+    return await this.sendEmail(dealerData.email, template);
+  }
+
+  // Notification when dealer adds a new user
+  async sendNewUserAddedNotification(userData: {
+    name: string;
+    email: string;
+    dealershipName: string;
+    role: string;
+    tempPassword?: string;
+  }): Promise<boolean> {
+    const template: EmailTemplate = {
+      subject: `You've been added to ${userData.dealershipName} on Cars.na`,
+      html: this.generateNewUserAddedHTML(userData),
+      text: this.generateNewUserAddedText(userData),
+    };
+
+    return await this.sendEmail(userData.email, template);
+  }
+
   // HTML Email Templates
   private generateWelcomeEmailHTML(userData: UserData): string {
     return `
@@ -1219,6 +1274,317 @@ The Cars.na Team
 
 ---
 This is an automated notification from Cars.na
+    `;
+  }
+
+  // Admin New Dealer Notification HTML
+  private generateAdminNewDealerHTML(dealershipData: {
+    dealershipName: string;
+    contactPerson: string;
+    email: string;
+    phone: string;
+    city: string;
+    region: string;
+    businessType: string;
+    subscriptionPlan: string;
+    dealershipId: string;
+  }): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>New Dealer Registration</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #1F3469 0%, #3B4F86 100%); padding: 30px 20px; text-align: center;">
+              <h1 style="color: white; margin: 0;">Cars.na Admin</h1>
+              <p style="color: #ffffff; opacity: 0.9; margin: 10px 0 0 0;">New Dealer Registration</p>
+            </div>
+
+            <div style="padding: 30px 20px;">
+              <h2 style="color: #1F3469; margin-top: 0;">New Dealer Application</h2>
+
+              <p style="color: #374151; line-height: 1.6;">
+                A new dealership has registered on Cars.na and requires your approval.
+              </p>
+
+              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #1F3469; margin-top: 0;">Dealership Details</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Business Name:</td>
+                    <td style="padding: 8px 0; color: #374151;">${dealershipData.dealershipName}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Contact Person:</td>
+                    <td style="padding: 8px 0; color: #374151;">${dealershipData.contactPerson}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Email:</td>
+                    <td style="padding: 8px 0; color: #374151;">${dealershipData.email}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Phone:</td>
+                    <td style="padding: 8px 0; color: #374151;">${dealershipData.phone}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Location:</td>
+                    <td style="padding: 8px 0; color: #374151;">${dealershipData.city}, ${dealershipData.region}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Business Type:</td>
+                    <td style="padding: 8px 0; color: #374151;">${dealershipData.businessType}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Subscription Plan:</td>
+                    <td style="padding: 8px 0; color: #374151;">${dealershipData.subscriptionPlan}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <a href="${process.env.NEXTAUTH_URL || 'https://cars.na'}/admin/dealerships/${dealershipData.dealershipId}"
+                 style="display: inline-block; background: linear-gradient(135deg, #1F3469 0%, #3B4F86 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0;">
+                Review Application
+              </a>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #6b7280; font-size: 14px;">
+              <p style="margin: 0;">This is an automated notification from Cars.na Admin Panel</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  // Admin New Dealer Notification Text
+  private generateAdminNewDealerText(dealershipData: {
+    dealershipName: string;
+    contactPerson: string;
+    email: string;
+    phone: string;
+    city: string;
+    region: string;
+    businessType: string;
+    subscriptionPlan: string;
+    dealershipId: string;
+  }): string {
+    return `
+New Dealer Registration - Cars.na
+
+A new dealership has registered and requires your approval.
+
+DEALERSHIP DETAILS:
+--------------------
+Business Name: ${dealershipData.dealershipName}
+Contact Person: ${dealershipData.contactPerson}
+Email: ${dealershipData.email}
+Phone: ${dealershipData.phone}
+Location: ${dealershipData.city}, ${dealershipData.region}
+Business Type: ${dealershipData.businessType}
+Subscription Plan: ${dealershipData.subscriptionPlan}
+
+Review this application at:
+${process.env.NEXTAUTH_URL || 'https://cars.na'}/admin/dealerships/${dealershipData.dealershipId}
+
+---
+This is an automated notification from Cars.na
+    `;
+  }
+
+  // Dealer Registration Confirmation HTML
+  private generateDealerRegistrationHTML(dealerData: {
+    name: string;
+    dealershipName: string;
+    subscriptionPlan: string;
+  }): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Registration Successful</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #1F3469 0%, #3B4F86 100%); padding: 40px 20px; text-align: center;">
+              <h1 style="color: white; margin: 0;">Cars.na</h1>
+              <p style="color: #ffffff; opacity: 0.9; margin: 10px 0 0 0;">Namibia's Leading Automotive Platform</p>
+            </div>
+
+            <div style="padding: 40px 30px;">
+              <h2 style="color: #1F3469; margin-top: 0;">Registration Successful!</h2>
+
+              <p style="color: #374151; line-height: 1.6;">
+                Dear ${dealerData.name},
+              </p>
+
+              <p style="color: #374151; line-height: 1.6;">
+                Thank you for registering <strong>${dealerData.dealershipName}</strong> on Cars.na! Your application has been received and is currently under review by our admin team.
+              </p>
+
+              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #1F3469; margin-top: 0;">What happens next?</h3>
+                <ul style="color: #374151; line-height: 1.8; padding-left: 20px;">
+                  <li>Our team will review your dealership application</li>
+                  <li>You'll receive an email notification once your application is approved</li>
+                  <li>After approval, you can start listing your vehicles</li>
+                  <li>Your subscription plan: <strong>${dealerData.subscriptionPlan}</strong></li>
+                </ul>
+              </div>
+
+              <p style="color: #374151; line-height: 1.6;">
+                <strong>Need help?</strong> Contact us at admin@cars.na or visit our Help Center.
+              </p>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 30px; text-align: center; color: #6b7280; font-size: 14px;">
+              <p style="margin: 0;">© 2024 Cars.na. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  // Dealer Registration Confirmation Text
+  private generateDealerRegistrationText(dealerData: {
+    name: string;
+    dealershipName: string;
+    subscriptionPlan: string;
+  }): string {
+    return `
+Registration Successful - Welcome to Cars.na!
+
+Dear ${dealerData.name},
+
+Thank you for registering ${dealerData.dealershipName} on Cars.na! Your application has been received and is currently under review by our admin team.
+
+WHAT HAPPENS NEXT?
+- Our team will review your dealership application
+- You'll receive an email notification once your application is approved
+- After approval, you can start listing your vehicles
+- Your subscription plan: ${dealerData.subscriptionPlan}
+
+Need help? Contact us at admin@cars.na or visit our Help Center.
+
+Best regards,
+The Cars.na Team
+
+---
+© 2024 Cars.na. All rights reserved.
+    `;
+  }
+
+  // New User Added Notification HTML
+  private generateNewUserAddedHTML(userData: {
+    name: string;
+    dealershipName: string;
+    role: string;
+    tempPassword?: string;
+  }): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Welcome to ${userData.dealershipName}</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #1F3469 0%, #3B4F86 100%); padding: 40px 20px; text-align: center;">
+              <h1 style="color: white; margin: 0;">Cars.na</h1>
+              <p style="color: #ffffff; opacity: 0.9; margin: 10px 0 0 0;">Team Member Invitation</p>
+            </div>
+
+            <div style="padding: 40px 30px;">
+              <h2 style="color: #1F3469; margin-top: 0;">Welcome to ${userData.dealershipName}!</h2>
+
+              <p style="color: #374151; line-height: 1.6;">
+                Hi ${userData.name},
+              </p>
+
+              <p style="color: #374151; line-height: 1.6;">
+                You've been added as a team member for <strong>${userData.dealershipName}</strong> on Cars.na.
+              </p>
+
+              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #1F3469; margin-top: 0;">Account Details</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Role:</td>
+                    <td style="padding: 8px 0; color: #374151;">${userData.role}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Dealership:</td>
+                    <td style="padding: 8px 0; color: #374151;">${userData.dealershipName}</td>
+                  </tr>
+                  ${userData.tempPassword ? `
+                  <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Temporary Password:</td>
+                    <td style="padding: 8px 0; color: #374151; font-family: monospace; background: #fef3c7; padding: 4px 8px; border-radius: 4px;">${userData.tempPassword}</td>
+                  </tr>
+                  ` : ''}
+                </table>
+              </div>
+
+              ${userData.tempPassword ? `
+              <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+                <p style="color: #92400e; margin: 0; font-weight: 600;">⚠️ Important Security Notice</p>
+                <p style="color: #92400e; margin: 10px 0 0 0;">Please change your temporary password after your first login for security.</p>
+              </div>
+              ` : ''}
+
+              <a href="${process.env.NEXTAUTH_URL || 'https://cars.na'}/dealer/login"
+                 style="display: inline-block; background: linear-gradient(135deg, #1F3469 0%, #3B4F86 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0;">
+                Login to Dashboard
+              </a>
+
+              <p style="color: #374151; line-height: 1.6;">
+                <strong>Need help?</strong> Contact your dealership administrator or email us at admin@cars.na
+              </p>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 30px; text-align: center; color: #6b7280; font-size: 14px;">
+              <p style="margin: 0;">© 2024 Cars.na. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  // New User Added Notification Text
+  private generateNewUserAddedText(userData: {
+    name: string;
+    dealershipName: string;
+    role: string;
+    tempPassword?: string;
+  }): string {
+    return `
+Welcome to ${userData.dealershipName}!
+
+Hi ${userData.name},
+
+You've been added as a team member for ${userData.dealershipName} on Cars.na.
+
+ACCOUNT DETAILS:
+Role: ${userData.role}
+Dealership: ${userData.dealershipName}
+${userData.tempPassword ? `Temporary Password: ${userData.tempPassword}\n\n⚠️ IMPORTANT: Please change your temporary password after your first login for security.` : ''}
+
+Login to your dashboard at:
+${process.env.NEXTAUTH_URL || 'https://cars.na'}/dealer/login
+
+Need help? Contact your dealership administrator or email us at admin@cars.na
+
+Best regards,
+The Cars.na Team
+
+---
+© 2024 Cars.na. All rights reserved.
     `;
   }
 }

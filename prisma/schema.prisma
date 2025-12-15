@@ -185,6 +185,16 @@ model Vehicle {
   leads                   Lead[]
   featuredListings        FeaturedListing[]
   featuredListingRequests FeaturedListingRequest[]
+
+  // Indexes for better query performance
+  @@index([status])
+  @@index([featured, status])
+  @@index([dealerPick, status])
+  @@index([isNew, status])
+  @@index([viewCount])
+  @@index([createdAt])
+  @@index([dealershipId])
+  @@index([status, createdAt])
 }
 
 // VehicleImage model for car images

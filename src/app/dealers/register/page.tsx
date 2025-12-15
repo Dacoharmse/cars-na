@@ -139,27 +139,22 @@ const NAMIBIAN_CITIES = [
   // Towns - Oshana Region
   'Ondangwa',
   'Ongwediva',
-  'Oshakati',
 
   // Towns - Oshikoto Region
   'Omuthiya',
-  'Tsumeb',
   'Onayena',
 
   // Towns - Otjozondjupa Region
   'Okakarara',
   'Otavi',
-  'Okahandja',
 
   // Towns - Zambezi Region (Caprivi)
-  'Katima Mulilo',
   'Bukalo',
   'Ngoma',
   'Linyanti',
 
   // Other Notable Towns
   'Aroab',
-  'Aranos',
   'Aminuis',
   'Gibeon',
   'Hoachanas',

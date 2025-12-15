@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export const Footer: React.FC = () => {
   return (
@@ -8,12 +9,15 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">C</span>
-              </div>
-              <span className="text-xl font-bold">Cars.na</span>
-            </div>
+            <Link href="/" className="flex items-center space-x-2 mb-4 hover:opacity-80 transition-opacity">
+              <Image
+                src="/cars-na-logo.png"
+                alt="Cars.na Logo"
+                width={120}
+                height={40}
+                className="h-10 w-auto"
+              />
+            </Link>
             <p className="text-neutral-400 text-sm mb-4">
               Your trusted marketplace for buying and selling quality vehicles.
             </p>

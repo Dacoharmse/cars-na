@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
+import { emailService } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -143,8 +144,35 @@ export async function POST(request: NextRequest) {
       return { dealership, user, subscription };
     });
 
-    // TODO: Send verification email
-    // For now, we'll just return success
+    // Send email notifications
+    try {
+      // Send notification to admin about new dealer registration
+      await emailService.sendAdminNewDealerNotification({
+        dealershipName: result.dealership.name,
+        contactPerson: data.contactPerson,
+        email: data.email,
+        phone: data.phone,
+        city: data.city,
+        region: data.region,
+        businessType: data.businessType,
+        subscriptionPlan: subscriptionPlan.name,
+        dealershipId: result.dealership.id,
+      });
+
+      // Send confirmation email to the dealer
+      await emailService.sendDealerRegistrationConfirmation({
+        name: data.contactPerson,
+        email: data.email,
+        dealershipName: result.dealership.name,
+        subscriptionPlan: subscriptionPlan.name,
+      });
+
+      console.log('Registration emails sent successfully');
+    } catch (emailError) {
+      console.error('Failed to send registration emails:', emailError);
+      // Continue even if emails fail - registration was successful
+    }
+
     console.log('New dealership registration:', {
       dealershipId: result.dealership.id,
       dealershipName: result.dealership.name,
@@ -156,7 +184,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Registration successful! Your application is pending admin approval. You will receive an email once approved.',
+      message: 'Registration successful! Your application is pending admin approval. Check your email for further details.',
       dealershipId: result.dealership.id
     }, { status: 201 });
 
