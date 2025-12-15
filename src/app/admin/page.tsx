@@ -3376,20 +3376,23 @@ function AdminDashboardContent() {
       localStorage.removeItem('adminLoggedIn');
       localStorage.removeItem('adminUser');
 
+      // Get current origin to build absolute URL
+      const origin = window.location.origin;
+
       // Also try to sign out from NextAuth if session exists
       if (session) {
         await signOut({
-          callbackUrl: '/admin-auth',
+          callbackUrl: `${origin}/admin/login`,
           redirect: true
         });
       } else {
         // Redirect manually if no NextAuth session
-        router.push('/admin-auth');
+        router.push('/admin/login');
       }
     } catch (error) {
       console.error('Logout error:', error);
       // Fallback: redirect anyway
-      router.push('/admin-auth');
+      router.push('/admin/login');
     }
   };
 

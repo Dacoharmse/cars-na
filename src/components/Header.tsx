@@ -108,7 +108,9 @@ export default function Header() {
                 <button
                   onClick={() => {
                     const isAdmin = (session?.user as any)?.role === 'ADMIN' || session?.user?.email === 'admin@cars.na';
-                    signOut({ callbackUrl: isAdmin ? '/admin/login' : '/dealer/login' });
+                    const origin = window.location.origin;
+                    const callbackUrl = isAdmin ? `${origin}/admin/login` : `${origin}/dealer/login`;
+                    signOut({ callbackUrl });
                   }}
                   className="flex items-center gap-1 md:gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 transition-colors group"
                 >
