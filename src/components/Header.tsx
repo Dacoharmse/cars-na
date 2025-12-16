@@ -210,16 +210,25 @@ export default function Header() {
 
         {/* Mobile Drawer */}
         {mobileOpen && (
-          <div
-            className="lg:hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
-            onClick={() => setMobileOpen(false)}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="mobile-menu-title"
-          >
+          <>
+            {/* Backdrop */}
+            <div
+              className="lg:hidden fixed inset-0 bg-black/60"
+              style={{ zIndex: 9998 }}
+              onClick={() => setMobileOpen(false)}
+              role="button"
+              tabIndex={-1}
+              aria-label="Close menu"
+            />
+
+            {/* Menu Panel */}
             <div
               id="mobile-menu"
-              className="absolute top-0 right-0 w-72 h-full bg-white dark:bg-slate-900 shadow-2xl p-6 flex flex-col gap-6 overflow-y-auto"
+              className="lg:hidden fixed top-0 right-0 bottom-0 w-72 bg-white dark:bg-slate-900 shadow-2xl p-6 flex flex-col gap-6 overflow-y-auto"
+              style={{ zIndex: 9999 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mobile-menu-title"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between">
@@ -239,7 +248,7 @@ export default function Header() {
               <nav aria-label="Mobile navigation">
                 <ul role="list" className="flex flex-col gap-4">
                   <li>
-                    <DealersDropdown isMobile={true} />
+                    <DealersDropdown isMobile={true} onNavigate={() => setMobileOpen(false)} />
                   </li>
                   {navLinks.map(({ href, label }) => (
                     <li key={href}>
@@ -268,7 +277,7 @@ export default function Header() {
                 <Search className="w-4 h-4" aria-hidden="true" /> Search
               </button>
             </div>
-          </div>
+          </>
         )}
       </header>
 

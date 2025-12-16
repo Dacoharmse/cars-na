@@ -20,9 +20,10 @@ interface TownGroup {
 
 interface DealersDropdownProps {
   isMobile?: boolean;
+  onNavigate?: () => void;
 }
 
-export default function DealersDropdown({ isMobile = false }: DealersDropdownProps) {
+export default function DealersDropdown({ isMobile = false, onNavigate }: DealersDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [dealerGroups, setDealerGroups] = useState<TownGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +81,10 @@ export default function DealersDropdown({ isMobile = false }: DealersDropdownPro
             <Link
               href="/dealers"
               className="block text-sm text-slate-600 dark:text-slate-400 hover:text-primary py-1 transition-colors"
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+                onNavigate?.();
+              }}
             >
               All Dealers
             </Link>
@@ -98,7 +102,10 @@ export default function DealersDropdown({ isMobile = false }: DealersDropdownPro
                       key={dealer.id}
                       href={`/dealership/${dealer.slug}`}
                       className="block pl-3 text-sm text-slate-600 dark:text-slate-400 hover:text-primary py-1 transition-colors"
-                      onClick={() => setIsOpen(false)}
+                      onClick={() => {
+                        setIsOpen(false);
+                        onNavigate?.();
+                      }}
                     >
                       {dealer.name}
                     </Link>
