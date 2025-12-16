@@ -7,11 +7,11 @@ const toastVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-white border-neutral-200",
-        success: "bg-success-light border-success text-success",
-        error: "bg-error-light border-error text-error",
-        warning: "bg-warning-light border-warning text-warning",
-        info: "bg-info-light border-info text-info",
+        default: "bg-white dark:bg-slate-800 border-neutral-200 dark:border-slate-700",
+        success: "bg-green-50 dark:bg-green-900/20 border-green-500 text-green-800 dark:text-green-200",
+        error: "bg-red-50 dark:bg-red-900/20 border-red-500 text-red-800 dark:text-red-200",
+        warning: "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500 text-yellow-800 dark:text-yellow-200",
+        info: "bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-800 dark:text-blue-200",
       },
       position: {
         topRight: "fixed top-4 right-4 md:max-w-[420px]",
