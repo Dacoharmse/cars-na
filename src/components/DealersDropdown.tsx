@@ -7,6 +7,7 @@ import { ChevronDown } from 'lucide-react';
 interface Dealership {
   id: string;
   name: string;
+  slug: string;
   city: string | null;
   streetAddress: string | null;
   phone: string | null;
@@ -65,38 +66,38 @@ export default function DealersDropdown({ isMobile = false }: DealersDropdownPro
 
   if (isMobile) {
     return (
-      <div className="py-2">
+      <div className="border-b border-slate-200 dark:border-slate-700 pb-2">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between px-4 py-2 text-neutral-900 hover:text-blue-600 transition-colors"
+          className="w-full flex items-center justify-between text-base font-semibold text-slate-700 dark:text-slate-100 hover:text-primary transition-colors px-2 py-1"
         >
           <span>Dealers</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {isOpen && (
-          <div className="bg-neutral-50 py-2">
+          <div className="mt-2 pl-4 space-y-1">
             <Link
               href="/dealers"
-              className="block px-8 py-2 text-sm text-neutral-700 hover:text-blue-600 hover:bg-white transition-colors"
+              className="block text-sm text-slate-600 dark:text-slate-400 hover:text-primary py-1 transition-colors"
               onClick={() => setIsOpen(false)}
             >
               All Dealers
             </Link>
 
             {loading ? (
-              <div className="px-8 py-2 text-sm text-neutral-500">Loading...</div>
+              <div className="text-sm text-slate-500 py-1">Loading...</div>
             ) : (
-              dealerGroups.map((group) => (
+              dealerGroups.slice(0, 3).map((group) => (
                 <div key={group.town} className="py-1">
-                  <div className="px-8 py-2 text-xs font-semibold text-neutral-900 uppercase tracking-wider">
+                  <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 uppercase tracking-wider py-1">
                     {group.town}
                   </div>
-                  {group.dealerships.map((dealer) => (
+                  {group.dealerships.slice(0, 2).map((dealer) => (
                     <Link
                       key={dealer.id}
-                      href={`/dealers/${dealer.id}`}
-                      className="block px-10 py-2 text-sm text-neutral-600 hover:text-blue-600 hover:bg-white transition-colors"
+                      href={`/dealership/${dealer.slug}`}
+                      className="block pl-3 text-sm text-slate-600 dark:text-slate-400 hover:text-primary py-1 transition-colors"
                       onClick={() => setIsOpen(false)}
                     >
                       {dealer.name}
@@ -129,7 +130,7 @@ export default function DealersDropdown({ isMobile = false }: DealersDropdownPro
 
       {isOpen && (
         <div
-          className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-neutral-200 max-h-[80vh] overflow-y-auto z-50"
+          className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-neutral-200 max-h-[80vh] overflow-y-auto z-[70]"
           onMouseEnter={() => setIsOpen(true)}
           onMouseLeave={() => setIsOpen(false)}
         >
@@ -157,7 +158,7 @@ export default function DealersDropdown({ isMobile = false }: DealersDropdownPro
                   {group.dealerships.map((dealer) => (
                     <Link
                       key={dealer.id}
-                      href={`/dealers/${dealer.id}`}
+                      href={`/dealership/${dealer.slug}`}
                       className="block px-6 py-2 text-sm text-neutral-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                       onClick={() => setIsOpen(false)}
                     >
