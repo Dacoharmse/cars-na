@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -26,6 +27,11 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cpOpen, setCpOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const onScroll = useCallback(() => {
     setScrolled(window.scrollY > 80);
@@ -208,8 +214,8 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Drawer */}
-        {mobileOpen && (
+        {/* Mobile Drawer - Rendered via Portal */}
+        {mounted && mobileOpen && createPortal(
           <>
             {/* Backdrop */}
             <div
@@ -277,7 +283,8 @@ export default function Header() {
                 <Search className="w-4 h-4" aria-hidden="true" /> Search
               </button>
             </div>
-          </>
+          </>,
+          document.body
         )}
       </header>
 

@@ -81,17 +81,18 @@ export default function CarFilterSearch({ open, onClose }: Props) {
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
         </Transition.Child>
 
-        <div className="fixed inset-0 flex items-start justify-center pt-16">
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-200"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="ease-in duration-150"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
-          >
-            <Dialog.Panel className="w-full max-w-2xl mx-4 rounded-xl bg-white dark:bg-slate-900 shadow-xl ring-1 ring-slate-200 dark:ring-slate-700">
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-start justify-center p-4 pt-16">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-200"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-150"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-2xl rounded-xl bg-white dark:bg-slate-900 shadow-xl ring-1 ring-slate-200 dark:ring-slate-700 max-h-[calc(100vh-8rem)] overflow-y-auto">
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
                 <div className="flex items-center gap-3">
@@ -258,8 +259,9 @@ export default function CarFilterSearch({ open, onClose }: Props) {
                   </button>
                 </div>
               </div>
-            </Dialog.Panel>
-          </Transition.Child>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
         </div>
       </Dialog>
     </Transition.Root>
