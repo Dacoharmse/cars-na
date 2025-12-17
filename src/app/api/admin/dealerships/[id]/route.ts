@@ -4,6 +4,16 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email';
 
+// Helper function to generate a unique slug from dealership name
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .trim();
+}
+
 // UPDATE dealership status or details
 export async function PATCH(
   request: NextRequest,
@@ -48,11 +58,38 @@ export async function PATCH(
       });
     }
 
+    // Fetch the dealership to get its name for slug generation
+    const dealership = await prisma.dealership.findUnique({
+      where: { id }
+    });
+
+    if (!dealership) {
+      return NextResponse.json(
+        { success: false, error: 'Dealership not found' },
+        { status: 404 }
+      );
+    }
+
+    // Generate slug if approving and no slug exists
+    let slug = dealership.slug;
+    if (status === 'APPROVED' && !slug) {
+      let baseSlug = generateSlug(dealership.name);
+      slug = baseSlug;
+
+      // Ensure slug is unique by appending a number if needed
+      let counter = 1;
+      while (await prisma.dealership.findUnique({ where: { slug } })) {
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+    }
+
     // Update the database for status changes
     const updatedDealership = await prisma.dealership.update({
       where: { id },
       data: {
         status,
+        slug: slug || dealership.slug,
         updatedAt: new Date(),
         isVerified: status === 'APPROVED' ? true : false
       }

@@ -7,7 +7,7 @@ import { ChevronDown } from 'lucide-react';
 interface Dealership {
   id: string;
   name: string;
-  slug: string;
+  slug: string | null;
   city: string | null;
   streetAddress: string | null;
   phone: string | null;
@@ -98,17 +98,27 @@ export default function DealersDropdown({ isMobile = false, onNavigate }: Dealer
                     {group.town}
                   </div>
                   {group.dealerships.slice(0, 2).map((dealer) => (
-                    <Link
-                      key={dealer.id}
-                      href={`/dealership/${dealer.slug}`}
-                      className="block pl-3 text-sm text-slate-600 dark:text-slate-400 hover:text-primary py-1 transition-colors"
-                      onClick={() => {
-                        setIsOpen(false);
-                        onNavigate?.();
-                      }}
-                    >
-                      {dealer.name}
-                    </Link>
+                    dealer.slug ? (
+                      <Link
+                        key={dealer.id}
+                        href={`/dealership/${dealer.slug}`}
+                        className="block pl-3 text-sm text-slate-600 dark:text-slate-400 hover:text-primary py-1 transition-colors"
+                        onClick={() => {
+                          setIsOpen(false);
+                          onNavigate?.();
+                        }}
+                      >
+                        {dealer.name}
+                      </Link>
+                    ) : (
+                      <div
+                        key={dealer.id}
+                        className="block pl-3 text-sm text-slate-400 dark:text-slate-500 py-1 cursor-not-allowed"
+                        title="Profile not yet available"
+                      >
+                        {dealer.name}
+                      </div>
+                    )
                   ))}
                 </div>
               ))
@@ -163,14 +173,24 @@ export default function DealersDropdown({ isMobile = false, onNavigate }: Dealer
                 </div>
                 <div className="py-1">
                   {group.dealerships.map((dealer) => (
-                    <Link
-                      key={dealer.id}
-                      href={`/dealership/${dealer.slug}`}
-                      className="block px-6 py-2 text-sm text-neutral-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {dealer.name}
-                    </Link>
+                    dealer.slug ? (
+                      <Link
+                        key={dealer.id}
+                        href={`/dealership/${dealer.slug}`}
+                        className="block px-6 py-2 text-sm text-neutral-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {dealer.name}
+                      </Link>
+                    ) : (
+                      <div
+                        key={dealer.id}
+                        className="block px-6 py-2 text-sm text-neutral-400 cursor-not-allowed"
+                        title="Profile not yet available"
+                      >
+                        {dealer.name}
+                      </div>
+                    )
                   ))}
                 </div>
               </div>
