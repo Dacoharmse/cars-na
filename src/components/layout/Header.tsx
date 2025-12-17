@@ -87,9 +87,6 @@ export const Header: React.FC = () => {
               <Link href="/sell" className="text-white hover:text-neutral-200 transition-colors font-medium">
                 Sell Your Car
               </Link>
-              <Link href="/dealers" className="text-white hover:text-neutral-200 transition-colors font-medium">
-                Dealers
-              </Link>
               <Link href="/financing" className="text-white hover:text-neutral-200 transition-colors font-medium">
                 Financing
               </Link>
@@ -163,29 +160,22 @@ export const Header: React.FC = () => {
               </div>
               
               <nav className="flex flex-col space-y-4 px-4">
-                <Link 
-                  href="/vehicles" 
+                <Link
+                  href="/vehicles"
                   className="text-white hover:text-neutral-200 transition-colors font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Buy Cars
                 </Link>
-                <Link 
-                  href="/sell" 
+                <Link
+                  href="/sell"
                   className="text-white hover:text-neutral-200 transition-colors font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Sell Your Car
                 </Link>
-                <Link 
-                  href="/dealers" 
-                  className="text-white hover:text-neutral-200 transition-colors font-medium"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Dealers
-                </Link>
-                <Link 
-                  href="/financing" 
+                <Link
+                  href="/financing"
                   className="text-white hover:text-neutral-200 transition-colors font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

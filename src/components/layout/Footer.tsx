@@ -46,7 +46,6 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2 text-sm">
               <li><Link href="/vehicles" className="text-neutral-400 hover:text-white transition-colors">Browse Cars</Link></li>
               <li><Link href="/sell" className="text-neutral-400 hover:text-white transition-colors">Sell Your Car</Link></li>
-              <li><Link href="/dealers" className="text-neutral-400 hover:text-white transition-colors">Find Dealers</Link></li>
               <li><Link href="/financing" className="text-neutral-400 hover:text-white transition-colors">Financing</Link></li>
             </ul>
           </div>

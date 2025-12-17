@@ -704,16 +704,7 @@ export default function Home() {
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold text-neutral-900 mb-4 group-hover:text-[#109B4A] transition-colors">Wide Range of Dealerships</h3>
-                  <p className="text-neutral-600 leading-relaxed mb-6">Browse through our network of trusted dealerships across Namibia, each offering quality vehicles and professional service.</p>
-                  <button 
-                    onClick={() => router.push('/dealers')}
-                    className="text-sm text-[#109B4A] font-medium flex items-center justify-center gap-2 group-hover:gap-3 transition-all hover:underline"
-                  >
-                    <span>View dealerships</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-1">
-                      <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                  </button>
+                  <p className="text-neutral-600 leading-relaxed">Browse through our network of trusted dealerships across Namibia, each offering quality vehicles and professional service. Find them in the Dealers menu.</p>
                 </CardContent>
               </Card>
             </div>

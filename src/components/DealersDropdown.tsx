@@ -78,26 +78,15 @@ export default function DealersDropdown({ isMobile = false, onNavigate }: Dealer
 
         {isOpen && (
           <div className="mt-2 pl-4 space-y-1">
-            <Link
-              href="/dealers"
-              className="block text-sm text-slate-600 dark:text-slate-400 hover:text-primary py-1 transition-colors"
-              onClick={() => {
-                setIsOpen(false);
-                onNavigate?.();
-              }}
-            >
-              All Dealers
-            </Link>
-
             {loading ? (
               <div className="text-sm text-slate-500 py-1">Loading...</div>
             ) : (
-              dealerGroups.slice(0, 3).map((group) => (
+              dealerGroups.map((group) => (
                 <div key={group.town} className="py-1">
                   <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 uppercase tracking-wider py-1">
                     {group.town}
                   </div>
-                  {group.dealerships.slice(0, 2).map((dealer) => (
+                  {group.dealerships.map((dealer) => (
                     dealer.slug ? (
                       <Link
                         key={dealer.id}
@@ -151,14 +140,6 @@ export default function DealersDropdown({ isMobile = false, onNavigate }: Dealer
           onMouseEnter={() => setIsOpen(true)}
           onMouseLeave={() => setIsOpen(false)}
         >
-          <Link
-            href="/dealers"
-            className="block px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 border-b border-neutral-200 transition-colors"
-            onClick={() => setIsOpen(false)}
-          >
-            View All Dealers
-          </Link>
-
           {loading ? (
             <div className="px-4 py-3 text-sm text-neutral-500">Loading dealerships...</div>
           ) : dealerGroups.length === 0 ? (

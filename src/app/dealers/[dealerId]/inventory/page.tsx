@@ -151,9 +151,9 @@ export default function DealerInventoryPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Dealer Not Found</h1>
-            <Button onClick={() => router.push('/dealers')}>
+            <Button onClick={() => router.push('/')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dealers
+              Back to Home
             </Button>
           </div>
         </div>
