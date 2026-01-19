@@ -94,14 +94,6 @@ export default function FinancingPage() {
                 Get pre-approved for your dream car with competitive rates from Namibia's leading banks. 
                 Calculate your payments and apply online today.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-white text-[#1F3469] hover:bg-gray-100">
-                  Get Pre-Approved
-                </Button>
-                <Button variant="outline" size="lg" className="text-white border-white hover:bg-white hover:text-[#1F3469]">
-                  Calculate Payments
-                </Button>
-              </div>
             </div>
           </div>
         </section>

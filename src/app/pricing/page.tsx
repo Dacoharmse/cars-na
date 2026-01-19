@@ -398,7 +398,7 @@ export default function PricingPage() {
             </Button>
             <Button variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3">
               <Phone className="w-4 h-4 mr-2" />
-              Call Sales: +264 61 000 000
+              Call Sales: +264 81 449 4433
             </Button>
           </div>
         </div>

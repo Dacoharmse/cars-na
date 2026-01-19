@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
               <p>In the meantime, if you have any questions, feel free to contact us:</p>
               <ul style="list-style: none; padding: 0;">
                 <li>📧 Email: advertising@cars.na</li>
-                <li>📞 Phone: +264 61 000 000</li>
+                <li>📞 Phone: +264 81 449 4433</li>
               </ul>
 
               <div style="margin-top: 30px; padding: 20px; background: #E0F2FE; border-radius: 6px; border-left: 4px solid #1F3469;">
@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
 
         Contact us:
         Email: advertising@cars.na
-        Phone: +264 61 000 000
+        Phone: +264 81 449 4433
 
         Thank you for choosing Cars.na!
       `

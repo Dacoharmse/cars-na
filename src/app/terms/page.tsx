@@ -285,7 +285,7 @@ export default function TermsOfServicePage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="h-4 w-4 text-gray-600" />
-                    <span className="text-gray-700">Phone: <a href="tel:+264610000000" className="text-blue-600 hover:underline">+264 61 000 000</a></span>
+                    <span className="text-gray-700">Phone: <a href="tel:+264814494433" className="text-blue-600 hover:underline">+264 81 449 4433</a></span>
                   </div>
                   <div className="flex items-start gap-3">
                     <Globe className="h-4 w-4 text-gray-600 mt-1" />

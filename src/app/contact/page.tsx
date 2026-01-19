@@ -44,21 +44,31 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Contact form submission:', formData);
-      setSubmitStatus('success');
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        category: '',
-        message: ''
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          category: '',
+          message: ''
+        });
+      } else {
+        setSubmitStatus('error');
+      }
     } catch (error) {
+      console.error('Contact form submission error:', error);
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
@@ -71,8 +81,8 @@ export default function ContactPage() {
       icon: Phone,
       title: 'Phone Support',
       description: 'Speak with our customer service team',
-      contact: '+264 61 000 000',
-      action: 'tel:+264610000000',
+      contact: '+264 81 449 4433',
+      action: 'tel:+264814494433',
       available: '8:00 AM - 6:00 PM, Mon-Fri'
     },
     {
@@ -87,8 +97,8 @@ export default function ContactPage() {
       icon: MessageCircle,
       title: 'WhatsApp',
       description: 'Quick support via WhatsApp',
-      contact: '+264 81 000 0000',
-      action: 'https://wa.me/26481000000',
+      contact: '+264 81 449 4433',
+      action: 'https://wa.me/264814494433',
       available: '8:00 AM - 8:00 PM, Daily'
     }
   ];
@@ -98,29 +108,29 @@ export default function ContactPage() {
       icon: Car,
       title: 'Vehicle Sales',
       description: 'Questions about buying or selling vehicles',
-      email: 'sales@cars.na',
-      phone: '+264 61 000 001'
+      email: 'support@cars.na',
+      phone: '+264 81 449 4433'
     },
     {
       icon: Users,
       title: 'Dealer Support',
       description: 'Support for dealership partners',
-      email: 'dealers@cars.na',
-      phone: '+264 61 000 002'
+      email: 'support@cars.na',
+      phone: '+264 81 449 4433'
     },
     {
       icon: Shield,
       title: 'Trust & Safety',
       description: 'Report issues or safety concerns',
-      email: 'safety@cars.na',
-      phone: '+264 61 000 003'
+      email: 'support@cars.na',
+      phone: '+264 81 127 3332'
     },
     {
       icon: Headphones,
       title: 'Technical Support',
       description: 'Website and technical assistance',
-      email: 'tech@cars.na',
-      phone: '+264 61 000 004'
+      email: 'support@cars.na',
+      phone: '+264 81 449 4433'
     }
   ];
 

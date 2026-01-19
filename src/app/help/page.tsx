@@ -281,26 +281,26 @@ export default function HelpPage() {
                 </Card>
               </Link>
               
-              <a href="tel:+264610000000">
+              <a href="tel:+264814494433">
                 <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardContent className="p-6 text-center">
                     <div className="w-12 h-12 bg-green-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
                       <Phone className="h-6 w-6 text-green-600" />
                     </div>
                     <h3 className="font-semibold text-gray-900 mb-2">Call Us</h3>
-                    <p className="text-sm text-gray-600">+264 61 000 000</p>
+                    <p className="text-sm text-gray-600">+264 81 449 4433</p>
                   </CardContent>
                 </Card>
               </a>
-              
-              <a href="https://wa.me/26481000000" target="_blank" rel="noopener noreferrer">
+
+              <a href="https://wa.me/264814494433" target="_blank" rel="noopener noreferrer">
                 <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                   <CardContent className="p-6 text-center">
                     <div className="w-12 h-12 bg-green-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
                       <MessageCircle className="h-6 w-6 text-green-600" />
                     </div>
                     <h3 className="font-semibold text-gray-900 mb-2">WhatsApp</h3>
-                    <p className="text-sm text-gray-600">Quick support via WhatsApp</p>
+                    <p className="text-sm text-gray-600">+264 81 449 4433</p>
                   </CardContent>
                 </Card>
               </a>

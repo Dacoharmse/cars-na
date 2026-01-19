@@ -597,7 +597,7 @@ export default function DealerRegisterPage() {
                         value={formData.phone}
                         onChange={(e) => updateFormData('phone', e.target.value)}
                         className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="+264 61 000 000"
+                        placeholder="+264 81 123 4567"
                       />
                       {errors.phone && (
                         <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
@@ -611,7 +611,7 @@ export default function DealerRegisterPage() {
                         value={formData.alternatePhone}
                         onChange={(e) => updateFormData('alternatePhone', e.target.value)}
                         className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="+264 81 000 000"
+                        placeholder="+264 81 234 5678"
                       />
                     </div>
                   </div>
@@ -829,11 +829,11 @@ export default function DealerRegisterPage() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <a
-                    href="tel:+264-61-000-000"
+                    href="tel:+264814494433"
                     className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
                   >
                     <Phone className="w-4 h-4" />
-                    +264 61 000 000
+                    +264 81 449 4433
                   </a>
                   <a
                     href="mailto:support@cars.na"
