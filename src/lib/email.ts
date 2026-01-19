@@ -61,16 +61,27 @@ class EmailService {
     // Create new initialization promise
     this.initPromise = (async () => {
       try {
+        const smtpHost = process.env.SMTP_HOST || 'localhost';
+        const isLocalhost = smtpHost === 'localhost' || smtpHost === '127.0.0.1';
+        const requireAuth = process.env.SMTP_REQUIRE_AUTH === 'true';
+
         // Configuration for multiple email providers
-        const config: EmailConfig = {
-          host: process.env.SMTP_HOST || 'smtp.gmail.com',
-          port: parseInt(process.env.SMTP_PORT || '587'),
+        const config: any = {
+          host: smtpHost,
+          port: parseInt(process.env.SMTP_PORT || '25'),
           secure: process.env.SMTP_SECURE === 'true',
-          auth: {
-            user: process.env.SMTP_USER || process.env.EMAIL_USER || '',
-            pass: process.env.SMTP_PASS || process.env.EMAIL_PASS || '',
+          tls: {
+            rejectUnauthorized: false, // Accept self-signed certificates
           },
         };
+
+        // Add auth if required or if not localhost
+        if (requireAuth || !isLocalhost) {
+          config.auth = {
+            user: process.env.SMTP_USER || process.env.EMAIL_USER || '',
+            pass: process.env.SMTP_PASS || process.env.EMAIL_PASS || '',
+          };
+        }
 
         this.transporter = nodemailer.createTransport(config);
 
