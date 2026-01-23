@@ -96,14 +96,7 @@ export const leadRouter = router({
           ...(input.status && { status: input.status }),
         },
         include: {
-          vehicle: {
-            select: {
-              make: true,
-              model: true,
-              year: true,
-              price: true,
-            },
-          },
+          vehicle: true, // Include full vehicle or null if no vehicleId
         },
         orderBy: {
           createdAt: "desc",

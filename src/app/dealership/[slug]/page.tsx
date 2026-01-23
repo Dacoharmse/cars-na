@@ -36,6 +36,8 @@ export default function DealershipProfile({ params }: { params: Promise<{ slug: 
     vehicleId: ''
   });
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchDealership();
@@ -63,12 +65,41 @@ export default function DealershipProfile({ params }: { params: Promise<{ slug: 
     }
   };
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement API call to send inquiry
-    console.log('Contact form submitted:', contactForm);
-    setFormSubmitted(true);
-    setTimeout(() => setFormSubmitted(false), 3000);
+    setIsSubmitting(true);
+    setFormError('');
+
+    try {
+      const response = await fetch('/api/dealership-inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senderName: contactForm.name,
+          senderEmail: contactForm.email,
+          senderPhone: contactForm.phone || undefined,
+          message: contactForm.message,
+          dealershipId: dealership.id,
+          vehicleId: contactForm.vehicleId || undefined,
+          source: 'dealership_page',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setFormSubmitted(true);
+        setContactForm({ name: '', email: '', phone: '', message: '', vehicleId: '' });
+        setTimeout(() => setFormSubmitted(false), 5000);
+      } else {
+        setFormError(data.error || 'Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Contact form error:', error);
+      setFormError('Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleWhatsApp = () => {
@@ -289,6 +320,12 @@ export default function DealershipProfile({ params }: { params: Promise<{ slug: 
                   </div>
                 ) : (
                   <form onSubmit={handleContactSubmit} className="space-y-4">
+                    {formError && (
+                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                        {formError}
+                      </div>
+                    )}
+
                     <div>
                       <label className="block text-sm font-medium mb-2">
                         Name <span className="text-red-500">*</span>
@@ -298,6 +335,7 @@ export default function DealershipProfile({ params }: { params: Promise<{ slug: 
                         value={contactForm.name}
                         onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
                         placeholder="Your name"
+                        disabled={isSubmitting}
                       />
                     </div>
 
@@ -311,6 +349,7 @@ export default function DealershipProfile({ params }: { params: Promise<{ slug: 
                         value={contactForm.email}
                         onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
                         placeholder="your@email.com"
+                        disabled={isSubmitting}
                       />
                     </div>
 
@@ -320,6 +359,7 @@ export default function DealershipProfile({ params }: { params: Promise<{ slug: 
                         value={contactForm.phone}
                         onChange={(e) => setContactForm(prev => ({ ...prev, phone: e.target.value }))}
                         placeholder="+264 81 123 4567"
+                        disabled={isSubmitting}
                       />
                     </div>
 
@@ -331,14 +371,28 @@ export default function DealershipProfile({ params }: { params: Promise<{ slug: 
                         required
                         value={contactForm.message}
                         onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
-                        className="w-full p-3 border border-gray-300 rounded-md h-24 resize-none"
+                        className="w-full p-3 border border-gray-300 rounded-md h-24 resize-none disabled:bg-gray-100"
                         placeholder="I'm interested in..."
+                        disabled={isSubmitting}
                       />
                     </div>
 
-                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-                      <Send className="h-4 w-4 mr-2" />
-                      Send Message
+                    <Button
+                      type="submit"
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4 mr-2" />
+                          Send Message
+                        </>
+                      )}
                     </Button>
                   </form>
                 )}

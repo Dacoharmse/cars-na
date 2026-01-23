@@ -184,18 +184,112 @@ export const api = {
       })
     },
     getByDealership: {
-      useQuery: (params: any, options?: any) => ({
-        data: { leads: [] },
-        isLoading: false,
-        error: null
-      })
+      useQuery: (params: any, options?: any) => {
+        const [data, setData] = React.useState<any>(null);
+        const [isLoading, setIsLoading] = React.useState(true);
+        const [error, setError] = React.useState<Error | null>(null);
+
+        React.useEffect(() => {
+          const fetchLeads = async () => {
+            try {
+              setIsLoading(true);
+              const queryParams = new URLSearchParams();
+              if (params?.limit) queryParams.set('limit', params.limit.toString());
+              if (params?.status) queryParams.set('status', params.status);
+
+              const response = await fetch(`/api/dealer/leads?${queryParams.toString()}`);
+
+              if (!response.ok) {
+                throw new Error(`Failed to fetch leads: ${response.statusText}`);
+              }
+
+              const result = await response.json();
+              setData({ leads: result.leads || [] });
+              setError(null);
+            } catch (err) {
+              console.error('Error fetching leads:', err);
+              setError(err as Error);
+              setData({ leads: [] });
+            } finally {
+              setIsLoading(false);
+            }
+          };
+
+          fetchLeads();
+        }, [JSON.stringify(params)]);
+
+        return { data, isLoading, error };
+      }
     },
     getStats: {
-      useQuery: (params: any, options?: any) => ({
-        data: { total: 0, new: 0 },
-        isLoading: false,
-        error: null
-      })
+      useQuery: (params: any, options?: any) => {
+        const [data, setData] = React.useState<any>(null);
+        const [isLoading, setIsLoading] = React.useState(true);
+        const [error, setError] = React.useState<Error | null>(null);
+
+        React.useEffect(() => {
+          const fetchStats = async () => {
+            try {
+              setIsLoading(true);
+              const response = await fetch('/api/dealer/leads?limit=1');
+
+              if (!response.ok) {
+                throw new Error(`Failed to fetch lead stats: ${response.statusText}`);
+              }
+
+              const result = await response.json();
+              setData(result.stats || { total: 0, new: 0, contacted: 0, converted: 0, conversionRate: 0 });
+              setError(null);
+            } catch (err) {
+              console.error('Error fetching lead stats:', err);
+              setError(err as Error);
+              setData({ total: 0, new: 0, contacted: 0, converted: 0, conversionRate: 0 });
+            } finally {
+              setIsLoading(false);
+            }
+          };
+
+          fetchStats();
+        }, [JSON.stringify(params)]);
+
+        return { data, isLoading, error };
+      }
+    },
+    updateStatus: {
+      useMutation: (options?: any) => {
+        const [isLoading, setIsLoading] = React.useState(false);
+
+        return {
+          mutate: async (data: any) => {
+            try {
+              setIsLoading(true);
+              const response = await fetch('/api/dealer/leads', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+              });
+
+              if (!response.ok) {
+                throw new Error(`Failed to update lead: ${response.statusText}`);
+              }
+
+              const result = await response.json();
+
+              if (options?.onSuccess) {
+                options.onSuccess(result.lead);
+              }
+            } catch (err) {
+              console.error('Error updating lead status:', err);
+              if (options?.onError) {
+                options.onError(err);
+              }
+            } finally {
+              setIsLoading(false);
+            }
+          },
+          isLoading
+        };
+      }
     }
   },
   showcase: {
