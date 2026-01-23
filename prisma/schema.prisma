@@ -130,6 +130,7 @@ model Dealership {
   featuredRequests        FeaturedDealershipRequest[]
   featuredListingRequests FeaturedListingRequest[]
   dealerInterests         DealerInterest[]
+  inquiries               DealershipInquiry[]
 }
 
 // Vehicle model for car listings
@@ -222,11 +223,41 @@ model Lead {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  // Relations
-  vehicle      Vehicle    @relation(fields: [vehicleId], references: [id])
-  vehicleId    String
+  // Relations (vehicleId is optional for general inquiries)
+  vehicle      Vehicle?   @relation(fields: [vehicleId], references: [id])
+  vehicleId    String?
   dealership   Dealership @relation(fields: [dealershipId], references: [id])
   dealershipId String
+  messages     LeadMessage[]
+}
+
+// Lead Message model for conversation threads
+model LeadMessage {
+  id        String          @id @default(cuid())
+  leadId    String
+  lead      Lead            @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  // Message content
+  content   String
+
+  // Sender information
+  senderType LeadMessageSenderType
+  senderName String
+  senderId   String?         // User ID if sent by dealership staff
+
+  // Email tracking
+  emailSent   Boolean   @default(false)
+  emailSentAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+enum LeadMessageSenderType {
+  CUSTOMER
+  DEALERSHIP
 }
 
 // NextAuth.js models
@@ -827,4 +858,60 @@ enum InterestStatus {
   ACCEPTED
   DECLINED
   CLOSED
+}
+
+// Dealership Inquiry - Messages sent to dealerships from contact forms
+model DealershipInquiry {
+  id String @id @default(cuid())
+
+  // Sender information
+  senderName  String
+  senderEmail String
+  senderPhone String?
+
+  // Message details
+  subject   String?
+  message   String
+  vehicleId String? // Optional - if inquiry is about a specific vehicle
+
+  // Dealership relation
+  dealershipId String
+  dealership   Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+
+  // Status tracking
+  status    InquiryStatus @default(NEW)
+  isRead    Boolean       @default(false)
+  readAt    DateTime?
+  readBy    String? // User ID who read it
+
+  // Response tracking
+  responded   Boolean   @default(false)
+  respondedAt DateTime?
+  respondedBy String?
+  response    String?
+
+  // Email notification tracking
+  emailSentToDealership Boolean @default(false)
+  emailSentAt           DateTime?
+
+  // Metadata
+  source    String? // e.g., "dealership_page", "vehicle_listing", "search_results"
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dealershipId])
+  @@index([status])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+enum InquiryStatus {
+  NEW
+  READ
+  RESPONDED
+  CLOSED
+  SPAM
 }

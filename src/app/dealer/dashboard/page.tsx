@@ -51,7 +51,9 @@ import {
   Upload,
   Camera,
   Tag,
-  MapPin
+  MapPin,
+  Bell,
+  Inbox
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -891,8 +893,19 @@ function DealerDashboardContent() {
   const [maxYear, setMaxYear] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  // Lead detail state
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [showLeadDetail, setShowLeadDetail] = useState(false);
+  const [leadResponse, setLeadResponse] = useState('');
+  const [sendingResponse, setSendingResponse] = useState(false);
+  const [leadStatusFilter, setLeadStatusFilter] = useState<string>('ALL');
+  const [leadMessages, setLeadMessages] = useState<any[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [showTutorialModal, setShowTutorialModal] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
   const [newVehicle, setNewVehicle] = useState({
     make: '',
@@ -960,7 +973,9 @@ function DealerDashboardContent() {
         const response = await fetch('/api/dealer/dealership');
         if (response.ok) {
           const data = await response.json();
-          setDealership(data);
+          if (data.success && data.dealership) {
+            setDealership(data.dealership);
+          }
         }
       } catch (error) {
         console.error('Error fetching dealership:', error);
@@ -1072,6 +1087,115 @@ function DealerDashboardContent() {
       fetchFeaturedListingRequests();
     }
   }, [session]);
+
+  // Compute notifications from leads data (memoized to prevent infinite loops)
+  const newLeadsList = leads.filter((lead: any) => lead.status === 'NEW');
+  const newLeadsForNotification = newLeadsList.slice(0, 10);
+  const newLeadsCount = leadStats?.new || newLeadsList.length;
+
+  // Navigate to leads tab when clicking a notification
+  const handleNotificationClick = () => {
+    setActiveTab('leads');
+    setShowNotifications(false);
+  };
+
+  // Handle opening lead detail
+  const handleViewLead = async (lead: any) => {
+    setSelectedLead(lead);
+    setLeadResponse('');
+    setShowLeadDetail(true);
+    setLoadingMessages(true);
+
+    // Fetch messages for this lead
+    try {
+      const response = await fetch(`/api/dealer/leads?leadId=${lead.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setLeadMessages(data.lead?.messages || []);
+      }
+    } catch (error) {
+      console.error('Error fetching lead messages:', error);
+      setLeadMessages([]);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
+
+  // Handle sending response to a lead
+  const handleSendLeadResponse = async () => {
+    if (!selectedLead || !leadResponse.trim()) return;
+
+    setSendingResponse(true);
+    try {
+      // Send email response to customer
+      const response = await fetch('/api/lead-response', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leadId: selectedLead.id,
+          customerEmail: selectedLead.customerEmail,
+          customerName: selectedLead.customerName,
+          message: leadResponse,
+          dealershipName: dealership?.name,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        // Add the new message to the conversation thread
+        const newMessage = result.leadMessage || {
+          id: Date.now().toString(),
+          content: leadResponse,
+          senderType: 'DEALERSHIP',
+          senderName: session?.user?.name || 'You',
+          createdAt: new Date().toISOString(),
+          emailSent: result.emailSent,
+        };
+        setLeadMessages(prev => [...prev, newMessage]);
+
+        // Update the selected lead status
+        setSelectedLead((prev: any) => ({ ...prev, status: 'CONTACTED' }));
+
+        // Show success message using toast
+        showToast(
+          result.emailSent ? 'Response sent and email delivered!' : 'Response saved (email delivery pending)',
+          result.emailSent ? 'success' : 'info'
+        );
+        setLeadResponse('');
+      } else {
+        const error = await response.json();
+        showToast(`Failed to send response: ${error.error || 'Unknown error'}`, 'error');
+      }
+    } catch (error) {
+      console.error('Error sending response:', error);
+      showToast('Failed to send response. Please try again.', 'error');
+    } finally {
+      setSendingResponse(false);
+    }
+  };
+
+  // Handle updating lead status
+  const handleUpdateLeadStatus = async (leadId: string, newStatus: string) => {
+    try {
+      const response = await fetch('/api/dealer/leads', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadId, status: newStatus }),
+      });
+
+      if (response.ok) {
+        // Update the selected lead status without page reload
+        setSelectedLead((prev: any) => ({ ...prev, status: newStatus }));
+        showToast(`Lead status updated to ${newStatus}`, 'success');
+      } else {
+        showToast('Failed to update status', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating lead status:', error);
+      showToast('Failed to update status', 'error');
+    }
+  };
 
   // Helper functions
   const formatPrice = (price: number) => {
@@ -1858,6 +1982,114 @@ function DealerDashboardContent() {
                 <Calendar className="h-4 w-4 mr-2" />
                 Last 30 days
               </Button>
+
+              {/* Notification Bell */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <Bell className="h-5 w-5 text-gray-600" />
+                  {newLeadsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full px-1 animate-pulse">
+                      {newLeadsCount > 99 ? '99+' : newLeadsCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notifications Dropdown Panel */}
+                {showNotifications && (
+                  <>
+                    {/* Backdrop to close on click outside */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowNotifications(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
+                      {/* Header */}
+                      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Bell className="h-4 w-4 text-blue-600" />
+                          <h3 className="font-semibold text-gray-900">New Leads</h3>
+                          {newLeadsCount > 0 && (
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                              {newLeadsCount} new
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Notifications List */}
+                      <div className="max-h-96 overflow-y-auto">
+                        {leadsLoading ? (
+                          <div className="p-8 text-center">
+                            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                            <p className="text-sm text-gray-500">Loading...</p>
+                          </div>
+                        ) : newLeadsForNotification.length === 0 ? (
+                          <div className="p-8 text-center">
+                            <Inbox className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                            <p className="text-gray-500 font-medium">No new leads</p>
+                            <p className="text-sm text-gray-400 mt-1">You're all caught up!</p>
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-gray-100">
+                            {newLeadsForNotification.map((lead: any) => (
+                              <button
+                                key={lead.id}
+                                onClick={handleNotificationClick}
+                                className="w-full p-4 hover:bg-blue-50 transition-colors text-left flex items-start gap-3"
+                              >
+                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                  <Users className="h-5 w-5 text-blue-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <p className="font-medium text-gray-900 truncate">
+                                      {lead.customerName || 'New Lead'}
+                                    </p>
+                                    <span className="text-xs text-gray-400 flex-shrink-0">
+                                      {new Date(lead.createdAt).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  {lead.vehicle && (
+                                    <p className="text-sm text-gray-700 truncate">
+                                      Interested in: {lead.vehicle.year} {lead.vehicle.make} {lead.vehicle.model}
+                                    </p>
+                                  )}
+                                  <p className="text-sm text-gray-500 truncate mt-0.5">
+                                    {lead.message?.substring(0, 60) || lead.customerEmail || 'New inquiry'}
+                                  </p>
+                                  {lead.source && (
+                                    <span className="inline-block mt-1 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                      {lead.source.replace('_', ' ')}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-2"></div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+                        <button
+                          onClick={() => {
+                            setActiveTab('leads');
+                            setShowNotifications(false);
+                          }}
+                          className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          View all leads →
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
               {activeTab === 'inventory' && (
                 <Button 
                   onClick={handleAddVehicle}
@@ -2222,13 +2454,13 @@ function DealerDashboardContent() {
                           <Plus className="w-5 h-5 mr-2" />
                           Add Your First Vehicle
                         </Button>
-                        <a
-                          href="#"
+                        <button
+                          onClick={() => { setTutorialStep(0); setShowTutorialModal(true); }}
                           className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                         >
                           <Eye className="w-4 h-4" />
                           View Demo Tutorial
-                        </a>
+                        </button>
                       </div>
                       <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl">
                         <div className="text-center">
@@ -2399,21 +2631,96 @@ function DealerDashboardContent() {
             {/* Leads Tab */}
             {activeTab === 'leads' && (
               <div className="space-y-6">
+                {/* Lead Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600">Total Leads</p>
+                          <p className="text-2xl font-bold text-blue-600">{leadStats?.total || 0}</p>
+                        </div>
+                        <Users className="h-8 w-8 text-blue-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-green-50 to-white border-green-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600">New</p>
+                          <p className="text-2xl font-bold text-green-600">{leadStats?.new || 0}</p>
+                        </div>
+                        <Inbox className="h-8 w-8 text-green-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-yellow-50 to-white border-yellow-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600">Contacted</p>
+                          <p className="text-2xl font-bold text-yellow-600">{leadStats?.contacted || 0}</p>
+                        </div>
+                        <MessageCircle className="h-8 w-8 text-yellow-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-600">Converted</p>
+                          <p className="text-2xl font-bold text-purple-600">{leadStats?.converted || 0}</p>
+                        </div>
+                        <CheckCircle className="h-8 w-8 text-purple-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Lead Filters */}
+                <div className="flex gap-2 flex-wrap">
+                  {['ALL', 'NEW', 'CONTACTED', 'INTERESTED', 'QUALIFIED', 'CONVERTED', 'CLOSED'].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setLeadStatusFilter(status)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                        leadStatusFilter === status
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Leads List */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Customer Leads</CardTitle>
-                    <CardDescription>Manage inquiries and customer communications</CardDescription>
+                    <CardDescription>Click on a lead to view full details and respond</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {leads.map((lead) => (
-                        <div key={lead.id} className="border rounded-lg p-4">
+                      {leads
+                        .filter((lead: any) => leadStatusFilter === 'ALL' || lead.status === leadStatusFilter)
+                        .map((lead: any) => (
+                        <div
+                          key={lead.id}
+                          className="border rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
+                          onClick={() => handleViewLead(lead)}
+                        >
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                                {lead.customerName?.charAt(0)?.toUpperCase() || '?'}
+                              </div>
                               <div>
-                                <h4 className="font-semibold">{lead.customerName}</h4>
+                                <h4 className="font-semibold text-gray-900">{lead.customerName}</h4>
                                 <p className="text-sm text-gray-600">
-                                  {lead.vehicle ? `${lead.vehicle.year} ${lead.vehicle.make || lead.vehicle.manufacturer} ${lead.vehicle.model}` : 'Vehicle Info'}
+                                  {lead.vehicle ? `${lead.vehicle.year} ${lead.vehicle.make} ${lead.vehicle.model}` : 'General Inquiry'}
                                 </p>
                               </div>
                             </div>
@@ -2421,10 +2728,10 @@ function DealerDashboardContent() {
                               <Badge className={getLeadStatusColor(lead.status)}>
                                 {lead.status}
                               </Badge>
-                              <Badge variant="outline">{lead.source}</Badge>
+                              <Badge variant="outline" className="text-xs">{lead.source?.replace('_', ' ')}</Badge>
                             </div>
                           </div>
-                          <p className="text-gray-700 mb-3">{lead.message || 'No message provided'}</p>
+                          <p className="text-gray-700 mb-3 line-clamp-2">{lead.message || 'No message provided'}</p>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4 text-sm text-gray-500">
                               <span className="flex items-center gap-1">
@@ -2442,23 +2749,286 @@ function DealerDashboardContent() {
                                 {new Date(lead.createdAt).toLocaleDateString()}
                               </span>
                             </div>
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline">Reply</Button>
-                              <Button size="sm">Contact</Button>
+                            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                              <Button size="sm" variant="outline" onClick={() => handleViewLead(lead)}>
+                                <Eye className="h-4 w-4 mr-1" /> View
+                              </Button>
+                              {lead.customerPhone && (
+                                <a href={`https://wa.me/${lead.customerPhone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
+                                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                                    <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
+                                  </Button>
+                                </a>
+                              )}
                             </div>
                           </div>
                         </div>
                       ))}
-                      {leads.length === 0 && (
+                      {leadsLoading && (
+                        <div className="text-center py-8 text-gray-500">
+                          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                          <p className="text-sm">Loading leads...</p>
+                        </div>
+                      )}
+                      {leadsError && (
+                        <div className="text-center py-8 text-red-500">
+                          <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-300" />
+                          <h3 className="font-medium mb-2">Error loading leads</h3>
+                          <p className="text-sm">{leadsError.message}</p>
+                        </div>
+                      )}
+                      {!leadsLoading && !leadsError && leads.filter((lead: any) => leadStatusFilter === 'ALL' || lead.status === leadStatusFilter).length === 0 && (
                         <div className="text-center py-8 text-gray-500">
                           <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                          <h3 className="font-medium mb-2">No leads yet</h3>
+                          <h3 className="font-medium mb-2">No leads {leadStatusFilter !== 'ALL' ? `with status "${leadStatusFilter}"` : 'yet'}</h3>
                           <p className="text-sm">Customer inquiries will appear here</p>
                         </div>
                       )}
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Lead Detail Modal */}
+                {showLeadDetail && selectedLead && (
+                  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                      {/* Modal Header */}
+                      <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
+                              {selectedLead.customerName?.charAt(0)?.toUpperCase() || '?'}
+                            </div>
+                            <div>
+                              <h2 className="text-2xl font-bold">{selectedLead.customerName}</h2>
+                              <p className="text-blue-100">{selectedLead.customerEmail}</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setShowLeadDetail(false)}
+                            className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                          >
+                            <X className="h-6 w-6" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Modal Content */}
+                      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        {/* Status and Source */}
+                        <div className="flex items-center gap-3">
+                          <Badge className={`${getLeadStatusColor(selectedLead.status)} text-sm px-3 py-1`}>
+                            {selectedLead.status}
+                          </Badge>
+                          <Badge variant="outline" className="text-sm px-3 py-1">
+                            {selectedLead.source?.replace('_', ' ')}
+                          </Badge>
+                          <span className="text-gray-500 text-sm ml-auto">
+                            {new Date(selectedLead.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <h3 className="font-semibold text-gray-900 mb-3">Contact Information</h3>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-5 w-5 text-gray-400" />
+                              <a href={`mailto:${selectedLead.customerEmail}`} className="text-blue-600 hover:underline">
+                                {selectedLead.customerEmail}
+                              </a>
+                            </div>
+                            {selectedLead.customerPhone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-5 w-5 text-gray-400" />
+                                <a href={`tel:${selectedLead.customerPhone}`} className="text-blue-600 hover:underline">
+                                  {selectedLead.customerPhone}
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Vehicle Interest */}
+                        {selectedLead.vehicle && (
+                          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                            <h3 className="font-semibold text-green-800 mb-2">Vehicle of Interest</h3>
+                            <p className="text-green-700 text-lg font-medium">
+                              {selectedLead.vehicle.year} {selectedLead.vehicle.make} {selectedLead.vehicle.model}
+                            </p>
+                            {selectedLead.vehicle.price && (
+                              <p className="text-green-600">Price: {formatPrice(selectedLead.vehicle.price)}</p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Conversation Thread */}
+                        <div className="flex-1 flex flex-col min-h-0">
+                          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            Conversation Thread
+                            <span className="text-sm font-normal text-gray-500">
+                              ({(leadMessages.some((m: any) => m.senderType === 'CUSTOMER') ? leadMessages.length : leadMessages.length + 1)} message{(leadMessages.some((m: any) => m.senderType === 'CUSTOMER') ? leadMessages.length : leadMessages.length + 1) !== 1 ? 's' : ''})
+                            </span>
+                          </h3>
+                          <div className="border rounded-lg flex-1 overflow-y-auto min-h-[200px] max-h-[350px]">
+                            {loadingMessages ? (
+                              <div className="p-4 text-center text-gray-500">
+                                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                                Loading messages...
+                              </div>
+                            ) : (
+                              <>
+                                {/* Always show original customer inquiry first if not already in messages */}
+                                {!leadMessages.some((m: any) => m.senderType === 'CUSTOMER') && selectedLead.message && (
+                                  <div className="p-4 bg-blue-50 border-b">
+                                    <div className="flex items-start gap-3">
+                                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                                        {selectedLead.customerName?.charAt(0)?.toUpperCase() || '?'}
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                          <span className="font-semibold text-gray-900">{selectedLead.customerName}</span>
+                                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">Customer</span>
+                                          <span className="text-xs text-gray-500">{new Date(selectedLead.createdAt).toLocaleString()}</span>
+                                          <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-200 text-yellow-800">Original Inquiry</span>
+                                        </div>
+                                        <p className="text-gray-700 whitespace-pre-wrap">{selectedLead.message}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                {/* Show all messages from the thread */}
+                                {leadMessages.map((msg: any, index: number) => (
+                                  <div
+                                    key={msg.id || index}
+                                    className={`p-4 border-b last:border-b-0 ${
+                                      msg.senderType === 'DEALERSHIP' ? 'bg-green-50' : 'bg-blue-50'
+                                    }`}
+                                  >
+                                    <div className="flex items-start gap-3">
+                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${
+                                        msg.senderType === 'DEALERSHIP' ? 'bg-green-600' : 'bg-blue-600'
+                                      }`}>
+                                        {msg.senderName?.charAt(0)?.toUpperCase() || (msg.senderType === 'DEALERSHIP' ? 'D' : 'C')}
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                          <span className="font-semibold text-gray-900">{msg.senderName}</span>
+                                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                            msg.senderType === 'DEALERSHIP' ? 'bg-green-200 text-green-800' : 'bg-blue-200 text-blue-800'
+                                          }`}>
+                                            {msg.senderType === 'DEALERSHIP' ? 'Staff' : 'Customer'}
+                                          </span>
+                                          <span className="text-xs text-gray-500">{new Date(msg.createdAt).toLocaleString()}</span>
+                                          {msg.emailSent && (
+                                            <span className="text-xs text-green-600 flex items-center gap-1">
+                                              <Mail className="h-3 w-3" /> Email sent
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-gray-700 whitespace-pre-wrap">{msg.content}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                                {/* Show empty state if no messages at all */}
+                                {leadMessages.length === 0 && !selectedLead.message && (
+                                  <div className="p-4 text-center text-gray-500">
+                                    No messages in this conversation yet.
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Update Status */}
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-3">Update Status</h3>
+                          <div className="flex flex-wrap gap-2">
+                            {['NEW', 'CONTACTED', 'INTERESTED', 'QUALIFIED', 'CONVERTED', 'CLOSED'].map((status) => (
+                              <button
+                                key={status}
+                                onClick={() => handleUpdateLeadStatus(selectedLead.id, status)}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                  selectedLead.status === status
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                              >
+                                {status}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Response Form */}
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-3">Send Response</h3>
+                          <textarea
+                            value={leadResponse}
+                            onChange={(e) => setLeadResponse(e.target.value)}
+                            placeholder="Type your response to the customer here..."
+                            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                            rows={5}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Modal Footer */}
+                      <div className="border-t p-4 bg-gray-50 flex items-center justify-between">
+                        <div className="flex gap-2">
+                          {selectedLead.customerPhone && (
+                            <a
+                              href={`https://wa.me/${selectedLead.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${selectedLead.customerName}, thank you for your inquiry on Cars.na!`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Button variant="outline" className="border-green-500 text-green-600 hover:bg-green-50">
+                                <MessageCircle className="h-4 w-4 mr-2" />
+                                WhatsApp
+                              </Button>
+                            </a>
+                          )}
+                          <a href={`tel:${selectedLead.customerPhone}`}>
+                            <Button variant="outline">
+                              <Phone className="h-4 w-4 mr-2" />
+                              Call
+                            </Button>
+                          </a>
+                          <a href={`mailto:${selectedLead.customerEmail}`}>
+                            <Button variant="outline">
+                              <Mail className="h-4 w-4 mr-2" />
+                              Email
+                            </Button>
+                          </a>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" onClick={() => setShowLeadDetail(false)}>
+                            Close
+                          </Button>
+                          <Button
+                            onClick={handleSendLeadResponse}
+                            disabled={!leadResponse.trim() || sendingResponse}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            {sendingResponse ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                Sending...
+                              </>
+                            ) : (
+                              <>
+                                <Send className="h-4 w-4 mr-2" />
+                                Send Response
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -4181,6 +4751,246 @@ function DealerDashboardContent() {
                   </Button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Demo Tutorial Modal */}
+      {showTutorialModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            {/* Tutorial Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">How to List a Vehicle</h2>
+                  <p className="text-blue-100 mt-1">Step-by-step guide to adding your first vehicle</p>
+                </div>
+                <button
+                  onClick={() => setShowTutorialModal(false)}
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              {/* Progress bar */}
+              <div className="mt-4 flex gap-2">
+                {[0, 1, 2, 3, 4].map((step) => (
+                  <div
+                    key={step}
+                    className={`h-2 flex-1 rounded-full transition-colors ${
+                      step <= tutorialStep ? 'bg-white' : 'bg-white/30'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Tutorial Content */}
+            <div className="p-8 overflow-y-auto max-h-[60vh]">
+              {tutorialStep === 0 && (
+                <div className="text-center">
+                  <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Plus className="w-12 h-12 text-blue-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Step 1: Click "Add Vehicle"</h3>
+                  <p className="text-gray-600 mb-6 max-w-lg mx-auto">
+                    Start by clicking the <strong className="text-blue-600">"+ Add Your First Vehicle"</strong> button
+                    or the <strong className="text-blue-600">blue "+" button</strong> in the bottom right corner of the Stock Manager.
+                  </p>
+                  <div className="bg-gray-50 rounded-xl p-6 max-w-md mx-auto">
+                    <div className="flex items-center justify-center gap-4">
+                      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2">
+                        <Plus className="w-5 h-5" />
+                        Add Your First Vehicle
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-4">This opens the vehicle listing form</p>
+                  </div>
+                </div>
+              )}
+
+              {tutorialStep === 1 && (
+                <div className="text-center">
+                  <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Car className="w-12 h-12 text-green-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Step 2: Enter Vehicle Details</h3>
+                  <p className="text-gray-600 mb-6 max-w-lg mx-auto">
+                    Fill in the essential information about your vehicle. The more details you provide, the better your listing will perform.
+                  </p>
+                  <div className="bg-gray-50 rounded-xl p-6 max-w-lg mx-auto text-left">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Make *</label>
+                        <div className="bg-white border rounded-lg px-3 py-2 text-gray-500">e.g., Toyota</div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Model *</label>
+                        <div className="bg-white border rounded-lg px-3 py-2 text-gray-500">e.g., Hilux</div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Year *</label>
+                        <div className="bg-white border rounded-lg px-3 py-2 text-gray-500">e.g., 2023</div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Price (N$) *</label>
+                        <div className="bg-white border rounded-lg px-3 py-2 text-gray-500">e.g., 450,000</div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Mileage (km)</label>
+                        <div className="bg-white border rounded-lg px-3 py-2 text-gray-500">e.g., 25,000</div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Color</label>
+                        <div className="bg-white border rounded-lg px-3 py-2 text-gray-500">e.g., White</div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-4 text-center">* Required fields</p>
+                  </div>
+                </div>
+              )}
+
+              {tutorialStep === 2 && (
+                <div className="text-center">
+                  <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Camera className="w-12 h-12 text-purple-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Step 3: Upload Photos</h3>
+                  <p className="text-gray-600 mb-6 max-w-lg mx-auto">
+                    High-quality photos are crucial for attracting buyers. Upload multiple images showing different angles of your vehicle.
+                  </p>
+                  <div className="bg-gray-50 rounded-xl p-6 max-w-lg mx-auto">
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 bg-white">
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600 font-medium">Drag & drop images or click to browse</p>
+                      <p className="text-sm text-gray-400 mt-2">Supports JPG, PNG up to 5MB each</p>
+                    </div>
+                    <div className="mt-4 grid grid-cols-4 gap-2">
+                      <div className="aspect-square bg-blue-100 rounded-lg flex items-center justify-center">
+                        <span className="text-xs text-blue-600">Front</span>
+                      </div>
+                      <div className="aspect-square bg-green-100 rounded-lg flex items-center justify-center">
+                        <span className="text-xs text-green-600">Side</span>
+                      </div>
+                      <div className="aspect-square bg-purple-100 rounded-lg flex items-center justify-center">
+                        <span className="text-xs text-purple-600">Rear</span>
+                      </div>
+                      <div className="aspect-square bg-orange-100 rounded-lg flex items-center justify-center">
+                        <span className="text-xs text-orange-600">Interior</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-4">Pro tip: Include at least 4-6 photos for best results</p>
+                  </div>
+                </div>
+              )}
+
+              {tutorialStep === 3 && (
+                <div className="text-center">
+                  <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FileEdit className="w-12 h-12 text-orange-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Step 4: Add Description & Features</h3>
+                  <p className="text-gray-600 mb-6 max-w-lg mx-auto">
+                    Write a compelling description and select the features your vehicle has. This helps buyers find exactly what they're looking for.
+                  </p>
+                  <div className="bg-gray-50 rounded-xl p-6 max-w-lg mx-auto text-left">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 block mb-2">Description</label>
+                        <div className="bg-white border rounded-lg p-3 text-sm text-gray-500 min-h-[80px]">
+                          "Well-maintained 2023 Toyota Hilux with full service history. One owner, accident-free. Features include leather seats, reverse camera, and Bluetooth connectivity..."
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 block mb-2">Features</label>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">✓ Air Conditioning</span>
+                          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">✓ Bluetooth</span>
+                          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">✓ Reverse Camera</span>
+                          <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-sm">+ Add more</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {tutorialStep === 4 && (
+                <div className="text-center">
+                  <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle className="w-12 h-12 text-green-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Step 5: Publish Your Listing</h3>
+                  <p className="text-gray-600 mb-6 max-w-lg mx-auto">
+                    Review your listing and click "Save Vehicle" to publish it. Your vehicle will immediately be visible to thousands of potential buyers across Namibia!
+                  </p>
+                  <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl p-6 max-w-lg mx-auto">
+                    <div className="flex items-center justify-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-8 h-8 text-white" />
+                      </div>
+                    </div>
+                    <h4 className="font-bold text-gray-900 mb-2">What happens next?</h4>
+                    <ul className="text-left text-sm text-gray-600 space-y-2 max-w-xs mx-auto">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>Your vehicle appears in search results</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>Buyers can contact you via the platform</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>Track views and inquiries in your dashboard</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>Edit or update your listing anytime</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Tutorial Footer */}
+            <div className="border-t p-6 bg-gray-50 flex items-center justify-between">
+              <button
+                onClick={() => setTutorialStep(Math.max(0, tutorialStep - 1))}
+                className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                  tutorialStep === 0
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-gray-600 hover:bg-gray-200'
+                }`}
+                disabled={tutorialStep === 0}
+              >
+                ← Previous
+              </button>
+              <span className="text-sm text-gray-500">
+                Step {tutorialStep + 1} of 5
+              </span>
+              {tutorialStep < 4 ? (
+                <button
+                  onClick={() => setTutorialStep(Math.min(4, tutorialStep + 1))}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Next →
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowTutorialModal(false);
+                    handleAddVehicle();
+                  }}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Start Adding Vehicle
+                </button>
+              )}
             </div>
           </div>
         </div>

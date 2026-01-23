@@ -7,8 +7,25 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Debug logging for production
+    console.log('GET /api/admin/sell-listings - Session:', session ? 'exists' : 'null');
+    if (session?.user) {
+      console.log('User email:', session.user.email);
+      console.log('User role:', (session.user as any).role);
+    }
+
+    const userRole = (session?.user as any)?.role;
+    const userEmail = session?.user?.email;
+
+    // Check for admin access - either by role or by admin email
+    const isAdmin = userRole === 'ADMIN' || userEmail === 'admin@cars.na';
+
+    if (!session || !isAdmin) {
+      console.log('Unauthorized access attempt - Role:', userRole, 'Email:', userEmail);
+      return NextResponse.json({
+        error: 'Unauthorized',
+        details: !session ? 'No session found' : 'User is not an admin'
+      }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -40,7 +57,11 @@ export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'ADMIN') {
+    const userRole = (session?.user as any)?.role;
+    const userEmail = session?.user?.email;
+    const isAdmin = userRole === 'ADMIN' || userEmail === 'admin@cars.na';
+
+    if (!session || !isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -95,7 +116,11 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'ADMIN') {
+    const userRole = (session?.user as any)?.role;
+    const userEmail = session?.user?.email;
+    const isAdmin = userRole === 'ADMIN' || userEmail === 'admin@cars.na';
+
+    if (!session || !isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

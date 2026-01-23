@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { Textarea } from '@/components/ui/Textarea';
 import { NotificationPanel } from '@/components/admin/NotificationPanel';
+import { MessagingCenter } from '@/components/admin/MessagingCenter';
 import { ToastProvider, useToast } from '@/components/ui/Toast';
 import {
   DropdownMenu,
@@ -993,16 +994,23 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
         params.append('status', filterStatus.toUpperCase());
       }
 
-      const response = await fetch(`/api/admin/sell-listings?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch listings');
+      const response = await fetch(`/api/admin/sell-listings?${params}`, {
+        credentials: 'include',
+      });
 
       const data = await response.json();
-      setListings(data.listings);
-    } catch (error) {
+
+      if (!response.ok) {
+        console.error('Fetch listings error:', data);
+        throw new Error(data.details || data.error || 'Failed to fetch listings');
+      }
+
+      setListings(data.listings || []);
+    } catch (error: any) {
       console.error('Error fetching listings:', error);
       showToast({
         title: 'Error',
-        description: 'Failed to load listings',
+        description: error.message || 'Failed to load listings',
         variant: 'error',
       });
     } finally {
@@ -1017,6 +1025,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
       const response = await fetch('/api/admin/sell-listings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           listingId: selectedListing.id,
           status: 'APPROVED',
@@ -1051,6 +1060,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
       const response = await fetch('/api/admin/sell-listings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           listingId: selectedListing.id,
           status: 'REJECTED',
@@ -1088,6 +1098,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
     try {
       const response = await fetch(`/api/admin/sell-listings?id=${listingId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (!response.ok) throw new Error('Failed to delete listing');
@@ -3357,6 +3368,7 @@ function AdminDashboardContent() {
 
   const navigation = [
     { name: 'Overview', icon: Home, id: 'overview', current: activeTab === 'overview' },
+    { name: 'Messages', icon: MessageSquare, id: 'messages', current: activeTab === 'messages' },
     { name: 'Users', icon: Users, id: 'users', current: activeTab === 'users' },
     { name: 'Dealers', icon: Building2, id: 'dealers', current: activeTab === 'dealers' },
     { name: 'Listings', icon: Car, id: 'listings', current: activeTab === 'listings' },
@@ -3810,6 +3822,7 @@ function AdminDashboardContent() {
                   </h1>
                   <p className="text-gray-600">
                     {activeTab === 'overview' && 'Platform overview and key metrics'}
+                    {activeTab === 'messages' && 'Customer inquiries and dealership messages'}
                     {activeTab === 'users' && 'Manage platform users'}
                     {activeTab === 'dealers' && 'Manage dealership accounts'}
                     {activeTab === 'listings' && 'Manage vehicle listings'}
@@ -4257,6 +4270,11 @@ function AdminDashboardContent() {
                 </Card>
               </div>
             </div>
+          )}
+
+          {/* Messages Tab */}
+          {activeTab === 'messages' && (
+            <MessagingCenter />
           )}
 
           {/* Users Tab */}
