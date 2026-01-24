@@ -12,14 +12,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify package.json
+        run: grep tanstack package.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      - name: Clear npm cache
+        run: npm cache clean --force
+
       - name: Install dependencies
-        run: npm install --force
+        run: |
+          rm -rf node_modules
+          npm install --legacy-peer-deps
 
       - name: Generate Prisma Client
         run: npx prisma generate
