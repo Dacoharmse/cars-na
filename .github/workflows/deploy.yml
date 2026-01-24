@@ -14,9 +14,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: master
+
+      - name: Show commit info
+        run: |
+          echo "Current commit: $(git rev-parse HEAD)"
+          echo "Branch: $(git branch --show-current)"
+          git log --oneline -3
 
       - name: Verify package.json
-        run: grep tanstack package.json
+        run: |
+          echo "=== Full tanstack line ==="
+          cat package.json | grep -n tanstack
+          echo "=== Should show 4.36.1 ==="
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
