@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Standalone output for smaller deployment footprint (ideal for low RAM VPS)
+  output: 'standalone',
   eslint: {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.
@@ -11,6 +13,13 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  // Reduce memory usage during build
+  experimental: {
+    // Reduce memory usage
+    webpackMemoryOptimizations: true,
+  },
+  // Optimize for production
+  swcMinify: true,
   images: {
     remotePatterns: [
       {
