@@ -6,40 +6,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: master
-
-      - name: Show commit info
-        run: |
-          echo "Current commit: $(git rev-parse HEAD)"
-          echo "Branch: $(git branch --show-current)"
-          git log --oneline -3
-
-      - name: Verify package.json
-        run: |
-          echo "=== Full tanstack line ==="
-          cat package.json | grep -n tanstack
-          echo "=== Should show 4.36.1 ==="
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Clear npm cache
-        run: npm cache clean --force
-
       - name: Install dependencies
-        run: |
-          rm -rf node_modules
-          npm install --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Generate Prisma Client
         run: npx prisma generate
@@ -62,62 +42,20 @@ jobs:
           path: standalone.tar.gz
           retention-days: 7
 
-      - name: Deploy to VPS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          key_format: openssh
-          script: |
-            cd /var/www/cars-na
-
-            # Backup current deployment
-            if [ -d ".next/standalone" ]; then
-              mv .next/standalone .next/standalone.backup
-            fi
-
-            # Pull latest and extract
-            git pull origin master
-
-            echo "Deployment prepared. Waiting for artifact..."
-
-      - name: Copy build to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          key_format: openssh
-          source: "standalone.tar.gz"
-          target: "/var/www/cars-na"
-
-      - name: Extract and restart on VPS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          key_format: openssh
-          script: |
-            cd /var/www/cars-na
-
-            # Extract new build
-            mkdir -p .next/standalone
-            tar -xzf standalone.tar.gz -C .next/standalone
-            rm standalone.tar.gz
-
-            # Copy environment file
-            cp .env .next/standalone/.env
-
-            # Run database migrations
-            npx prisma db push --accept-data-loss
-
-            # Restart application
-            pm2 restart cars-na || pm2 start .next/standalone/server.js --name cars-na
-            pm2 save
-
-            # Cleanup backup
-            rm -rf .next/standalone.backup
-
-            echo "Deployment complete!"
+      - name: Show download instructions
+        run: |
+          echo "=========================================="
+          echo "BUILD SUCCESSFUL!"
+          echo "=========================================="
+          echo ""
+          echo "To deploy manually on your VPS:"
+          echo ""
+          echo "1. Download the artifact from GitHub Actions"
+          echo "2. Upload to VPS: scp standalone.tar.gz root@45.8.226.60:/var/www/cars-na/"
+          echo "3. On VPS run:"
+          echo "   cd /var/www/cars-na"
+          echo "   mkdir -p .next/standalone"
+          echo "   tar -xzf standalone.tar.gz -C .next/standalone"
+          echo "   cp .env .next/standalone/.env"
+          echo "   pm2 restart cars-na || pm2 start .next/standalone/server.js --name cars-na"
+          echo "=========================================="
