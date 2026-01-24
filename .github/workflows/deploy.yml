@@ -1,0 +1,101 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build application
+        run: npx next build
+        env:
+          SKIP_ENV_VALIDATION: true
+
+      - name: Prepare standalone package
+        run: |
+          cp -r .next/static .next/standalone/.next/
+          cp -r public .next/standalone/
+          tar -czf standalone.tar.gz -C .next/standalone .
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: standalone-build
+          path: standalone.tar.gz
+          retention-days: 7
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/cars-na
+
+            # Backup current deployment
+            if [ -d ".next/standalone" ]; then
+              mv .next/standalone .next/standalone.backup
+            fi
+
+            # Pull latest and extract
+            git pull origin master
+
+            echo "Deployment prepared. Waiting for artifact..."
+
+      - name: Copy build to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "standalone.tar.gz"
+          target: "/var/www/cars-na"
+
+      - name: Extract and restart on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/cars-na
+
+            # Extract new build
+            mkdir -p .next/standalone
+            tar -xzf standalone.tar.gz -C .next/standalone
+            rm standalone.tar.gz
+
+            # Copy environment file
+            cp .env .next/standalone/.env
+
+            # Run database migrations
+            npx prisma db push --accept-data-loss
+
+            # Restart application
+            pm2 restart cars-na || pm2 start .next/standalone/server.js --name cars-na
+            pm2 save
+
+            # Cleanup backup
+            rm -rf .next/standalone.backup
+
+            echo "Deployment complete!"
