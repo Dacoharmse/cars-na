@@ -49,24 +49,14 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to VPS
+      - name: Create directory on VPS
         run: |
-          # Copy artifact to VPS
-          scp -i ~/.ssh/deploy_key standalone.tar.gz ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/var/www/cars-na/
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "mkdir -p /var/www/cars-na"
 
-          # Extract and restart on VPS
-          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
-            cd /var/www/cars-na
+      - name: Copy artifact to VPS
+        run: |
+          scp -i ~/.ssh/deploy_key standalone.tar.gz ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/var/www/cars-na/standalone.tar.gz
 
-            # Extract new build
-            rm -rf .next/standalone
-            mkdir -p .next/standalone
-            tar -xzf standalone.tar.gz -C .next/standalone
-            rm standalone.tar.gz
-
-            # Restart application
-            pm2 restart cars-na || pm2 start .next/standalone/server.js --name cars-na
-            pm2 save
-
-            echo "Deployment complete!"
-          ENDSSH
+      - name: Extract and restart on VPS
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cd /var/www/cars-na && rm -rf .next/standalone && mkdir -p .next/standalone && tar -xzf standalone.tar.gz -C .next/standalone && rm standalone.tar.gz && (pm2 restart cars-na || pm2 start .next/standalone/server.js --name cars-na) && pm2 save && echo 'Deployment complete!'"
