@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -42,20 +42,36 @@ jobs:
           path: standalone.tar.gz
           retention-days: 7
 
-      - name: Show download instructions
+      - name: Setup SSH key
         run: |
-          echo "=========================================="
-          echo "BUILD SUCCESSFUL!"
-          echo "=========================================="
-          echo ""
-          echo "To deploy manually on your VPS:"
-          echo ""
-          echo "1. Download the artifact from GitHub Actions"
-          echo "2. Upload to VPS: scp standalone.tar.gz root@45.8.226.60:/var/www/cars-na/"
-          echo "3. On VPS run:"
-          echo "   cd /var/www/cars-na"
-          echo "   mkdir -p .next/standalone"
-          echo "   tar -xzf standalone.tar.gz -C .next/standalone"
-          echo "   cp .env .next/standalone/.env"
-          echo "   pm2 restart cars-na || pm2 start .next/standalone/server.js --name cars-na"
-          echo "=========================================="
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        run: |
+          # Copy artifact to VPS
+          scp -i ~/.ssh/deploy_key standalone.tar.gz ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/var/www/cars-na/
+
+          # Extract and restart on VPS
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+            cd /var/www/cars-na
+
+            # Pull latest code
+            git pull origin master
+
+            # Extract new build
+            mkdir -p .next/standalone
+            tar -xzf standalone.tar.gz -C .next/standalone
+            rm standalone.tar.gz
+
+            # Copy environment file
+            cp .env .next/standalone/.env 2>/dev/null || true
+
+            # Restart application
+            pm2 restart cars-na || pm2 start .next/standalone/server.js --name cars-na
+            pm2 save
+
+            echo "Deployment complete!"
+          ENDSSH
