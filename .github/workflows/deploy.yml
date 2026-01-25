@@ -58,16 +58,11 @@ jobs:
           ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
             cd /var/www/cars-na
 
-            # Pull latest code
-            git pull origin master
-
             # Extract new build
+            rm -rf .next/standalone
             mkdir -p .next/standalone
             tar -xzf standalone.tar.gz -C .next/standalone
             rm standalone.tar.gz
-
-            # Copy environment file
-            cp .env .next/standalone/.env 2>/dev/null || true
 
             # Restart application
             pm2 restart cars-na || pm2 start .next/standalone/server.js --name cars-na
