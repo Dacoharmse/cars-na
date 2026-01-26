@@ -33,6 +33,7 @@ jobs:
         run: |
           cp -r .next/static .next/standalone/.next/
           cp -r public .next/standalone/
+          cp ecosystem.config.js .next/standalone/
           tar -czf standalone.tar.gz -C .next/standalone .
 
       - name: Upload build artifact
@@ -57,6 +58,49 @@ jobs:
         run: |
           scp -i ~/.ssh/deploy_key standalone.tar.gz ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/var/www/cars-na/standalone.tar.gz
 
+      - name: Create .env file on VPS
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cat > /var/www/cars-na/.env.tmp << 'EOF'
+          DATABASE_URL=\"${{ secrets.DATABASE_URL }}\"
+          NEXTAUTH_SECRET=\"${{ secrets.NEXTAUTH_SECRET }}\"
+          NEXTAUTH_URL=\"${{ secrets.NEXTAUTH_URL }}\"
+          SMTP_HOST=\"${{ secrets.SMTP_HOST }}\"
+          SMTP_PORT=\"${{ secrets.SMTP_PORT }}\"
+          SMTP_SECURE=\"${{ secrets.SMTP_SECURE }}\"
+          SMTP_USER=\"${{ secrets.SMTP_USER }}\"
+          SMTP_PASS=\"${{ secrets.SMTP_PASS }}\"
+          SMTP_FROM=\"${{ secrets.SMTP_FROM }}\"
+          EOF
+          "
+
       - name: Extract and restart on VPS
         run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "cd /var/www/cars-na && rm -rf .next/standalone && mkdir -p .next/standalone && tar -xzf standalone.tar.gz -C .next/standalone && rm standalone.tar.gz && (pm2 restart cars-na || pm2 start .next/standalone/server.js --name cars-na) && pm2 save && echo 'Deployment complete!'"
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
+            cd /var/www/cars-na &&
+            rm -rf .next/standalone &&
+            mkdir -p .next/standalone logs &&
+            tar -xzf standalone.tar.gz -C .next/standalone &&
+            rm standalone.tar.gz &&
+            mv .env.tmp .next/standalone/.env &&
+            pm2 delete cars-na 2>/dev/null || true &&
+            pm2 start .next/standalone/ecosystem.config.js &&
+            pm2 save &&
+            echo 'Deployment complete!'
+          "
+
+      - name: Health check
+        run: |
+          echo "Waiting for application to start..."
+          sleep 10
+          for i in {1..12}; do
+            if ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "curl -f http://localhost:3000 -o /dev/null -s"; then
+              echo "✓ Application is responding on port 3000"
+              ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "pm2 status"
+              exit 0
+            fi
+            echo "Attempt $i/12: Application not ready yet, waiting..."
+            sleep 5
+          done
+          echo "✗ Health check failed: Application did not respond within 60 seconds"
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "pm2 logs cars-na --lines 50 --nostream"
+          exit 1
