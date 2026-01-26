@@ -5,14 +5,19 @@ const prisma = new PrismaClient();
 
 async function createAdminUser() {
   try {
+    // Get email and password from environment or use defaults
+    const adminEmail = process.env.ADMIN_EMAIL || 'dacoharmse@gmail.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin@cars2025';
+
     console.log('🔐 Creating admin user...');
+    console.log(`📧 Email: ${adminEmail}`);
 
     // Hash the password
-    const hashedPassword = await bcrypt.hash('admin@cars2025', 12);
+    const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
     // Check if admin user already exists
     const existingAdmin = await prisma.user.findUnique({
-      where: { email: 'admin@cars.na' }
+      where: { email: adminEmail }
     });
 
     if (existingAdmin) {
@@ -20,7 +25,7 @@ async function createAdminUser() {
 
       // Update existing admin user
       const updatedUser = await prisma.user.update({
-        where: { email: 'admin@cars.na' },
+        where: { email: adminEmail },
         data: {
           password: hashedPassword,
           role: 'ADMIN',
@@ -33,13 +38,13 @@ async function createAdminUser() {
 
       console.log('✅ Admin user updated successfully!');
       console.log(`📧 Email: ${updatedUser.email}`);
-      console.log(`🔑 Password: admin@cars2025`);
+      console.log(`🔑 Password: ${adminPassword}`);
       console.log(`👤 Role: ${updatedUser.role}`);
     } else {
       // Create new admin user
       const adminUser = await prisma.user.create({
         data: {
-          email: 'admin@cars.na',
+          email: adminEmail,
           password: hashedPassword,
           name: 'System Administrator',
           role: 'ADMIN',
@@ -54,7 +59,7 @@ async function createAdminUser() {
 
       console.log('✅ Admin user created successfully!');
       console.log(`📧 Email: ${adminUser.email}`);
-      console.log(`🔑 Password: admin@cars2025`);
+      console.log(`🔑 Password: ${adminPassword}`);
       console.log(`👤 Role: ${adminUser.role}`);
       console.log(`🆔 User ID: ${adminUser.id}`);
     }
