@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import nodemailer from 'nodemailer';
+import { withRateLimit, inquiryLimiter } from '@/lib/rate-limit';
+
+// Escape user input before embedding in HTML email
+function esc(s: unknown): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
 
 interface InquiryFormData {
   senderName: string;
@@ -15,6 +26,7 @@ interface InquiryFormData {
 
 // POST - Create a new dealership inquiry
 export async function POST(request: NextRequest) {
+  return withRateLimit(request, { ...inquiryLimiter, endpoint: 'inquiry' }, async () => {
   try {
     const body: InquiryFormData = await request.json();
     const { senderName, senderEmail, senderPhone, subject, message, dealershipId, vehicleId, source } = body;
@@ -127,11 +139,12 @@ export async function POST(request: NextRequest) {
     let emailSent = false;
     try {
       const smtpHost = process.env.SMTP_HOST || 'localhost';
+      const isLocalSmtp = smtpHost === 'localhost' || smtpHost === '127.0.0.1';
       const config: any = {
         host: smtpHost,
         port: parseInt(process.env.SMTP_PORT || '25'),
         secure: process.env.SMTP_SECURE === 'true',
-        tls: { rejectUnauthorized: false },
+        tls: { rejectUnauthorized: process.env.NODE_ENV === 'production' && !isLocalSmtp },
       };
 
       if (process.env.SMTP_REQUIRE_AUTH === 'true') {
@@ -146,7 +159,7 @@ export async function POST(request: NextRequest) {
       const vehicleInfo = vehicleDetails
         ? `<div style="background: #f0f9f5; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #16a34a;">
             <h4 style="margin: 0 0 10px 0; color: #16a34a;">Vehicle of Interest</h4>
-            <p style="margin: 0; color: #374151;">${vehicleDetails.year} ${vehicleDetails.make} ${vehicleDetails.model}</p>
+            <p style="margin: 0; color: #374151;">${esc(vehicleDetails.year)} ${esc(vehicleDetails.make)} ${esc(vehicleDetails.model)}</p>
             <p style="margin: 5px 0 0 0; color: #374151; font-weight: bold;">Price: N$ ${vehicleDetails.price?.toLocaleString() || 'Contact for price'}</p>
           </div>`
         : '';
@@ -167,7 +180,7 @@ export async function POST(request: NextRequest) {
 
               <div style="padding: 30px;">
                 <p style="color: #374151; font-size: 16px; margin-top: 0;">
-                  Hello ${dealership.contactPerson || dealership.name},
+                  Hello ${esc(dealership.contactPerson || dealership.name)},
                 </p>
                 <p style="color: #374151;">
                   You have received a new inquiry through Cars.na. Here are the details:
@@ -178,15 +191,15 @@ export async function POST(request: NextRequest) {
                   <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                       <td style="padding: 8px 0; color: #6b7280; font-weight: 600; width: 100px;">Name:</td>
-                      <td style="padding: 8px 0; color: #374151;">${senderName}</td>
+                      <td style="padding: 8px 0; color: #374151;">${esc(senderName)}</td>
                     </tr>
                     <tr>
                       <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Email:</td>
-                      <td style="padding: 8px 0; color: #374151;"><a href="mailto:${senderEmail}" style="color: #1F3469;">${senderEmail}</a></td>
+                      <td style="padding: 8px 0; color: #374151;"><a href="mailto:${esc(senderEmail)}" style="color: #1F3469;">${esc(senderEmail)}</a></td>
                     </tr>
                     <tr>
                       <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Phone:</td>
-                      <td style="padding: 8px 0; color: #374151;">${senderPhone ? `<a href="tel:${senderPhone}" style="color: #1F3469;">${senderPhone}</a>` : 'Not provided'}</td>
+                      <td style="padding: 8px 0; color: #374151;">${senderPhone ? `<a href="tel:${esc(senderPhone)}" style="color: #1F3469;">${esc(senderPhone)}</a>` : 'Not provided'}</td>
                     </tr>
                   </table>
                 </div>
@@ -195,15 +208,15 @@ export async function POST(request: NextRequest) {
 
                 <div style="background: #fef3c7; border: 1px solid #fbbf24; padding: 20px; border-radius: 8px; margin: 20px 0;">
                   <h4 style="color: #92400e; margin-top: 0; margin-bottom: 10px;">Message:</h4>
-                  <p style="color: #92400e; margin: 0; white-space: pre-wrap; line-height: 1.6;">${message}</p>
+                  <p style="color: #92400e; margin: 0; white-space: pre-wrap; line-height: 1.6;">${esc(message)}</p>
                 </div>
 
                 <div style="margin-top: 25px; text-align: center;">
-                  <a href="mailto:${senderEmail}?subject=Re: ${encodeURIComponent(subject || 'Your inquiry on Cars.na')}"
+                  <a href="mailto:${esc(senderEmail)}?subject=Re: ${encodeURIComponent(subject || 'Your inquiry on Cars.na')}"
                      style="display: inline-block; background: linear-gradient(135deg, #1F3469 0%, #3B4F86 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">
                     Reply to Customer
                   </a>
-                  ${senderPhone ? `<a href="tel:${senderPhone}" style="display: inline-block; background: #16a34a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-left: 10px;">Call Customer</a>` : ''}
+                  ${senderPhone ? `<a href="tel:${esc(senderPhone)}" style="display: inline-block; background: #16a34a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-left: 10px;">Call Customer</a>` : ''}
                 </div>
               </div>
 
@@ -283,14 +296,17 @@ ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Windhoek', dateStyle: '
       { status: 500 }
     );
   }
+  }); // end withRateLimit
 }
 
 // GET - Fetch dealership inquiries (for admin dashboard)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const rawPage = parseInt(searchParams.get('page') || '1');
+    const rawLimit = parseInt(searchParams.get('limit') || '20');
+    const page = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
+    const limit = isNaN(rawLimit) ? 20 : Math.min(Math.max(rawLimit, 1), 100);
     const status = searchParams.get('status');
     const dealershipId = searchParams.get('dealershipId');
     const isRead = searchParams.get('isRead');

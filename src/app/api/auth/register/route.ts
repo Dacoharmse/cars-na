@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 import { emailService } from '@/lib/email';
+import { addMonths } from 'date-fns';
 
 export async function POST(request: NextRequest) {
   try {
@@ -122,8 +123,7 @@ export async function POST(request: NextRequest) {
 
       // Calculate subscription dates
       const startDate = new Date();
-      const endDate = new Date();
-      endDate.setMonth(endDate.getMonth() + subscriptionPlan.duration);
+      const endDate = addMonths(startDate, subscriptionPlan.duration);
 
       // Create subscription
       const subscription = await tx.dealershipSubscription.create({

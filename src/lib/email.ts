@@ -70,8 +70,9 @@ class EmailService {
           host: smtpHost,
           port: parseInt(process.env.SMTP_PORT || '25'),
           secure: process.env.SMTP_SECURE === 'true',
+          // Only allow self-signed certs on localhost/development; enforce validation in production
           tls: {
-            rejectUnauthorized: false, // Accept self-signed certificates
+            rejectUnauthorized: process.env.NODE_ENV === 'production' && !isLocalhost,
           },
         };
 

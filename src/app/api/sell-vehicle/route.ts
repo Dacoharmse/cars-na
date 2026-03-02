@@ -6,6 +6,7 @@ import { VehicleCategory } from '@prisma/client';
 import { promises as fs } from 'fs';
 import path from 'path';
 import nodemailer from 'nodemailer';
+import { withRateLimit, sellVehicleLimiter } from '@/lib/rate-limit';
 
 // Helper function to check auto-moderate setting
 async function isAutoModerateEnabled(): Promise<boolean> {
@@ -20,6 +21,7 @@ async function isAutoModerateEnabled(): Promise<boolean> {
 }
 
 export async function POST(req: NextRequest) {
+  return withRateLimit(req, { ...sellVehicleLimiter, endpoint: 'sell-vehicle' }, async () => {
   try {
     const session = await getServerSession(authOptions);
 
@@ -68,6 +70,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate numeric fields
+    const parsedYear = parseInt(year);
+    const parsedPrice = parseFloat(price);
+    const parsedMileage = mileage != null && mileage !== '' ? parseInt(mileage) : null;
+    const currentYear = new Date().getFullYear();
+
+    if (isNaN(parsedYear) || parsedYear < 1900 || parsedYear > currentYear + 1) {
+      return NextResponse.json(
+        { success: false, error: `Year must be between 1900 and ${currentYear + 1}` },
+        { status: 400 }
+      );
+    }
+
+    if (isNaN(parsedPrice) || parsedPrice <= 0 || parsedPrice > 999_999_999) {
+      return NextResponse.json(
+        { success: false, error: 'Price must be a positive number' },
+        { status: 400 }
+      );
+    }
+
+    if (parsedMileage !== null && (isNaN(parsedMileage) || parsedMileage < 0 || parsedMileage > 9_999_999)) {
+      return NextResponse.json(
+        { success: false, error: 'Mileage must be a non-negative number' },
+        { status: 400 }
+      );
+    }
+
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userEmail)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid email address' },
+        { status: 400 }
+      );
+    }
+
     // Check auto-moderate setting
     const autoModerateEnabled = await isAutoModerateEnabled();
     const initialStatus = autoModerateEnabled ? 'APPROVED' : 'PENDING';
@@ -82,10 +120,10 @@ export async function POST(req: NextRequest) {
         category,
         make,
         model,
-        year: parseInt(year),
-        mileage: mileage ? parseInt(mileage) : null,
+        year: parsedYear,
+        mileage: parsedMileage,
         condition,
-        price: parseFloat(price),
+        price: parsedPrice,
         negotiable: negotiable ?? true,
         color: color || null,
         transmission: transmission || null,
@@ -173,11 +211,12 @@ export async function POST(req: NextRequest) {
 
       // Send email notifications to all dealerships
       const smtpHost = process.env.SMTP_HOST || 'localhost';
+      const isLocalSmtp = smtpHost === 'localhost' || smtpHost === '127.0.0.1';
       const emailConfig: any = {
         host: smtpHost,
         port: parseInt(process.env.SMTP_PORT || '25'),
         secure: process.env.SMTP_SECURE === 'true',
-        tls: { rejectUnauthorized: false },
+        tls: { rejectUnauthorized: process.env.NODE_ENV === 'production' && !isLocalSmtp },
       };
 
       if (process.env.SMTP_REQUIRE_AUTH === 'true') {
@@ -188,6 +227,15 @@ export async function POST(req: NextRequest) {
       }
 
       const transporter = nodemailer.createTransport(emailConfig);
+
+      // HTML-escape helper to prevent injection in email templates
+      const esc = (s: unknown) =>
+        String(s ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#x27;');
 
       // Send email to each dealership
       const emailPromises = dealerships
@@ -209,7 +257,7 @@ export async function POST(req: NextRequest) {
 
                   <div style="padding: 30px;">
                     <p style="color: #374151; font-size: 16px; margin-top: 0;">
-                      Hello ${dealership.contactPerson || dealership.name},
+                      Hello ${esc(dealership.contactPerson || dealership.name)},
                     </p>
                     <p style="color: #374151;">
                       A private seller has listed a vehicle for sale on Cars.na. This could be a great opportunity for your dealership!
@@ -220,36 +268,36 @@ export async function POST(req: NextRequest) {
                       <table style="width: 100%; border-collapse: collapse;">
                         <tr>
                           <td style="padding: 8px 0; color: #6b7280; font-weight: 600; width: 120px;">Vehicle:</td>
-                          <td style="padding: 8px 0; color: #374151; font-weight: bold;">${year} ${make} ${model}</td>
+                          <td style="padding: 8px 0; color: #374151; font-weight: bold;">${esc(parsedYear)} ${esc(make)} ${esc(model)}</td>
                         </tr>
                         <tr>
                           <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Asking Price:</td>
-                          <td style="padding: 8px 0; color: #16a34a; font-weight: bold; font-size: 18px;">N$ ${parseFloat(price).toLocaleString()}</td>
+                          <td style="padding: 8px 0; color: #16a34a; font-weight: bold; font-size: 18px;">N$ ${parsedPrice.toLocaleString()}</td>
                         </tr>
                         <tr>
                           <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Category:</td>
-                          <td style="padding: 8px 0; color: #374151;">${category}</td>
+                          <td style="padding: 8px 0; color: #374151;">${esc(category)}</td>
                         </tr>
-                        ${mileage ? `<tr>
+                        ${parsedMileage !== null ? `<tr>
                           <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Mileage:</td>
-                          <td style="padding: 8px 0; color: #374151;">${parseInt(mileage).toLocaleString()} km</td>
+                          <td style="padding: 8px 0; color: #374151;">${parsedMileage.toLocaleString()} km</td>
                         </tr>` : ''}
                         ${condition ? `<tr>
                           <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Condition:</td>
-                          <td style="padding: 8px 0; color: #374151;">${condition}</td>
+                          <td style="padding: 8px 0; color: #374151;">${esc(condition)}</td>
                         </tr>` : ''}
                         <tr>
                           <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Location:</td>
-                          <td style="padding: 8px 0; color: #374151;">${city || region || 'Not specified'}</td>
+                          <td style="padding: 8px 0; color: #374151;">${esc(city || region || 'Not specified')}</td>
                         </tr>
                       </table>
                     </div>
 
                     <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
                       <h4 style="color: #374151; margin: 0 0 10px 0;">Seller Contact</h4>
-                      <p style="margin: 5px 0; color: #374151;"><strong>Name:</strong> ${userName}</p>
-                      <p style="margin: 5px 0; color: #374151;"><strong>Phone:</strong> <a href="tel:${userPhone}" style="color: #1F3469;">${userPhone}</a></p>
-                      <p style="margin: 5px 0; color: #374151;"><strong>Email:</strong> <a href="mailto:${userEmail}" style="color: #1F3469;">${userEmail}</a></p>
+                      <p style="margin: 5px 0; color: #374151;"><strong>Name:</strong> ${esc(userName)}</p>
+                      <p style="margin: 5px 0; color: #374151;"><strong>Phone:</strong> <a href="tel:${esc(userPhone)}" style="color: #1F3469;">${esc(userPhone)}</a></p>
+                      <p style="margin: 5px 0; color: #374151;"><strong>Email:</strong> <a href="mailto:${esc(userEmail)}" style="color: #1F3469;">${esc(userEmail)}</a></p>
                     </div>
 
                     <div style="margin-top: 25px; text-align: center;">
@@ -276,7 +324,7 @@ export async function POST(req: NextRequest) {
           return transporter.sendMail({
             from: process.env.FROM_EMAIL || '"Cars.na" <no-reply@cars.na>',
             to: dealership.email,
-            subject: `🚗 New Private Listing: ${year} ${make} ${model} - N$ ${parseFloat(price).toLocaleString()}`,
+            subject: `New Private Listing: ${parsedYear} ${make} ${model} - N$ ${parsedPrice.toLocaleString()}`,
             html: htmlContent,
           }).catch(err => {
             console.error(`Failed to send email to ${dealership.email}:`, err.message);
@@ -307,6 +355,7 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+  }); // end withRateLimit
 }
 
 export async function GET(req: NextRequest) {

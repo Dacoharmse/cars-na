@@ -7,10 +7,9 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    console.log('🔍 Looking for dealership with slug:', slug);
 
-    const dealership = await prisma.dealership.findUnique({
-      where: { slug },
+    const dealership = await prisma.dealership.findFirst({
+      where: { slug, status: 'APPROVED' },
       include: {
         vehicles: {
           where: {
@@ -33,22 +32,11 @@ export async function GET(
     });
 
     if (!dealership) {
-      console.log('❌ Dealership not found with slug:', slug);
-      // Let's check what dealerships exist
-      const allDealerships = await prisma.dealership.findMany({
-        select: { name: true, slug: true }
-      });
-      console.log('📋 Available dealerships:', allDealerships);
-
       return NextResponse.json(
         { success: false, error: 'Dealership not found' },
         { status: 404 }
       );
     }
-
-    console.log('✅ Found dealership:', dealership.name);
-    console.log('📸 Cover Image:', dealership.coverImage);
-    console.log('🖼️  Logo:', dealership.logo);
 
     // Increment profile views (fire and forget)
     prisma.dealership.update({

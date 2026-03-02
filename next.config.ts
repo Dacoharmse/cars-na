@@ -4,22 +4,15 @@ const nextConfig: NextConfig = {
   // Standalone output for smaller deployment footprint (ideal for low RAM VPS)
   output: 'standalone',
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has type errors.
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   // Reduce memory usage during build
   experimental: {
-    // Reduce memory usage
     webpackMemoryOptimizations: true,
   },
-  // Optimize for production
-  swcMinify: true,
   images: {
     remotePatterns: [
       {
@@ -51,7 +44,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Enable caching for static assets
+        // Long-lived cache for immutable static assets
         source: '/_next/static/:path*',
         headers: [
           {
@@ -61,52 +54,73 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Cache API routes for 5 minutes
+        // Public read-only API routes may be lightly cached (no auth required)
+        source: '/api/vehicles',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=60, stale-while-revalidate=120' },
+        ],
+      },
+      {
+        source: '/api/dealerships',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=60, stale-while-revalidate=120' },
+        ],
+      },
+      {
+        source: '/api/banners',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=600' },
+        ],
+      },
+      {
+        source: '/api/subscription-plans',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=600' },
+        ],
+      },
+      {
+        // All other API routes must NOT be publicly cached (auth-protected routes)
         source: '/api/:path*',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=300, stale-while-revalidate=600',
-          },
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate' },
+          { key: 'Pragma', value: 'no-cache' },
         ],
       },
       {
-        // Apply security headers to all routes
+        // Security headers for all routes
         source: '/(.*)',
         headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'geolocation=(), microphone=(), camera=()',
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains',
-          },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Permissions-Policy', value: 'geolocation=(), microphone=(), camera=()' },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
         ],
       },
       {
-        // CSP for enhanced security
+        // CSP — removed unsafe-eval; unsafe-inline kept for Next.js inline styles/scripts
         source: '/(.*)',
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;",
+            value: [
+              "default-src 'self'",
+              // Next.js requires 'unsafe-inline' for its runtime scripts in dev;
+              // js.paystack.co needed for payment widget
+              "script-src 'self' 'unsafe-inline' https://js.paystack.co",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' https:",
+              "frame-src https://js.paystack.co",
+              "media-src 'self'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+              "upgrade-insecure-requests",
+            ].join('; '),
           },
         ],
       },

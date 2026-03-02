@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { withRateLimit, contactLimiter } from '@/lib/rate-limit';
+
+// Escape user input before embedding in HTML email
+function esc(s: unknown): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
 
 interface ContactFormData {
   name: string;
@@ -11,6 +22,7 @@ interface ContactFormData {
 }
 
 export async function POST(request: NextRequest) {
+  return withRateLimit(request, { ...contactLimiter, endpoint: 'contact' }, async () => {
   try {
     const body: ContactFormData = await request.json();
     const { name, email, phone, subject, category, message } = body;
@@ -42,7 +54,7 @@ export async function POST(request: NextRequest) {
       port: parseInt(process.env.SMTP_PORT || '25'),
       secure: process.env.SMTP_SECURE === 'true',
       tls: {
-        rejectUnauthorized: false,
+        rejectUnauthorized: process.env.NODE_ENV === 'production' && !isLocalhost,
       },
     };
 
@@ -66,9 +78,9 @@ export async function POST(request: NextRequest) {
       other: 'Other',
     };
 
-    const categoryDisplay = category ? categoryLabels[category] || category : 'Not specified';
+    const categoryDisplay = category ? (categoryLabels[category] || esc(category)) : 'Not specified';
 
-    // Generate email HTML
+    // Generate email HTML — all user values escaped
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -90,15 +102,15 @@ export async function POST(request: NextRequest) {
                 <table style="width: 100%; border-collapse: collapse;">
                   <tr>
                     <td style="padding: 10px 0; color: #6b7280; font-weight: 600; width: 120px;">Name:</td>
-                    <td style="padding: 10px 0; color: #374151;">${name}</td>
+                    <td style="padding: 10px 0; color: #374151;">${esc(name)}</td>
                   </tr>
                   <tr>
                     <td style="padding: 10px 0; color: #6b7280; font-weight: 600;">Email:</td>
-                    <td style="padding: 10px 0; color: #374151;"><a href="mailto:${email}" style="color: #1F3469;">${email}</a></td>
+                    <td style="padding: 10px 0; color: #374151;"><a href="mailto:${esc(email)}" style="color: #1F3469;">${esc(email)}</a></td>
                   </tr>
                   <tr>
                     <td style="padding: 10px 0; color: #6b7280; font-weight: 600;">Phone:</td>
-                    <td style="padding: 10px 0; color: #374151;">${phone || 'Not provided'}</td>
+                    <td style="padding: 10px 0; color: #374151;">${esc(phone || 'Not provided')}</td>
                   </tr>
                   <tr>
                     <td style="padding: 10px 0; color: #6b7280; font-weight: 600;">Category:</td>
@@ -106,21 +118,21 @@ export async function POST(request: NextRequest) {
                   </tr>
                   <tr>
                     <td style="padding: 10px 0; color: #6b7280; font-weight: 600;">Subject:</td>
-                    <td style="padding: 10px 0; color: #374151; font-weight: 600;">${subject}</td>
+                    <td style="padding: 10px 0; color: #374151; font-weight: 600;">${esc(subject)}</td>
                   </tr>
                 </table>
               </div>
 
               <div style="background: #fef3c7; border: 1px solid #fbbf24; padding: 20px; border-radius: 8px;">
                 <h3 style="color: #92400e; margin-top: 0; margin-bottom: 10px;">Message:</h3>
-                <p style="color: #92400e; margin: 0; white-space: pre-wrap; line-height: 1.6;">${message}</p>
+                <p style="color: #92400e; margin: 0; white-space: pre-wrap; line-height: 1.6;">${esc(message)}</p>
               </div>
 
               <div style="margin-top: 20px; padding: 15px; background: #f0f9f5; border-radius: 8px;">
                 <p style="margin: 0; color: #374151; font-size: 14px;">
                   <strong>Quick Actions:</strong><br>
-                  <a href="mailto:${email}?subject=Re: ${encodeURIComponent(subject)}" style="color: #1F3469;">Reply to ${name}</a>
-                  ${phone ? ` | <a href="tel:${phone.replace(/\s/g, '')}" style="color: #1F3469;">Call ${phone}</a>` : ''}
+                  <a href="mailto:${esc(email)}?subject=Re: ${esc(subject)}" style="color: #1F3469;">Reply to ${esc(name)}</a>
+                  ${phone ? ` | <a href="tel:${esc(phone.replace(/\s/g, ''))}" style="color: #1F3469;">Call ${esc(phone)}</a>` : ''}
                 </p>
               </div>
             </div>
@@ -157,7 +169,7 @@ ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Windhoek', dateStyle: '
     // Send email to support
     const mailOptions = {
       from: process.env.FROM_EMAIL || '"Cars.na" <no-reply@cars.na>',
-      to: 'support@cars.na',
+      to: process.env.ADMIN_EMAIL || 'support@cars.na',
       replyTo: email,
       subject: `Contact Form: ${subject}`,
       html: htmlContent,
@@ -167,7 +179,7 @@ ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Windhoek', dateStyle: '
     // Try to send the email
     try {
       await transporter.sendMail(mailOptions);
-      console.log('Contact form email sent successfully to support@cars.na');
+      console.log('Contact form email sent successfully');
 
       return NextResponse.json(
         { success: true, message: 'Your message has been sent successfully. We will get back to you soon!' },
@@ -204,12 +216,13 @@ ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Windhoek', dateStyle: '
       { status: 500 }
     );
   }
+  }); // end withRateLimit
 }
 
 export async function GET() {
   return NextResponse.json({
     status: 'Contact API is running',
-    supportEmail: 'support@cars.na',
+    supportEmail: process.env.ADMIN_EMAIL || 'support@cars.na',
     fromEmail: 'no-reply@cars.na',
   });
 }

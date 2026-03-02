@@ -41,6 +41,10 @@ function VehiclesContent() {
   });
   const [sortBy, setSortBy] = useState(sortByParam || 'newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  // Cursor stack for cursor-based pagination: [undefined, cursor1, cursor2, ...]
+  // Index 0 is page 1 (no cursor), index n is page n+1
+  const [cursorStack, setCursorStack] = useState<(string | null | undefined)[]>([undefined]);
+  const [pageIndex, setPageIndex] = useState(0);
   
   // Map dealer slug to dealership ID 
   const dealershipMap: Record<string, string> = {
@@ -65,9 +69,12 @@ function VehiclesContent() {
     return displayNames[slug] || 'Dealership Inventory';
   };
 
+  const PAGE_SIZE = 20;
+
   // Use tRPC query to fetch vehicles
   const { data: vehicleData, isLoading, error, refetch } = api.vehicle.getAll.useQuery({
-    limit: 20,
+    limit: PAGE_SIZE,
+    cursor: cursorStack[pageIndex] ?? undefined,
     filters: {
       make: filters.make || undefined,
       minPrice: filters.priceMin ? parseInt(filters.priceMin) : undefined,
@@ -75,6 +82,8 @@ function VehiclesContent() {
       minYear: filters.year ? parseInt(filters.year) : undefined,
       maxYear: filters.year ? parseInt(filters.year) : undefined,
       maxMileage: filters.mileage ? parseInt(filters.mileage) : undefined,
+      transmission: filters.transmission || undefined,
+      fuelType: filters.fuelType || undefined,
       dealershipId: dealershipId,
       search: searchQuery || undefined,
       location: locationParam || undefined,
@@ -88,9 +97,16 @@ function VehiclesContent() {
 
   const vehicles = vehicleData?.items || [];
 
+  // Reset to page 1 whenever filters/sort/search change
+  const resetPagination = () => {
+    setCursorStack([undefined]);
+    setPageIndex(0);
+  };
+
   // Handle filter changes to refetch data
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    resetPagination();
   };
 
   // Clear all filters
@@ -110,7 +126,24 @@ function VehiclesContent() {
     });
     setSearchQuery('');
     setSortBy('newest');
+    resetPagination();
   };
+
+  const handleNextPage = () => {
+    if (!vehicleData?.nextCursor) return;
+    const newStack = [...cursorStack.slice(0, pageIndex + 1), vehicleData.nextCursor];
+    setCursorStack(newStack);
+    setPageIndex(pageIndex + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (pageIndex === 0) return;
+    setPageIndex(pageIndex - 1);
+  };
+
+  const currentPage = pageIndex + 1;
+  const hasNextPage = !!vehicleData?.nextCursor;
+  const hasPrevPage = pageIndex > 0;
 
   if (error) {
     return (
@@ -159,7 +192,7 @@ function VehiclesContent() {
                     label="Search"
                     placeholder="Make, model, or keyword..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => { setSearchQuery(e.target.value); resetPagination(); }}
                   />
                   
                   <Select
@@ -280,7 +313,7 @@ function VehiclesContent() {
                     { value: 'year', label: 'Newest Year' },
                   ]}
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={(e) => { setSortBy(e.target.value); resetPagination(); }}
                 />
                 
                 <div className="flex border border-neutral-300 rounded-md">
@@ -348,13 +381,19 @@ function VehiclesContent() {
             )}
 
             {/* Pagination */}
-            <div className="flex justify-center items-center mt-12 gap-2">
-              <Button variant="outline" disabled>Previous</Button>
-              <Button variant="outline">1</Button>
-              <Button>2</Button>
-              <Button variant="outline">3</Button>
-              <Button variant="outline">Next</Button>
-            </div>
+            {(hasPrevPage || hasNextPage) && (
+              <div className="flex justify-center items-center mt-12 gap-2">
+                <Button variant="outline" disabled={!hasPrevPage} onClick={handlePrevPage}>
+                  Previous
+                </Button>
+                <span className="px-4 py-2 text-sm text-neutral-600">
+                  Page {currentPage}
+                </span>
+                <Button variant="outline" disabled={!hasNextPage} onClick={handleNextPage}>
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { addMonths } from 'date-fns';
 
 /**
  * Create Subscription API Route
@@ -36,8 +37,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Calculate end date
-    const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + plan.duration);
+    const endDate = addMonths(new Date(), plan.duration);
 
     // Create or update dealership subscription
     // Payments will be handled manually until payment provider is integrated

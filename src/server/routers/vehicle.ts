@@ -35,6 +35,16 @@ const getAllVehiclesInput = z.object({
       minMileage: z.number().optional(),
       maxMileage: z.number().optional(),
       dealershipId: z.string().optional(),
+      search: z.string().optional(),
+      location: z.string().optional(),
+      featured: z.boolean().optional(),
+      dealerPick: z.boolean().optional(),
+      hasDiscount: z.boolean().optional(),
+      isNew: z.boolean().optional(),
+      sortBy: z.string().optional(),
+      transmission: z.string().optional(),
+      fuelType: z.string().optional(),
+      status: z.enum(["AVAILABLE", "SOLD", "PENDING", "RESERVED"]).optional(),
     })
     .optional(),
 });
@@ -412,24 +422,61 @@ export const vehicleRouter = router({
 
       try {
         console.log('Attempting database connection for getAll...');
+
+        // Build orderBy from sortBy filter
+        const sortBy = filters?.sortBy;
+        const orderBy: any =
+          sortBy === 'price-low' ? { price: 'asc' } :
+          sortBy === 'price-high' ? { price: 'desc' } :
+          sortBy === 'mileage' ? { mileage: 'asc' } :
+          sortBy === 'year' ? { year: 'desc' } :
+          { createdAt: 'desc' };
+
+        // Build where clause
+        const where: any = {
+          isPrivate: false,
+          status: filters?.status ?? 'AVAILABLE',
+          ...(filters?.make && { make: { equals: filters.make, mode: 'insensitive' } }),
+          ...(filters?.model && { model: { equals: filters.model, mode: 'insensitive' } }),
+          ...(filters?.transmission && { transmission: { equals: filters.transmission, mode: 'insensitive' } }),
+          ...(filters?.fuelType && { fuelType: { equals: filters.fuelType, mode: 'insensitive' } }),
+          ...(filters?.dealershipId && { dealershipId: filters.dealershipId }),
+          ...(filters?.featured && { featured: true }),
+          ...(filters?.dealerPick && { dealerPick: true }),
+          ...(filters?.hasDiscount && { originalPrice: { not: null } }),
+          ...(filters?.isNew !== undefined && { isNew: filters.isNew }),
+          ...((filters?.minYear || filters?.maxYear) && {
+            year: {
+              ...(filters.minYear && { gte: filters.minYear }),
+              ...(filters.maxYear && { lte: filters.maxYear }),
+            },
+          }),
+          ...((filters?.minPrice || filters?.maxPrice) && {
+            price: {
+              ...(filters.minPrice && { gte: filters.minPrice }),
+              ...(filters.maxPrice && { lte: filters.maxPrice }),
+            },
+          }),
+          ...((filters?.minMileage || filters?.maxMileage) && {
+            mileage: {
+              ...(filters.minMileage && { gte: filters.minMileage }),
+              ...(filters.maxMileage && { lte: filters.maxMileage }),
+            },
+          }),
+          ...(filters?.search && {
+            OR: [
+              { make: { contains: filters.search, mode: 'insensitive' } },
+              { model: { contains: filters.search, mode: 'insensitive' } },
+              { description: { contains: filters.search, mode: 'insensitive' } },
+            ],
+          }),
+        };
+
         const items = await ctx.prisma.vehicle.findMany({
           take: limit + 1,
-          where: {
-            isPrivate: false,
-            ...(filters?.make && { make: filters.make }),
-            ...(filters?.model && { model: filters.model }),
-            ...(filters?.minYear && { year: { gte: filters.minYear } }),
-            ...(filters?.maxYear && { year: { lte: filters.maxYear } }),
-            ...(filters?.minPrice && { price: { gte: filters.minPrice } }),
-            ...(filters?.maxPrice && { price: { lte: filters.maxPrice } }),
-            ...(filters?.minMileage && { mileage: { gte: filters.minMileage } }),
-            ...(filters?.maxMileage && { mileage: { lte: filters.maxMileage } }),
-            ...(filters?.dealershipId && { dealershipId: filters.dealershipId }),
-          },
+          where,
           cursor: cursor ? { id: cursor } : undefined,
-          orderBy: {
-            createdAt: "desc",
-          },
+          orderBy,
           include: {
             dealership: true,
             images: {
@@ -466,6 +513,7 @@ export const vehicleRouter = router({
           minMileage: filters?.minMileage,
           maxMileage: filters?.maxMileage,
           dealershipId: filters?.dealershipId,
+          search: filters?.search,
         });
 
         console.log('Filtered vehicles count:', filteredVehicles.length);

@@ -3,6 +3,7 @@
 // Import PaystackPop dynamically for client-side usage only
 let PaystackPop: any;
 
+
 if (typeof window !== 'undefined') {
   try {
     PaystackPop = require('@paystack/inline-js');
@@ -47,11 +48,21 @@ export const initializePaystackPayment = (config: {
   return handler;
 };
 
-// Generate unique payment reference
+// Generate cryptographically secure unique payment reference
 export const generatePaymentReference = (): string => {
   const timestamp = new Date().getTime();
-  const random = Math.random().toString(36).substring(2, 15);
-  return `cars-na-${timestamp}-${random}`;
+  // Use crypto.getRandomValues in browser, Buffer/crypto in Node
+  let randomHex: string;
+  if (typeof window !== 'undefined' && window.crypto) {
+    const array = new Uint8Array(8);
+    window.crypto.getRandomValues(array);
+    randomHex = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+  } else {
+    // Node.js (server-side API routes)
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    randomHex = require('crypto').randomBytes(8).toString('hex');
+  }
+  return `cars-na-${timestamp}-${randomHex}`;
 };
 
 // Format amount for Paystack (convert to kobo/cents)

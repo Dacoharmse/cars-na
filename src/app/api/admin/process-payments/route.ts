@@ -71,7 +71,8 @@ export async function POST(request: NextRequest) {
         // 4. Send confirmation email
 
         // For now, we'll simulate the payment processing
-        const paymentReference = `PMT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const { randomBytes } = await import('crypto');
+        const paymentReference = `PMT-${Date.now()}-${randomBytes(5).toString('hex')}`;
 
         // Simulate Paystack payment initialization
         // const response = await paystack.transaction.initialize({

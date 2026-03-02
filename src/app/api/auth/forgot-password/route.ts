@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email';
 import { z } from 'zod';
+import { randomBytes } from 'crypto';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -22,9 +23,8 @@ export async function POST(request: NextRequest) {
     // Always return success to prevent email enumeration
     // But only send email if user exists
     if (user) {
-      // Generate password reset token
-      const resetToken = Math.random().toString(36).substring(2, 15) + 
-                        Math.random().toString(36).substring(2, 15);
+      // Generate cryptographically secure password reset token
+      const resetToken = randomBytes(32).toString('hex');
       const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
       
       // Update user with reset token

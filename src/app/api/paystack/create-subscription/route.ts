@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { paystack, formatAmountForPaystack, convertNADToNGN } from '@/lib/paystack';
 import { prisma } from '@/lib/prisma';
+import { addMonths } from 'date-fns';
 
 export async function POST(req: NextRequest) {
   try {
@@ -108,8 +109,7 @@ export async function POST(req: NextRequest) {
       const subscription = subscriptionResponse.data;
 
       // Calculate end date
-      const endDate = new Date();
-      endDate.setMonth(endDate.getMonth() + plan.duration);
+      const endDate = addMonths(new Date(), plan.duration);
 
       // Create or update dealership subscription
       await prisma.dealershipSubscription.upsert({

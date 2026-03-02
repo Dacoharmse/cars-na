@@ -132,10 +132,9 @@ export const authOptions: NextAuthOptions = {
       try {
         // Send login notification for database users (not hardcoded admin)
         if (user && user.email && user.email !== 'admin@cars.na') {
-          // Extract basic login details (in production, you'd get these from request headers)
           const loginDetails = {
             device: 'Web Browser',
-            location: 'Namibia'
+            location: 'Unknown location',
           };
 
           // Send login notification email (non-blocking)
@@ -151,7 +150,6 @@ export const authOptions: NextAuthOptions = {
           });
         }
 
-        console.log('User signed in:', user?.email);
         return true;
       } catch (error) {
         console.error('Sign-in callback error:', error);
@@ -160,17 +158,17 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = (user as any).role;
-        token.dealershipId = (user as any).dealershipId;
+        token.id = user.id ?? '';
+        token.role = user.role;
+        token.dealershipId = user.dealershipId;
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        (session.user as any).id = token.id as string;
-        (session.user as any).role = token.role as string;
-        (session.user as any).dealershipId = token.dealershipId as string;
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.dealershipId = token.dealershipId;
       }
       return session;
     },

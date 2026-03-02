@@ -2,25 +2,23 @@
  * tRPC server configuration for Cars.na
  */
 import { initTRPC, TRPCError } from '@trpc/server';
-import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
 import superjson from 'superjson';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { rateLimit } from '@/lib/rate-limit';
 
 /**
- * Context for tRPC requests
+ * Context for tRPC requests (App Router compatible)
  */
-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const { req, res } = opts;
-  const session = await getServerSession(req, res, authOptions);
+export const createTRPCContext = async (opts: { req?: Request; resHeaders?: Headers }) => {
+  // In App Router, getServerSession is called with authOptions only (no req/res)
+  const session = await getServerSession(authOptions);
 
   return {
     prisma,
     session,
-    req,
-    res,
+    req: opts.req,
+    resHeaders: opts.resHeaders,
   };
 };
 
