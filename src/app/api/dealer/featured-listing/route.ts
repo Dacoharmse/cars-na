@@ -23,6 +23,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check access restriction
+    const dealership = await prisma.dealership.findUnique({
+      where: { id: session.user.dealershipId },
+      select: { accessRestrictedAt: true },
+    });
+    if (dealership?.accessRestrictedAt) {
+      return NextResponse.json(
+        { success: false, error: 'Account restricted due to unpaid invoice. Please contact support@cars.na.' },
+        { status: 403 }
+      );
+    }
+
     // Verify the vehicle belongs to the dealership
     const vehicle = await prisma.vehicle.findUnique({
       where: { id: vehicleId }

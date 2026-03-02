@@ -4,11 +4,12 @@ import { prisma } from '@/lib/prisma';
 // GET - Get a single inquiry by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const inquiry = await prisma.dealershipInquiry.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         dealership: {
           select: {
@@ -42,14 +43,15 @@ export async function GET(
 // PATCH - Update inquiry (mark as read, respond, change status)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { action, response, status, readBy, respondedBy } = body;
 
     const inquiry = await prisma.dealershipInquiry.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!inquiry) {
@@ -59,6 +61,7 @@ export async function PATCH(
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {};
 
     switch (action) {
@@ -117,7 +120,7 @@ export async function PATCH(
     }
 
     const updatedInquiry = await prisma.dealershipInquiry.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         dealership: {
@@ -147,11 +150,12 @@ export async function PATCH(
 // DELETE - Delete an inquiry
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const inquiry = await prisma.dealershipInquiry.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!inquiry) {
@@ -162,7 +166,7 @@ export async function DELETE(
     }
 
     await prisma.dealershipInquiry.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({

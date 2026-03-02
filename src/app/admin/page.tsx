@@ -1772,6 +1772,15 @@ function AdminDashboardContent() {
   const [reportDateRange, setReportDateRange] = useState('last-30-days'); // 'last-7-days', 'last-30-days', 'last-90-days', 'custom'
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
+  // Invoices state
+  const [adminInvoices, setAdminInvoices] = useState<any[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
+  const [invoiceFilter, setInvoiceFilter] = useState('ALL');
+  const [invoiceMonth, setInvoiceMonth] = useState(new Date().getMonth() + 1);
+  const [invoiceYear, setInvoiceYear] = useState(new Date().getFullYear());
+  const [generatingInvoices, setGeneratingInvoices] = useState(false);
+  const [runningEscalation, setRunningEscalation] = useState(false);
+
   // Bulk actions state for listings
   const [featuredModalOpen, setFeaturedModalOpen] = useState(false);
   const [bulkSettingsModalOpen, setBulkSettingsModalOpen] = useState(false);
@@ -3346,10 +3355,20 @@ function AdminDashboardContent() {
       }
     };
 
+    if (isAuthenticated && activeTab === 'invoices') {
+      setInvoicesLoading(true);
+      const params = new URLSearchParams({ page: '1', limit: '50' });
+      if (invoiceFilter !== 'ALL') params.set('status', invoiceFilter);
+      fetch(`/api/admin/invoices?${params}`)
+        .then(r => r.json())
+        .then(data => { if (data.invoices) setAdminInvoices(data.invoices); })
+        .catch(console.error)
+        .finally(() => setInvoicesLoading(false));
+    }
     if (isAuthenticated && activeTab === 'featured-requests') {
       fetchFeaturedRequests();
     }
-  }, [isAuthenticated, activeTab]);
+  }, [isAuthenticated, activeTab, invoiceFilter]);
 
   if (isLoading) {
     return (
@@ -3374,6 +3393,7 @@ function AdminDashboardContent() {
     { name: 'Listings', icon: Car, id: 'listings', current: activeTab === 'listings' },
     { name: 'Sell Your Car', icon: HandCoins, id: 'sell-your-car', current: activeTab === 'sell-your-car' },
     { name: 'Subscriptions', icon: CreditCard, id: 'subscriptions', current: activeTab === 'subscriptions' },
+    { name: 'Invoices', icon: FileText, id: 'invoices', current: activeTab === 'invoices' },
     { name: 'Featured Requests', icon: Crown, id: 'featured-requests', current: activeTab === 'featured-requests' },
     { name: 'Advertisements', icon: Image, id: 'advertisements', current: activeTab === 'advertisements' },
     { name: 'Moderation', icon: Flag, id: 'moderation', current: activeTab === 'moderation' },
@@ -6770,6 +6790,186 @@ function AdminDashboardContent() {
           {/* Sell Your Car Tab */}
           {activeTab === 'sell-your-car' && (
             <SellYourCarManagement showToast={showToast} />
+          )}
+
+          {/* Invoices Tab */}
+          {activeTab === 'invoices' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <FileText className="h-6 w-6 text-blue-600" />
+                  Invoice Management
+                </h2>
+                <div className="flex gap-3">
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={invoiceMonth}
+                      onChange={e => setInvoiceMonth(Number(e.target.value))}
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                    >
+                      {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, i) => (
+                        <option key={i} value={i + 1}>{m}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      value={invoiceYear}
+                      onChange={e => setInvoiceYear(Number(e.target.value))}
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-24 focus:ring-2 focus:ring-blue-500"
+                      min={2024}
+                      max={2030}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        setGeneratingInvoices(true);
+                        try {
+                          const res = await fetch('/api/admin/invoices', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ month: invoiceMonth, year: invoiceYear }),
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            showToast({ title: 'Invoices Generated', description: data.message, type: 'success' });
+                            // Refresh list
+                            setInvoiceFilter('ALL');
+                          } else {
+                            showToast({ title: 'Error', description: data.error, type: 'error' });
+                          }
+                        } catch {
+                          showToast({ title: 'Error', description: 'Failed to generate invoices', type: 'error' });
+                        } finally {
+                          setGeneratingInvoices(false);
+                        }
+                      }}
+                      disabled={generatingInvoices}
+                    >
+                      {generatingInvoices ? 'Generating...' : 'Generate Invoices'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        setRunningEscalation(true);
+                        try {
+                          const res = await fetch('/api/admin/invoices/escalate', { method: 'POST' });
+                          const data = await res.json();
+                          if (res.ok) {
+                            showToast({ title: 'Escalation Complete', description: data.message, type: 'success' });
+                          } else {
+                            showToast({ title: 'Error', description: data.error, type: 'error' });
+                          }
+                        } catch {
+                          showToast({ title: 'Error', description: 'Escalation check failed', type: 'error' });
+                        } finally {
+                          setRunningEscalation(false);
+                        }
+                      }}
+                      disabled={runningEscalation}
+                    >
+                      {runningEscalation ? 'Running...' : 'Run Escalation Check'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter bar */}
+              <div className="flex gap-2">
+                {['ALL','PENDING','OVERDUE','PAID','CANCELLED'].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setInvoiceFilter(s)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                      invoiceFilter === s
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
+                  </button>
+                ))}
+              </div>
+
+              <Card>
+                <CardContent className="p-0">
+                  {invoicesLoading ? (
+                    <div className="flex items-center justify-center py-16">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                    </div>
+                  ) : adminInvoices.length === 0 ? (
+                    <p className="text-center text-gray-500 py-16">No invoices found.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-gray-50 border-b">
+                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Invoice #</th>
+                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Dealership</th>
+                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Period</th>
+                            <th className="text-right px-4 py-3 font-semibold text-gray-600">Total</th>
+                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Due Date</th>
+                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+                            <th className="px-4 py-3" />
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {adminInvoices.map((inv: any) => (
+                            <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-4 py-3 font-mono text-gray-900 font-medium">{inv.invoiceNumber}</td>
+                              <td className="px-4 py-3 text-gray-700">{inv.dealership?.name ?? '—'}</td>
+                              <td className="px-4 py-3 text-gray-700">
+                                {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][inv.billingMonth - 1]} {inv.billingYear}
+                              </td>
+                              <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                                N$ {inv.totalAmount.toLocaleString('en-NA', { minimumFractionDigits: 2 })}
+                              </td>
+                              <td className="px-4 py-3 text-gray-600">
+                                {new Date(inv.dueDate).toLocaleDateString('en-NA')}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${
+                                  inv.status === 'PAID' ? 'bg-green-100 text-green-800 border-green-200' :
+                                  inv.status === 'OVERDUE' ? 'bg-red-100 text-red-800 border-red-200' :
+                                  inv.status === 'CANCELLED' ? 'bg-gray-100 text-gray-600 border-gray-200' :
+                                  'bg-yellow-100 text-yellow-800 border-yellow-200'
+                                }`}>
+                                  {inv.status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                {inv.status !== 'PAID' && inv.status !== 'CANCELLED' && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={async () => {
+                                      const res = await fetch(`/api/admin/invoices/${inv.id}`, {
+                                        method: 'PATCH',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ action: 'mark-paid' }),
+                                      });
+                                      const data = await res.json();
+                                      if (res.ok) {
+                                        showToast({ title: 'Marked Paid', description: `Invoice ${inv.invoiceNumber} marked as paid.`, type: 'success' });
+                                        setAdminInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: 'PAID' } : i));
+                                      } else {
+                                        showToast({ title: 'Error', description: data.error, type: 'error' });
+                                      }
+                                    }}
+                                  >
+                                    Mark Paid
+                                  </Button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Subscriptions Tab */}

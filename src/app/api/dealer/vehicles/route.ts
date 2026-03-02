@@ -44,6 +44,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No dealership associated with this account' }, { status: 400 });
     }
 
+    if (user.dealership.accessRestrictedAt) {
+      return NextResponse.json(
+        { error: 'Account restricted due to unpaid invoice. Please contact support@cars.na.' },
+        { status: 403 }
+      );
+    }
+
     console.log('Creating vehicle for dealership:', {
       dealershipId: user.dealership.id,
       dealershipName: user.dealership.name,

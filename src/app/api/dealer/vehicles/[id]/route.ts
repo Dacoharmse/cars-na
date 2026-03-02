@@ -119,6 +119,13 @@ export async function PUT(
       return NextResponse.json({ error: 'No dealership associated with this account' }, { status: 400 });
     }
 
+    if (user.dealership.accessRestrictedAt) {
+      return NextResponse.json(
+        { error: 'Account restricted due to unpaid invoice. Please contact support@cars.na.' },
+        { status: 403 }
+      );
+    }
+
     // Verify vehicle belongs to dealer's dealership
     const existingVehicle = await prisma.vehicle.findFirst({
       where: {
@@ -246,6 +253,13 @@ export async function PATCH(
 
     if (!user || !user.dealership) {
       return NextResponse.json({ error: 'No dealership associated with this account' }, { status: 400 });
+    }
+
+    if (user.dealership.accessRestrictedAt) {
+      return NextResponse.json(
+        { error: 'Account restricted due to unpaid invoice. Please contact support@cars.na.' },
+        { status: 403 }
+      );
     }
 
     // Verify vehicle belongs to dealer's dealership

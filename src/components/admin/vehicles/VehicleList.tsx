@@ -21,7 +21,8 @@ import {
   TrendingUp,
   Calendar,
   DollarSign,
-  Users
+  Users,
+  Car
 } from 'lucide-react';
 
 interface VehicleImage {

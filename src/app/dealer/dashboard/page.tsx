@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 import { api } from '@/lib/api';
 import WebsiteManagerContent from '@/components/dealer/WebsiteManagerContent';
+import { InvoiceReminderModal } from '@/components/dealer/InvoiceReminderModal';
 import {
   Car,
   Users,
@@ -992,6 +993,16 @@ function DealerDashboardContent() {
   const [vehiclesLoading, setVehiclesLoading] = useState(true);
   const [vehiclesError, setVehiclesError] = useState<string | null>(null);
 
+  // Invoices state
+  const [invoices, setInvoices] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/invoices')
+      .then(r => r.json())
+      .then(data => { if (data.invoices) setInvoices(data.invoices); })
+      .catch(() => {});
+  }, []);
+
   // tRPC queries for leads and stats
   const { data: leadData, isLoading: leadsLoading, error: leadsError } = api.lead.getByDealership.useQuery({
     limit: 50,
@@ -1776,6 +1787,8 @@ function DealerDashboardContent() {
   }
 
   return (
+    <>
+    <InvoiceReminderModal />
     <div className="fixed inset-0 bg-gray-50 flex overflow-hidden">
       {/* Sidebar Navigation - Inspired by professional dealer systems */}
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
@@ -3467,43 +3480,54 @@ function DealerDashboardContent() {
 
                 {/* Billing History */}
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Billing History</CardTitle>
-                    <CardDescription>Your recent payments and invoices</CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>Billing History</CardTitle>
+                      <CardDescription>Your recent payments and invoices</CardDescription>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => router.push('/dealer/invoices')}>
+                      View All
+                    </Button>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {mockBillingHistory.map((invoice) => (
-                        <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                              <CreditCard className="h-5 w-5 text-blue-600" />
+                    {invoices.length === 0 ? (
+                      <p className="text-sm text-gray-500 text-center py-6">No invoices yet.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {invoices.slice(0, 5).map((invoice: any) => (
+                          <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <CreditCard className="h-5 w-5 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium font-mono text-sm">{invoice.invoiceNumber}</p>
+                                <p className="text-sm text-gray-600">
+                                  {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][invoice.billingMonth - 1]} {invoice.billingYear} • {invoice.planName}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium">{invoice.plan} Plan</p>
-                              <p className="text-sm text-gray-600">
-                                {new Date(invoice.date).toLocaleDateString()} • {invoice.period}
-                              </p>
+                            <div className="flex items-center gap-4">
+                              <div className="text-right">
+                                <p className="font-medium">N$ {invoice.totalAmount.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</p>
+                                <Badge className={`${
+                                  invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
+                                  invoice.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
+                                  'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {invoice.status}
+                                </Badge>
+                              </div>
+                              {invoice.pdfPath && (
+                                <Button variant="ghost" size="sm" onClick={() => router.push('/dealer/invoices')}>
+                                  Download
+                                </Button>
+                              )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <p className="font-medium">{formatSubscriptionPrice(invoice.amount)}</p>
-                              <Badge className={`${
-                                invoice.status === 'PAID'
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}>
-                                {invoice.status}
-                              </Badge>
-                            </div>
-                            <Button variant="ghost" size="sm">
-                              Download
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -4996,6 +5020,7 @@ function DealerDashboardContent() {
         </div>
       )}
     </div>
+    </>
   );
 }
 

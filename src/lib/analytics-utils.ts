@@ -392,7 +392,7 @@ export const performance = {
     let timeoutId: NodeJS.Timeout;
     return ((...args: any[]) => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func.apply(null, args), delay);
+      timeoutId = setTimeout(() => func(...args), delay);
     }) as T;
   },
 
@@ -400,7 +400,7 @@ export const performance = {
     let inThrottle: boolean;
     return ((...args: any[]) => {
       if (!inThrottle) {
-        func.apply(null, args);
+        func(...args);
         inThrottle = true;
         setTimeout(() => inThrottle = false, limit);
       }

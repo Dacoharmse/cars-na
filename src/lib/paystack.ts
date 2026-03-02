@@ -6,6 +6,7 @@ let PaystackPop: any;
 
 if (typeof window !== 'undefined') {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     PaystackPop = require('@paystack/inline-js');
   } catch (error) {
     console.warn('PaystackPop import failed:', error);
@@ -17,6 +18,7 @@ let Paystack: any;
 if (typeof window === 'undefined') {
   // Only import on server-side
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     Paystack = require('paystack')(process.env.PAYSTACK_SECRET_KEY);
   } catch (error) {
     console.warn('Paystack not available on server:', error);

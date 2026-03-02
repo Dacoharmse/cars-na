@@ -73,9 +73,10 @@ model User {
   auditLogs UserAuditLog[]
 
   // Vehicle listing relations
-  vehicleListings  UserVehicleListing[]
-  dealerInterests  DealerInterest[]
-  notifications    Notification[]
+  vehicleListings    UserVehicleListing[]
+  dealerInterests    DealerInterest[]
+  notifications      Notification[]
+  markedPaidInvoices Invoice[]           @relation("InvoicePaidBy")
 }
 
 // Dealership model for car dealerships
@@ -117,6 +118,9 @@ model Dealership {
   highlightDescription String? // Short description for the highlight
   highlightActive      Boolean          @default(false) // Whether to show the highlight
 
+  // Invoice / access control
+  accessRestrictedAt DateTime? // Set when invoice is 7+ days overdue
+
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 
@@ -131,6 +135,7 @@ model Dealership {
   featuredListingRequests FeaturedListingRequest[]
   dealerInterests         DealerInterest[]
   inquiries               DealershipInquiry[]
+  invoices                Invoice[]
 }
 
 // Vehicle model for car listings
@@ -568,6 +573,17 @@ enum NotificationType {
   OFFER_RECEIVED
   MESSAGE_RECEIVED
   LISTING_SOLD
+  INVOICE_GENERATED
+  INVOICE_OVERDUE
+  INVOICE_PAID
+  ACCESS_RESTRICTED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
 }
 
 // Banner model for homepage advertising
@@ -914,4 +930,51 @@ enum InquiryStatus {
   RESPONDED
   CLOSED
   SPAM
+}
+
+// Invoice model for monthly dealership billing
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique // e.g. INV-2026-03-0001
+
+  dealershipId  String
+  billingMonth  Int           // 1–12
+  billingYear   Int
+
+  // Amounts (all in NAD)
+  subscriptionAmount Float    // Monthly plan price
+  stockValue         Float    // Sum of AVAILABLE vehicle prices at time of generation
+  stockFeeAmount     Float    // stockValue × 0.001 (0.1%)
+  totalAmount        Float    // subscriptionAmount + stockFeeAmount
+  currency           String   @default("NAD")
+
+  // Snapshot at generation time
+  planName     String
+  vehicleCount Int            // Number of AVAILABLE vehicles included in stock value
+
+  // Status
+  status   InvoiceStatus @default(PENDING)
+  dueDate  DateTime      // generatedAt + 7 days
+  paidAt   DateTime?
+  paidById String?       // Admin user who marked as paid
+
+  // PDF
+  pdfPath  String?       // Relative path e.g. /invoices/INV-2026-03-0001.pdf
+
+  // Reminders
+  sentAt         DateTime?  // When the invoice email was first sent
+  lastReminderAt DateTime?  // When the last overdue reminder was sent
+  reminderCount  Int        @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  dealership Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+  paidBy     User?      @relation("InvoicePaidBy", fields: [paidById], references: [id])
+
+  @@unique([dealershipId, billingMonth, billingYear]) // prevent duplicate monthly invoices
+  @@index([dealershipId])
+  @@index([status])
+  @@index([dueDate])
 }
