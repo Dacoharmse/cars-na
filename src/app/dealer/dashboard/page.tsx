@@ -54,7 +54,10 @@ import {
   Tag,
   MapPin,
   Bell,
-  Inbox
+  Inbox,
+  FileText,
+  Download,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -995,13 +998,43 @@ function DealerDashboardContent() {
 
   // Invoices state
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(true);
+  const [downloadingInvoice, setDownloadingInvoice] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/invoices')
       .then(r => r.json())
       .then(data => { if (data.invoices) setInvoices(data.invoices); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setInvoicesLoading(false));
   }, []);
+
+  const handleInvoiceDownload = async (invoice: any) => {
+    if (!invoice.pdfPath) return;
+    setDownloadingInvoice(invoice.id);
+    try {
+      const res = await fetch(`/api/invoices/${invoice.id}/pdf`);
+      if (!res.ok) { alert('PDF not available. Please contact support.'); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${invoice.invoiceNumber}.pdf`; a.click();
+      URL.revokeObjectURL(url);
+    } catch { alert('Failed to download PDF. Please try again.'); }
+    finally { setDownloadingInvoice(null); }
+  };
+
+  const INVOICE_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const invoiceStatusCfg: Record<string, { label: string; classes: string }> = {
+    PENDING:   { label: 'Pending',   classes: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+    OVERDUE:   { label: 'Overdue',   classes: 'bg-red-100 text-red-800 border-red-200' },
+    PAID:      { label: 'Paid',      classes: 'bg-green-100 text-green-800 border-green-200' },
+    CANCELLED: { label: 'Cancelled', classes: 'bg-gray-100 text-gray-600 border-gray-200' },
+  };
+  const formatNAD = (n: number) => `N$ ${n.toLocaleString('en-NA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const daysOverdue = (dueDate: string) => Math.floor((Date.now() - new Date(dueDate).getTime()) / 86400000);
+  const overdueInvoices = invoices.filter(i => i.status === 'OVERDUE');
+  const totalOwed = invoices.filter(i => i.status === 'PENDING' || i.status === 'OVERDUE').reduce((s, i) => s + i.totalAmount, 0);
 
   // tRPC queries for leads and stats
   const { data: leadData, isLoading: leadsLoading, error: leadsError } = api.lead.getByDealership.useQuery({
@@ -1899,6 +1932,25 @@ function DealerDashboardContent() {
                 </button>
               )}
 
+              {/* Billing tab - only visible to dealership principals */}
+              {isDealershipPrincipal && (
+                <button
+                  onClick={() => handleTabSwitch('billing')}
+                  disabled={isLoading}
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 ${
+                    activeTab === 'billing'
+                      ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700 shadow-sm'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <FileText className="h-4 w-4 mr-3" />
+                  Billing &amp; Invoices
+                  {overdueInvoices.length > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5">{overdueInvoices.length}</span>
+                  )}
+                </button>
+              )}
+
               {/* User Management tab - only visible to dealership principals */}
               {isDealershipPrincipal && (
                 <button
@@ -1971,6 +2023,7 @@ function DealerDashboardContent() {
                 {activeTab === 'listings' && 'Vehicle Listings'}
                 {activeTab === 'analytics' && 'Analytics'}
                 {activeTab === 'subscription' && 'Subscription Management'}
+                {activeTab === 'billing' && 'Billing & Invoices'}
                 {activeTab === 'users' && 'Team Management'}
                 {activeTab === 'profile' && 'Website Manager'}
               </h1>
@@ -1981,6 +2034,7 @@ function DealerDashboardContent() {
                 {activeTab === 'listings' && 'Browse vehicles for sale from users'}
                 {activeTab === 'analytics' && 'View detailed performance metrics'}
                 {activeTab === 'subscription' && 'Manage your subscription and billing'}
+                {activeTab === 'billing' && 'View and download your monthly invoices'}
                 {activeTab === 'users' && 'Manage your dealership team members'}
                 {activeTab === 'profile' && 'Update your dealership information'}
               </p>
@@ -3717,6 +3771,153 @@ function DealerDashboardContent() {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+            )}
+
+            {/* Billing & Invoices Tab */}
+            {activeTab === 'billing' && isDealershipPrincipal && (
+              <div className="space-y-6">
+
+                {/* Summary cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                    <p className="text-sm text-gray-500">Total Invoices</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{invoices.length}</p>
+                  </div>
+                  <div className={`rounded-xl border p-5 shadow-sm ${overdueInvoices.length > 0 ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'}`}>
+                    <p className="text-sm text-gray-500">Amount Outstanding</p>
+                    <p className={`text-2xl font-bold mt-1 ${overdueInvoices.length > 0 ? 'text-red-700' : 'text-gray-900'}`}>
+                      {formatNAD(totalOwed)}
+                    </p>
+                  </div>
+                  <div className="bg-green-50 rounded-xl border border-green-200 p-5 shadow-sm">
+                    <p className="text-sm text-gray-500">Total Paid (all time)</p>
+                    <p className="text-2xl font-bold text-green-700 mt-1">
+                      {formatNAD(invoices.filter(i => i.status === 'PAID').reduce((s: number, i: any) => s + i.totalAmount, 0))}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Overdue warning */}
+                {overdueInvoices.length > 0 && (
+                  <div className="bg-red-50 border border-red-300 rounded-xl p-4 flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-red-800">
+                        {overdueInvoices.length} overdue invoice{overdueInvoices.length > 1 ? 's' : ''}
+                      </p>
+                      <p className="text-sm text-red-700 mt-0.5">
+                        Please settle immediately to avoid service restrictions. Contact{' '}
+                        <a href="mailto:support@cars.na" className="underline font-medium">support@cars.na</a>{' '}
+                        once payment is made.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Invoice table */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        Invoice History
+                      </CardTitle>
+                      <CardDescription>Your monthly billing from Cars.na</CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {invoicesLoading ? (
+                      <div className="flex items-center justify-center py-16">
+                        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    ) : invoices.length === 0 ? (
+                      <div className="text-center py-16 text-gray-400">
+                        <FileText className="h-12 w-12 mx-auto mb-3 text-gray-200" />
+                        <p className="font-medium">No invoices yet</p>
+                        <p className="text-sm mt-1">Invoices are generated on the 1st of each month.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                              <th className="text-left px-4 py-3 font-semibold text-gray-600">Invoice #</th>
+                              <th className="text-left px-4 py-3 font-semibold text-gray-600">Period</th>
+                              <th className="text-right px-4 py-3 font-semibold text-gray-600">Subscription</th>
+                              <th className="text-right px-4 py-3 font-semibold text-gray-600">Stock Fee</th>
+                              <th className="text-right px-4 py-3 font-semibold text-gray-600">Total</th>
+                              <th className="text-left px-4 py-3 font-semibold text-gray-600">Due Date</th>
+                              <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+                              <th className="px-4 py-3" />
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {invoices.map((invoice: any) => {
+                              const cfg = invoiceStatusCfg[invoice.status] || invoiceStatusCfg.PENDING;
+                              const overdue = daysOverdue(invoice.dueDate);
+                              return (
+                                <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
+                                  <td className="px-4 py-3 font-mono text-gray-900 font-medium text-xs">
+                                    {invoice.invoiceNumber}
+                                  </td>
+                                  <td className="px-4 py-3 text-gray-700">
+                                    {INVOICE_MONTHS[invoice.billingMonth - 1]} {invoice.billingYear}
+                                    <span className="ml-1 text-xs text-gray-400">• {invoice.planName}</span>
+                                  </td>
+                                  <td className="px-4 py-3 text-right text-gray-700">{formatNAD(invoice.subscriptionAmount)}</td>
+                                  <td className="px-4 py-3 text-right text-gray-700">
+                                    <span title={`0.1% of ${formatNAD(invoice.stockValue)} stock value (${invoice.vehicleCount} vehicles)`}>
+                                      {formatNAD(invoice.stockFeeAmount)}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3 text-right font-semibold text-gray-900">{formatNAD(invoice.totalAmount)}</td>
+                                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                                    {new Date(invoice.dueDate).toLocaleDateString('en-NA')}
+                                    {invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && overdue > 0 && (
+                                      <span className="ml-1 text-red-600 text-xs font-medium">({overdue}d overdue)</span>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${cfg.classes}`}>
+                                      {cfg.label}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3 text-right">
+                                    {invoice.pdfPath ? (
+                                      <button
+                                        onClick={() => handleInvoiceDownload(invoice)}
+                                        disabled={downloadingInvoice === invoice.id}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                                      >
+                                        {downloadingInvoice === invoice.id ? (
+                                          <span className="animate-spin inline-block w-3 h-3 border border-white border-t-transparent rounded-full" />
+                                        ) : (
+                                          <Download className="h-3 w-3" />
+                                        )}
+                                        PDF
+                                      </button>
+                                    ) : (
+                                      <span className="text-gray-400 text-xs">No PDF</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Billing explanation */}
+                <div className="bg-blue-50 rounded-xl border border-blue-200 p-5 text-sm text-blue-800">
+                  <p className="font-semibold mb-1">How your invoice is calculated</p>
+                  <p>Monthly invoice = <strong>Subscription plan fee</strong> + <strong>0.1% of total stock value</strong></p>
+                  <p className="mt-1 text-blue-700">Stock value is the sum of all your active (AVAILABLE) vehicle listing prices at the time of invoice generation.</p>
+                </div>
+
               </div>
             )}
 
