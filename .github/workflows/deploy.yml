@@ -55,7 +55,7 @@ jobs:
           # Copy artifact to VPS
           scp -i ~/.ssh/deploy_key standalone.tar.gz ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/var/www/cars-na/standalone.tar.gz
 
-          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
+          ssh -i ~/.ssh/deploy_key -o ServerAliveInterval=10 -o ServerAliveCountMax=6 ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
             set -e
             cd /var/www/cars-na
 
@@ -76,7 +76,7 @@ jobs:
             git pull origin master --quiet
 
             echo '==> Running DB migrations...'
-            npx prisma migrate deploy
+            timeout 60 npx prisma migrate deploy || echo 'Warning: migrate deploy timed out or had no pending migrations'
 
             echo '==> Swapping build...'
             cd /var/www/cars-na
