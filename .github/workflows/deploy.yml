@@ -71,8 +71,11 @@ jobs:
             echo '==> Restoring .env from server...'
             cp /tmp/cars-na-env.bak .next/standalone.new/.env
 
-            echo '==> Running DB migrations...'
+            echo '==> Syncing migrations from git...'
             cd /home/carsna/htdocs/cars.na/cars-na
+            git pull origin master --quiet
+
+            echo '==> Running DB migrations...'
             npx prisma migrate deploy
 
             echo '==> Swapping build...'
@@ -81,8 +84,8 @@ jobs:
             mv .next/standalone .next/standalone.old
             mv .next/standalone.new .next/standalone
 
-            echo '==> Restarting PM2...'
-            pm2 restart cars-na --update-env
+            echo '==> Reloading PM2 with new config...'
+            pm2 startOrReload .next/standalone/ecosystem.config.js --update-env
             pm2 save
 
             echo '==> Cleaning up old build...'
