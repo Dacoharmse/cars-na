@@ -85,8 +85,8 @@ jobs:
             mv .next/standalone.new .next/standalone
 
             echo '==> Reloading PM2 with new config...'
-            pm2 startOrReload .next/standalone/ecosystem.config.js --update-env
-            pm2 save
+            pm2 restart cars-na --update-env 2>/dev/null || pm2 start .next/standalone/ecosystem.config.js --env production
+            pm2 save --force
 
             echo '==> Cleaning up old build...'
             rm -rf .next/standalone.old
