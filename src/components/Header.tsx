@@ -59,8 +59,8 @@ export default function Header() {
       </a>
 
       {/* Utility Bar */}
-      <div className="fixed top-0 inset-x-0 z-[60] overflow-visible bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 border-b border-slate-200 dark:border-slate-700">
-        <div className="mx-auto max-w-7xl px-4 h-10 flex items-center justify-between overflow-visible">
+      <div className="fixed top-0 inset-x-0 z-[60] bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 border-b border-slate-200 dark:border-slate-700">
+        <div className="mx-auto max-w-7xl px-4 h-10 flex items-center justify-between">
           {/* Mobile Support Button */}
           <div className="flex md:hidden">
             <Link
