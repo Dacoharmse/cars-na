@@ -80,9 +80,7 @@ jobs:
             mv .next/standalone.new .next/standalone
             rm -rf .next/standalone.old
             echo "==> Restarting app in background..."
-            nohup bash -c "pm2 restart cars-na --update-env || pm2 start /var/www/cars-na/.next/standalone/ecosystem.config.js" >/tmp/pm2-deploy.log 2>&1 &
-            sleep 3
-            pm2 save --force >/dev/null 2>&1 || true
+            setsid bash -c 'pm2 restart cars-na --update-env >/tmp/pm2-deploy.log 2>&1 || pm2 start /var/www/cars-na/.next/standalone/ecosystem.config.js >>/tmp/pm2-deploy.log 2>&1; pm2 save --force >>/tmp/pm2-deploy.log 2>&1' </dev/null &
             echo "==> Deploy complete!"
           '
 
