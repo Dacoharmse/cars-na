@@ -45,18 +45,24 @@ jobs:
           retention-days: 7
 
       - name: Setup SSH key
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" | base64 -d > ~/.ssh/deploy_key
+          echo "$VPS_SSH_KEY" | base64 -d > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy to VPS
         timeout-minutes: 5
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
         run: |
           SSH="ssh -T -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=10 -o ServerAliveCountMax=3"
-          scp -i ~/.ssh/deploy_key standalone.tar.gz ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/var/www/cars-na/standalone.tar.gz
-          $SSH ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} '
+          scp -i ~/.ssh/deploy_key standalone.tar.gz "${VPS_USERNAME}@${VPS_HOST}:/var/www/cars-na/standalone.tar.gz"
+          $SSH "${VPS_USERNAME}@${VPS_HOST}" '
             set -e
             cd /var/www/cars-na
             echo "==> Backing up .env..."
@@ -86,12 +92,15 @@ jobs:
 
       - name: Health check
         timeout-minutes: 3
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
         run: |
           SSH="ssh -T -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=15"
           echo "Waiting for application to start..."
           sleep 15
           for i in {1..12}; do
-            if $SSH ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "curl -sf --max-time 8 http://localhost:3000 -o /dev/null"; then
+            if $SSH "${VPS_USERNAME}@${VPS_HOST}" "curl -sf --max-time 8 http://localhost:3000 -o /dev/null"; then
               echo "Application is responding on port 3000"
               exit 0
             fi
@@ -99,5 +108,5 @@ jobs:
             sleep 5
           done
           echo "Health check failed - last PM2 logs:"
-          $SSH ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "pm2 logs cars-na --lines 30 --nostream; cat /tmp/pm2-deploy.log 2>/dev/null || true"
+          $SSH "${VPS_USERNAME}@${VPS_HOST}" "pm2 logs cars-na --lines 30 --nostream; cat /tmp/pm2-deploy.log 2>/dev/null || true"
           exit 1
