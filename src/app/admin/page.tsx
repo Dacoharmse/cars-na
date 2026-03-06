@@ -6832,8 +6832,11 @@ function AdminDashboardContent() {
                           const data = await res.json();
                           if (res.ok) {
                             showToast({ title: 'Invoices Generated', description: data.message, type: 'success' });
-                            // Refresh list
                             setInvoiceFilter('ALL');
+                            // Force re-fetch (filter may already be ALL)
+                            fetch('/api/admin/invoices?page=1&limit=50')
+                              .then(r => r.json())
+                              .then(d => { if (d.invoices) setAdminInvoices(d.invoices); });
                           } else {
                             showToast({ title: 'Error', description: data.error, type: 'error' });
                           }
@@ -8865,7 +8868,7 @@ function AdminDashboardContent() {
           )}
 
           {/* Other tabs content */}
-          {activeTab !== 'overview' && activeTab !== 'users' && activeTab !== 'dealers' && activeTab !== 'listings' && activeTab !== 'subscriptions' && activeTab !== 'moderation' && activeTab !== 'analytics' && activeTab !== 'settings' && activeTab !== 'featured-requests' && (
+          {activeTab !== 'overview' && activeTab !== 'users' && activeTab !== 'dealers' && activeTab !== 'listings' && activeTab !== 'subscriptions' && activeTab !== 'moderation' && activeTab !== 'analytics' && activeTab !== 'settings' && activeTab !== 'featured-requests' && activeTab !== 'invoices' && activeTab !== 'sell-your-car' && activeTab !== 'advertisements' && activeTab !== 'messages' && (
             <div className="text-center py-12">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {navigation.find(nav => nav.id === activeTab)?.name} Section
