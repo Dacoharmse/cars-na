@@ -86,7 +86,7 @@ jobs:
             mv .next/standalone.new .next/standalone
             rm -rf .next/standalone.old
             echo "==> Restarting app..."
-            pkill -f "standalone/server.js" 2>/dev/null || true
+            pkill -f "node.*standalone/server.js" 2>/dev/null || true
             echo "==> Deploy complete!"
           '
 
