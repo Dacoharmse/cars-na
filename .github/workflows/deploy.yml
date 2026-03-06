@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -51,62 +52,54 @@ jobs:
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to VPS
+        timeout-minutes: 5
         run: |
-          # Copy artifact to VPS
+          SSH="ssh -T -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=10 -o ServerAliveCountMax=3"
           scp -i ~/.ssh/deploy_key standalone.tar.gz ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/var/www/cars-na/standalone.tar.gz
-
-          ssh -T -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "
+          $SSH ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} '
             set -e
             cd /var/www/cars-na
-
-            echo '==> Backing up current .env...'
+            echo "==> Backing up .env..."
             cp .next/standalone/.env /tmp/cars-na-env.bak 2>/dev/null || true
-
-            echo '==> Extracting new build...'
+            echo "==> Extracting new build..."
             rm -rf .next/standalone.new
             mkdir -p .next/standalone.new logs
             tar -xzf standalone.tar.gz -C .next/standalone.new
             rm standalone.tar.gz
-
-            echo '==> Restoring .env from server...'
+            echo "==> Restoring .env..."
             cp /tmp/cars-na-env.bak .next/standalone.new/.env
-
-            echo '==> Syncing migrations from git...'
+            echo "==> Syncing migrations from git..."
             cd /home/carsna/htdocs/cars.na/cars-na
             git pull origin master --quiet
-
-            echo '==> Running DB migrations...'
-            timeout 60 npx prisma migrate deploy || echo 'Warning: migrate deploy timed out or had no pending migrations'
-
-            echo '==> Swapping build...'
+            echo "==> Running DB migrations..."
+            timeout 60 npx prisma migrate deploy || echo "Warning: no pending migrations"
+            echo "==> Swapping build..."
             cd /var/www/cars-na
             rm -rf .next/standalone.old
             mv .next/standalone .next/standalone.old
             mv .next/standalone.new .next/standalone
-
-            echo '==> Reloading PM2 with new config...'
-            timeout 35 pm2 restart cars-na --update-env >/dev/null 2>&1 || timeout 35 pm2 start .next/standalone/ecosystem.config.js --env production >/dev/null 2>&1 || true
-            timeout 10 pm2 save --force >/dev/null 2>&1 || true
-
-            echo '==> Cleaning up old build...'
             rm -rf .next/standalone.old
-
-            echo 'Deployment complete!'
-          "
+            echo "==> Restarting app in background..."
+            nohup bash -c "pm2 restart cars-na --update-env || pm2 start /var/www/cars-na/.next/standalone/ecosystem.config.js" >/tmp/pm2-deploy.log 2>&1 &
+            sleep 3
+            pm2 save --force >/dev/null 2>&1 || true
+            echo "==> Deploy complete!"
+          '
 
       - name: Health check
+        timeout-minutes: 3
         run: |
-          SSH="ssh -T -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=30"
+          SSH="ssh -T -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=15"
           echo "Waiting for application to start..."
-          sleep 10
+          sleep 15
           for i in {1..12}; do
-            if $SSH ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "curl -f http://localhost:3000 -o /dev/null -s"; then
-              echo "✓ Application is responding on port 3000"
+            if $SSH ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "curl -sf --max-time 8 http://localhost:3000 -o /dev/null"; then
+              echo "Application is responding on port 3000"
               exit 0
             fi
-            echo "Attempt $i/12: Application not ready yet, waiting..."
+            echo "Attempt $i/12: not ready yet, waiting 5s..."
             sleep 5
           done
-          echo "✗ Health check failed"
-          $SSH ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "pm2 logs cars-na --lines 50 --nostream"
+          echo "Health check failed - last PM2 logs:"
+          $SSH ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "pm2 logs cars-na --lines 30 --nostream; cat /tmp/pm2-deploy.log 2>/dev/null || true"
           exit 1
