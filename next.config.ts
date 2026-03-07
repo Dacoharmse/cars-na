@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
   // Reduce memory usage during build
   experimental: {
     webpackMemoryOptimizations: true,
+    outputFileTracingIncludes: {
+      '/api/admin/invoices/\\[id\\]/pdf': ['./node_modules/pdfkit/js/data/**/*'],
+      '/api/admin/invoices': ['./node_modules/pdfkit/js/data/**/*'],
+    },
   },
   images: {
     remotePatterns: [
