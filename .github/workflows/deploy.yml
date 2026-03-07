@@ -79,8 +79,11 @@ jobs:
             git pull origin master --quiet
             echo "==> Running DB migrations..."
             timeout 60 npx prisma migrate deploy || echo "Warning: no pending migrations"
-            echo "==> Swapping build..."
+            echo "==> Copying pdfkit font data for bundled code..."
             cd /var/www/cars-na
+            mkdir -p .next/standalone.new/.next/server/chunks/data
+            cp .next/standalone.new/node_modules/pdfkit/js/data/* .next/standalone.new/.next/server/chunks/data/ 2>/dev/null || true
+            echo "==> Swapping build..."
             rm -rf .next/standalone.old
             mv .next/standalone .next/standalone.old
             mv .next/standalone.new .next/standalone
