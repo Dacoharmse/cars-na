@@ -75,7 +75,7 @@ jobs:
             echo "==> Restoring .env..."
             cp /tmp/cars-na-env.bak .next/standalone.new/.env
             echo "==> Syncing migrations from git..."
-            cd /home/carsna/htdocs/cars.na/cars-na
+            cd /home/carsna/cars-na
             git pull origin master --quiet
             echo "==> Running DB migrations..."
             timeout 60 npx prisma migrate deploy || echo "Warning: no pending migrations"
