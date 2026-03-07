@@ -6981,9 +6981,7 @@ function AdminDashboardContent() {
                                       else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
                                     }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-green-600"><Check className="h-4 w-4" /></button>
                                   )}
-                                  {inv.pdfPath && (
-                                    <a title="Download PDF" href={inv.pdfPath} download className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-indigo-600 inline-flex"><FileDown className="h-4 w-4" /></a>
-                                  )}
+                                  <button title="Download PDF" onClick={() => { window.open(`/api/admin/invoices/${inv.id}/pdf`, '_blank'); }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-indigo-600"><FileDown className="h-4 w-4" /></button>
                                   <button title="Send Email" onClick={() => { setSendEmailInvoiceId(inv.id); setSendEmailTo(inv.dealership?.email || ''); }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-purple-600"><Send className="h-4 w-4" /></button>
                                   <button title="Delete" onClick={() => setDeletingInvoiceId(inv.id)} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                                 </div>
@@ -7030,9 +7028,7 @@ function AdminDashboardContent() {
                       </div>
                     )}
                     <div className="mt-6 flex gap-2 justify-end flex-wrap">
-                      {selectedInvoice.pdfPath && (
-                        <a href={selectedInvoice.pdfPath} download className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"><FileDown className="h-4 w-4" /> Download PDF</a>
-                      )}
+                      <button onClick={() => { window.open(`/api/admin/invoices/${selectedInvoice.id}/pdf`, '_blank'); }} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"><FileDown className="h-4 w-4" /> Download PDF</button>
                       <Button variant="outline" onClick={() => { setSendEmailInvoiceId(selectedInvoice.id); setSendEmailTo(selectedInvoice.dealership?.email || ''); }}>
                         <Send className="h-4 w-4 mr-1.5" /> Send Email
                       </Button>
