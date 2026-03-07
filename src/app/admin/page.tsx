@@ -6831,6 +6831,7 @@ function AdminDashboardContent() {
                     />
                     <Button
                       size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
                       onClick={async () => {
                         setGeneratingInvoices(true);
                         try {
@@ -7079,7 +7080,7 @@ function AdminDashboardContent() {
                     </div>
                     <div className="mt-6 flex gap-2 justify-end">
                       <Button variant="outline" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>Cancel</Button>
-                      <Button disabled={savingInvoice} onClick={async () => {
+                      <Button className="bg-blue-600 hover:bg-blue-700 text-white" disabled={savingInvoice} onClick={async () => {
                         setSavingInvoice(true);
                         try {
                           const res = await fetch(`/api/admin/invoices/${selectedInvoice.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', ...editForm }) });
@@ -7138,7 +7139,7 @@ function AdminDashboardContent() {
                     />
                     <div className="flex gap-2 justify-end">
                       <Button variant="outline" onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }}>Cancel</Button>
-                      <Button disabled={sendingEmail || !sendEmailTo} onClick={async () => {
+                      <Button className="bg-blue-600 hover:bg-blue-700 text-white" disabled={sendingEmail || !sendEmailTo} onClick={async () => {
                         setSendingEmail(true);
                         try {
                           const res = await fetch(`/api/admin/invoices/${sendEmailInvoiceId}/send`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: sendEmailTo }) });
