@@ -119,9 +119,59 @@ export async function PATCH(
       return NextResponse.json({ success: true, invoice: updated });
     }
 
-    return NextResponse.json({ error: 'Invalid action. Use mark-paid or cancel.' }, { status: 400 });
+    if (action === 'update') {
+      const { status, subscriptionAmount, stockFeeAmount, totalAmount, dueDate } = body;
+      const data: Record<string, unknown> = {};
+      if (status && ['PENDING', 'PAID', 'OVERDUE', 'CANCELLED'].includes(status)) data.status = status;
+      if (subscriptionAmount !== undefined) data.subscriptionAmount = Number(subscriptionAmount);
+      if (stockFeeAmount !== undefined) data.stockFeeAmount = Number(stockFeeAmount);
+      if (totalAmount !== undefined) {
+        data.totalAmount = Number(totalAmount);
+      } else if (data.subscriptionAmount !== undefined || data.stockFeeAmount !== undefined) {
+        data.totalAmount = (data.subscriptionAmount !== undefined ? Number(data.subscriptionAmount) : invoice.subscriptionAmount)
+          + (data.stockFeeAmount !== undefined ? Number(data.stockFeeAmount) : invoice.stockFeeAmount);
+      }
+      if (dueDate) data.dueDate = new Date(dueDate);
+
+      const updated = await prisma.invoice.update({
+        where: { id },
+        data,
+        include: {
+          dealership: { select: { id: true, name: true, email: true, contactPerson: true } },
+          paidBy: { select: { id: true, name: true, email: true } },
+        },
+      });
+      return NextResponse.json({ success: true, invoice: updated });
+    }
+
+    return NextResponse.json({ error: 'Invalid action. Use mark-paid, cancel, or update.' }, { status: 400 });
   } catch (error) {
     console.error('Error updating invoice:', error);
     return NextResponse.json({ error: 'Failed to update invoice' }, { status: 500 });
+  }
+}
+
+// DELETE /api/admin/invoices/[id]
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const invoice = await prisma.invoice.findUnique({ where: { id } });
+    if (!invoice) {
+      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
+    }
+
+    await prisma.invoice.delete({ where: { id } });
+    return NextResponse.json({ success: true, message: `Invoice ${invoice.invoiceNumber} deleted.` });
+  } catch (error) {
+    console.error('Error deleting invoice:', error);
+    return NextResponse.json({ error: 'Failed to delete invoice' }, { status: 500 });
   }
 }

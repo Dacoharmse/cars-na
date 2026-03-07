@@ -1780,6 +1780,11 @@ function AdminDashboardContent() {
   const [invoiceYear, setInvoiceYear] = useState(new Date().getFullYear());
   const [generatingInvoices, setGeneratingInvoices] = useState(false);
   const [runningEscalation, setRunningEscalation] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [invoiceModalMode, setInvoiceModalMode] = useState<'view' | 'edit' | null>(null);
+  const [deletingInvoiceId, setDeletingInvoiceId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ status: '', subscriptionAmount: 0, stockFeeAmount: 0, totalAmount: 0, dueDate: '' });
+  const [savingInvoice, setSavingInvoice] = useState(false);
 
   // Bulk actions state for listings
   const [featuredModalOpen, setFeaturedModalOpen] = useState(false);
@@ -6940,29 +6945,38 @@ function AdminDashboardContent() {
                                   {inv.status}
                                 </span>
                               </td>
-                              <td className="px-4 py-3 text-right">
-                                {inv.status !== 'PAID' && inv.status !== 'CANCELLED' && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={async () => {
-                                      const res = await fetch(`/api/admin/invoices/${inv.id}`, {
-                                        method: 'PATCH',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ action: 'mark-paid' }),
+                              <td className="px-4 py-3">
+                                <div className="flex gap-1 justify-end">
+                                  <button title="View" onClick={async () => {
+                                    const res = await fetch(`/api/admin/invoices/${inv.id}`);
+                                    const data = await res.json();
+                                    if (data.invoice) { setSelectedInvoice(data.invoice); setInvoiceModalMode('view'); }
+                                  }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-blue-600"><Eye className="h-4 w-4" /></button>
+                                  <button title="Edit" onClick={async () => {
+                                    const res = await fetch(`/api/admin/invoices/${inv.id}`);
+                                    const data = await res.json();
+                                    if (data.invoice) {
+                                      setSelectedInvoice(data.invoice);
+                                      setEditForm({
+                                        status: data.invoice.status,
+                                        subscriptionAmount: data.invoice.subscriptionAmount,
+                                        stockFeeAmount: data.invoice.stockFeeAmount,
+                                        totalAmount: data.invoice.totalAmount,
+                                        dueDate: new Date(data.invoice.dueDate).toISOString().slice(0, 10),
                                       });
+                                      setInvoiceModalMode('edit');
+                                    }
+                                  }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-yellow-600"><Edit className="h-4 w-4" /></button>
+                                  {inv.status !== 'PAID' && inv.status !== 'CANCELLED' && (
+                                    <button title="Mark Paid" onClick={async () => {
+                                      const res = await fetch(`/api/admin/invoices/${inv.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'mark-paid' }) });
                                       const data = await res.json();
-                                      if (res.ok) {
-                                        showToast({ title: 'Marked Paid', description: `Invoice ${inv.invoiceNumber} marked as paid.`, type: 'success' });
-                                        setAdminInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: 'PAID' } : i));
-                                      } else {
-                                        showToast({ title: 'Error', description: data.error, type: 'error' });
-                                      }
-                                    }}
-                                  >
-                                    Mark Paid
-                                  </Button>
-                                )}
+                                      if (res.ok) { showToast({ title: 'Marked Paid', description: `Invoice ${inv.invoiceNumber} marked as paid.`, type: 'success' }); setAdminInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: 'PAID' } : i)); }
+                                      else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
+                                    }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-green-600"><Check className="h-4 w-4" /></button>
+                                  )}
+                                  <button title="Delete" onClick={() => setDeletingInvoiceId(inv.id)} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -6972,6 +6986,123 @@ function AdminDashboardContent() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Invoice View Modal */}
+              {invoiceModalMode === 'view' && selectedInvoice && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>
+                  <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-semibold">Invoice Details</h3>
+                      <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><p className="text-gray-500">Invoice #</p><p className="font-mono font-semibold">{selectedInvoice.invoiceNumber}</p></div>
+                      <div><p className="text-gray-500">Status</p><span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${selectedInvoice.status === 'PAID' ? 'bg-green-100 text-green-800 border-green-200' : selectedInvoice.status === 'OVERDUE' ? 'bg-red-100 text-red-800 border-red-200' : selectedInvoice.status === 'CANCELLED' ? 'bg-gray-100 text-gray-600 border-gray-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>{selectedInvoice.status}</span></div>
+                      <div><p className="text-gray-500">Dealership</p><p className="font-medium">{selectedInvoice.dealership?.name}</p></div>
+                      <div><p className="text-gray-500">Contact</p><p>{selectedInvoice.dealership?.contactPerson || '—'}</p></div>
+                      <div><p className="text-gray-500">Period</p><p>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][selectedInvoice.billingMonth - 1]} {selectedInvoice.billingYear}</p></div>
+                      <div><p className="text-gray-500">Plan</p><p>{selectedInvoice.planName}</p></div>
+                      <div><p className="text-gray-500">Due Date</p><p>{new Date(selectedInvoice.dueDate).toLocaleDateString('en-NA')}</p></div>
+                      <div><p className="text-gray-500">Vehicle Count</p><p>{selectedInvoice.vehicleCount}</p></div>
+                    </div>
+                    <div className="mt-6 bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-700 mb-3">Amount Breakdown</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between"><span className="text-gray-600">Subscription Fee</span><span>N$ {selectedInvoice.subscriptionAmount?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-600">Stock Value</span><span>N$ {selectedInvoice.stockValue?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-600">Stock Fee (0.1%)</span><span>N$ {selectedInvoice.stockFeeAmount?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
+                        <div className="flex justify-between border-t pt-2 font-semibold text-base"><span>Total</span><span>N$ {selectedInvoice.totalAmount?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
+                      </div>
+                    </div>
+                    {selectedInvoice.paidAt && (
+                      <div className="mt-4 text-sm text-gray-500">
+                        <p>Paid on {new Date(selectedInvoice.paidAt).toLocaleDateString('en-NA')} by {selectedInvoice.paidBy?.name || 'Admin'}</p>
+                      </div>
+                    )}
+                    <div className="mt-6 flex gap-2 justify-end">
+                      <Button variant="outline" onClick={() => {
+                        setEditForm({ status: selectedInvoice.status, subscriptionAmount: selectedInvoice.subscriptionAmount, stockFeeAmount: selectedInvoice.stockFeeAmount, totalAmount: selectedInvoice.totalAmount, dueDate: new Date(selectedInvoice.dueDate).toISOString().slice(0, 10) });
+                        setInvoiceModalMode('edit');
+                      }}>Edit Invoice</Button>
+                      <Button variant="outline" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>Close</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Invoice Edit Modal */}
+              {invoiceModalMode === 'edit' && selectedInvoice && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>
+                  <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-semibold">Edit Invoice — {selectedInvoice.invoiceNumber}</h3>
+                      <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                          {['PENDING', 'PAID', 'OVERDUE', 'CANCELLED'].map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Subscription Amount (NAD)</label>
+                        <input type="number" step="0.01" value={editForm.subscriptionAmount} onChange={e => { const v = Number(e.target.value); setEditForm(f => ({ ...f, subscriptionAmount: v, totalAmount: v + f.stockFeeAmount })); }} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock Fee Amount (NAD)</label>
+                        <input type="number" step="0.01" value={editForm.stockFeeAmount} onChange={e => { const v = Number(e.target.value); setEditForm(f => ({ ...f, stockFeeAmount: v, totalAmount: f.subscriptionAmount + v })); }} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount (NAD)</label>
+                        <input type="number" step="0.01" value={editForm.totalAmount} readOnly className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-700" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                        <input type="date" value={editForm.dueDate} onChange={e => setEditForm(f => ({ ...f, dueDate: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                    </div>
+                    <div className="mt-6 flex gap-2 justify-end">
+                      <Button variant="outline" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>Cancel</Button>
+                      <Button disabled={savingInvoice} onClick={async () => {
+                        setSavingInvoice(true);
+                        try {
+                          const res = await fetch(`/api/admin/invoices/${selectedInvoice.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', ...editForm }) });
+                          const data = await res.json();
+                          if (res.ok) {
+                            showToast({ title: 'Invoice Updated', description: `Invoice ${selectedInvoice.invoiceNumber} updated.`, type: 'success' });
+                            setAdminInvoices(prev => prev.map(i => i.id === selectedInvoice.id ? { ...i, ...data.invoice } : i));
+                            setInvoiceModalMode(null); setSelectedInvoice(null);
+                          } else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
+                        } catch { showToast({ title: 'Error', description: 'Failed to update invoice', type: 'error' }); }
+                        finally { setSavingInvoice(false); }
+                      }}>{savingInvoice ? 'Saving...' : 'Save Changes'}</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Delete Confirmation Modal */}
+              {deletingInvoiceId && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setDeletingInvoiceId(null)}>
+                  <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Invoice</h3>
+                    <p className="text-sm text-gray-600 mb-4">Are you sure you want to delete invoice <strong>{adminInvoices.find(i => i.id === deletingInvoiceId)?.invoiceNumber}</strong>? This action cannot be undone.</p>
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="outline" onClick={() => setDeletingInvoiceId(null)}>Cancel</Button>
+                      <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={async () => {
+                        const res = await fetch(`/api/admin/invoices/${deletingInvoiceId}`, { method: 'DELETE' });
+                        const data = await res.json();
+                        if (res.ok) {
+                          showToast({ title: 'Deleted', description: data.message, type: 'success' });
+                          setAdminInvoices(prev => prev.filter(i => i.id !== deletingInvoiceId));
+                        } else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
+                        setDeletingInvoiceId(null);
+                      }}>Delete</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
