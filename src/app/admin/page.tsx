@@ -97,7 +97,9 @@ import {
   ChevronDown,
   Check,
   Crown,
-  HandCoins
+  HandCoins,
+  Send,
+  FileDown,
 } from 'lucide-react';
 
 // Admin stats will be fetched from API
@@ -1785,6 +1787,9 @@ function AdminDashboardContent() {
   const [deletingInvoiceId, setDeletingInvoiceId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ status: '', subscriptionAmount: 0, stockFeeAmount: 0, totalAmount: 0, dueDate: '' });
   const [savingInvoice, setSavingInvoice] = useState(false);
+  const [sendEmailInvoiceId, setSendEmailInvoiceId] = useState<string | null>(null);
+  const [sendEmailTo, setSendEmailTo] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   // Bulk actions state for listings
   const [featuredModalOpen, setFeaturedModalOpen] = useState(false);
@@ -6975,6 +6980,10 @@ function AdminDashboardContent() {
                                       else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
                                     }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-green-600"><Check className="h-4 w-4" /></button>
                                   )}
+                                  {inv.pdfPath && (
+                                    <a title="Download PDF" href={inv.pdfPath} download className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-indigo-600 inline-flex"><FileDown className="h-4 w-4" /></a>
+                                  )}
+                                  <button title="Send Email" onClick={() => { setSendEmailInvoiceId(inv.id); setSendEmailTo(inv.dealership?.email || ''); }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-purple-600"><Send className="h-4 w-4" /></button>
                                   <button title="Delete" onClick={() => setDeletingInvoiceId(inv.id)} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                                 </div>
                               </td>
@@ -7019,7 +7028,13 @@ function AdminDashboardContent() {
                         <p>Paid on {new Date(selectedInvoice.paidAt).toLocaleDateString('en-NA')} by {selectedInvoice.paidBy?.name || 'Admin'}</p>
                       </div>
                     )}
-                    <div className="mt-6 flex gap-2 justify-end">
+                    <div className="mt-6 flex gap-2 justify-end flex-wrap">
+                      {selectedInvoice.pdfPath && (
+                        <a href={selectedInvoice.pdfPath} download className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"><FileDown className="h-4 w-4" /> Download PDF</a>
+                      )}
+                      <Button variant="outline" onClick={() => { setSendEmailInvoiceId(selectedInvoice.id); setSendEmailTo(selectedInvoice.dealership?.email || ''); }}>
+                        <Send className="h-4 w-4 mr-1.5" /> Send Email
+                      </Button>
                       <Button variant="outline" onClick={() => {
                         setEditForm({ status: selectedInvoice.status, subscriptionAmount: selectedInvoice.subscriptionAmount, stockFeeAmount: selectedInvoice.stockFeeAmount, totalAmount: selectedInvoice.totalAmount, dueDate: new Date(selectedInvoice.dueDate).toISOString().slice(0, 10) });
                         setInvoiceModalMode('edit');
@@ -7099,6 +7114,42 @@ function AdminDashboardContent() {
                         } else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
                         setDeletingInvoiceId(null);
                       }}>Delete</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Send Email Modal */}
+              {sendEmailInvoiceId && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }}>
+                  <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Send Invoice Email</h3>
+                      <button onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">Send invoice <strong>{adminInvoices.find(i => i.id === sendEmailInvoiceId)?.invoiceNumber}</strong> to:</p>
+                    <input
+                      type="email"
+                      value={sendEmailTo}
+                      onChange={e => setSendEmailTo(e.target.value)}
+                      placeholder="recipient@example.com"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 mb-4"
+                      autoFocus
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="outline" onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }}>Cancel</Button>
+                      <Button disabled={sendingEmail || !sendEmailTo} onClick={async () => {
+                        setSendingEmail(true);
+                        try {
+                          const res = await fetch(`/api/admin/invoices/${sendEmailInvoiceId}/send`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: sendEmailTo }) });
+                          const data = await res.json();
+                          if (res.ok) {
+                            showToast({ title: 'Email Sent', description: data.message, type: 'success' });
+                            setSendEmailInvoiceId(null); setSendEmailTo('');
+                          } else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
+                        } catch { showToast({ title: 'Error', description: 'Failed to send email', type: 'error' }); }
+                        finally { setSendingEmail(false); }
+                      }}>{sendingEmail ? 'Sending...' : 'Send'}</Button>
                     </div>
                   </div>
                 </div>
