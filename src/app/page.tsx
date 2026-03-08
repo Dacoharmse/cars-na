@@ -82,10 +82,10 @@ export default function Home() {
 
         <div className="relative container mx-auto px-4 py-12 lg:py-0">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            <div className={`grid grid-cols-1 ${featuredDealership ? 'lg:grid-cols-2 gap-10 lg:gap-16' : 'gap-10'} items-center`}>
 
               {/* ── Left: Hero content ── */}
-              <div className="text-left z-10 space-y-7">
+              <div className={`${featuredDealership ? 'text-left' : 'text-center mx-auto max-w-2xl'} z-10 space-y-7`}>
                 {/* Trust badge */}
                 <div className="animate-fade-up delay-0 inline-flex items-center gap-3 bg-white/[0.06] backdrop-blur-md rounded-full px-5 py-2.5 border border-white/10">
                   <span className="w-2 h-2 bg-[#34D399] rounded-full animate-pulse" />
@@ -112,7 +112,7 @@ export default function Home() {
                 </p>
 
                 {/* Stats row — animated counters */}
-                <div className="animate-fade-up delay-300 flex items-center gap-8 pt-2">
+                <div className={`animate-fade-up delay-300 flex items-center gap-8 pt-2 ${!featuredDealership ? 'justify-center' : ''}`}>
                   {[
                     { value: '200+', label: 'Dealers', color: 'text-[#34D399]' },
                     { value: '5,000+', label: 'Listings', color: 'text-[#C9A84C]' },
@@ -140,7 +140,7 @@ export default function Home() {
                 </div>
 
                 {/* CTA buttons */}
-                <div className="animate-fade-up delay-600 flex flex-col sm:flex-row gap-4 pt-2">
+                <div className={`animate-fade-up delay-600 flex flex-col sm:flex-row gap-4 pt-2 ${!featuredDealership ? 'justify-center' : ''}`}>
                   <Button
                     size="lg"
                     className="bg-[#CB2030] hover:bg-[#E04B56] text-white font-semibold text-base px-8 py-6 rounded-xl shadow-lg shadow-[#CB2030]/25 hover:shadow-xl hover:shadow-[#CB2030]/30 hover:-translate-y-0.5 transition-all duration-300"
@@ -161,8 +161,8 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* ── Right: Featured dealership card ── */}
-              <div className="relative hidden lg:block animate-slide-right delay-400">
+              {/* ── Right: Featured dealership card (hidden when no dealership) ── */}
+              <div className={`relative hidden ${featuredDealership ? 'lg:block' : ''} animate-slide-right delay-400`}>
                 <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 bg-white/[0.04] backdrop-blur-xl border border-white/10">
                   {/* Card header */}
                   <div className="bg-gradient-to-r from-[#C9A84C] via-[#D4B65C] to-[#C9A84C] p-5 relative overflow-hidden">
@@ -289,8 +289,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ── Mobile featured dealership ── */}
-            <div className="relative block lg:hidden mt-10 mb-8 animate-fade-up delay-400">
+            {/* ── Mobile featured dealership (hidden when no dealership) ── */}
+            <div className={`relative ${featuredDealership ? 'block lg:hidden' : 'hidden'} mt-10 mb-8 animate-fade-up delay-400`}>
               <div className="rounded-2xl overflow-hidden bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-xl">
                 <div className="bg-gradient-to-r from-[#C9A84C] to-[#D4B65C] p-4">
                   <div className="flex items-center justify-between">
