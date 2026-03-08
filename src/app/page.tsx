@@ -75,7 +75,7 @@ export default function Home() {
           {/* Glow accents */}
           <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#1F3469]/30 rounded-full blur-[120px]" />
           <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-[#CB2030]/15 rounded-full blur-[100px]" />
-          <div className="absolute top-0 right-1/3 w-[300px] h-[300px] bg-[#D4A853]/10 rounded-full blur-[80px]" />
+          <div className="absolute top-0 right-1/3 w-[300px] h-[300px] bg-[#C9A84C]/10 rounded-full blur-[80px]" />
           {/* Diagonal accent line */}
           <div className="absolute top-0 right-0 w-[600px] h-full bg-gradient-to-l from-[#1F3469]/8 to-transparent skew-x-[-12deg] translate-x-20" />
         </div>
@@ -92,15 +92,16 @@ export default function Home() {
                   <span className="text-sm font-medium text-[#34D399] tracking-wide">Namibia&apos;s Leading Car Marketplace</span>
                 </div>
 
-                {/* Headline — Bricolage Grotesque, extreme weights */}
+                {/* Headline — Outfit, clean geometric */}
                 <h1 className="animate-fade-up delay-100 font-display">
-                  <span className="block text-[3.2rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-extralight leading-[0.95] tracking-tight text-white/90">
+                  <span className="block text-[2.8rem] sm:text-[3.5rem] md:text-[4.2rem] lg:text-[4.8rem] font-light leading-[1.05] tracking-[-0.02em] text-white/80">
                     Find Your
                   </span>
-                  <span className="block text-[3.5rem] sm:text-[4.5rem] md:text-[5.5rem] lg:text-[6rem] font-extrabold leading-[0.95] tracking-tight mt-1">
-                    <span className="bg-gradient-to-r from-white via-white to-[#D4A853] bg-clip-text text-transparent">
-                      Perfect Car
-                    </span>
+                  <span className="block text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5.2rem] font-bold leading-[1.05] tracking-[-0.03em] text-white mt-1">
+                    Perfect Car
+                  </span>
+                  <span className="block text-lg sm:text-xl md:text-2xl font-medium text-[#C9A84C] mt-3 tracking-wide">
+                    Trusted by Namibian Drivers
                   </span>
                 </h1>
 
@@ -114,7 +115,7 @@ export default function Home() {
                 <div className="animate-fade-up delay-300 flex items-center gap-8 pt-2">
                   {[
                     { value: '200+', label: 'Dealers', color: 'text-[#34D399]' },
-                    { value: '5,000+', label: 'Listings', color: 'text-[#D4A853]' },
+                    { value: '5,000+', label: 'Listings', color: 'text-[#C9A84C]' },
                     { value: '5 Yrs', label: 'Trusted', color: 'text-[#60A5FA]' },
                   ].map((stat, i) => (
                     <div key={stat.label} className="animate-count-up" style={{ animationDelay: `${400 + i * 100}ms` }}>
@@ -130,7 +131,7 @@ export default function Home() {
                     onClick={() => setSearchDialogOpen(true)}
                     className="group w-full max-w-md flex items-center gap-3 px-5 py-4 rounded-2xl bg-white/[0.06] backdrop-blur-md border border-white/10 hover:border-white/25 hover:bg-white/[0.1] transition-all duration-300"
                   >
-                    <Search className="w-5 h-5 text-white/40 group-hover:text-[#D4A853] transition-colors" />
+                    <Search className="w-5 h-5 text-white/40 group-hover:text-[#C9A84C] transition-colors" />
                     <span className="text-white/40 group-hover:text-white/60 text-sm transition-colors">Search 5,000+ verified listings...</span>
                     <kbd className="ml-auto hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/10 text-white/30 text-xs font-mono">
                       ⌘K
@@ -164,12 +165,12 @@ export default function Home() {
               <div className="relative hidden lg:block animate-slide-right delay-400">
                 <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 bg-white/[0.04] backdrop-blur-xl border border-white/10">
                   {/* Card header */}
-                  <div className="bg-gradient-to-r from-[#D4A853] via-[#E8C878] to-[#D4A853] p-5 relative overflow-hidden">
+                  <div className="bg-gradient-to-r from-[#C9A84C] via-[#D4B65C] to-[#C9A84C] p-5 relative overflow-hidden">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.3),transparent_70%)]" />
                     <div className="relative flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-[#0B1628] rounded-xl flex items-center justify-center">
-                          <Star className="w-5 h-5 text-[#D4A853]" />
+                          <Star className="w-5 h-5 text-[#C9A84C]" />
                         </div>
                         <div>
                           <h3 className="text-lg font-bold text-[#0B1628] tracking-tight font-display">Featured Dealership</h3>
@@ -184,7 +185,7 @@ export default function Home() {
                   <div className="p-7">
                     {dealershipLoading ? (
                       <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-[#D4A853]" />
+                        <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-[#C9A84C]" />
                       </div>
                     ) : !featuredDealership ? (
                       <div className="text-center py-12">
@@ -230,7 +231,7 @@ export default function Home() {
                         <div className="grid grid-cols-3 gap-3 mb-6">
                           {[
                             { value: featuredDealership.stats.vehiclesCount, label: 'Vehicles', accent: 'from-[#34D399]/15 to-[#34D399]/5', text: 'text-[#34D399]', border: 'border-[#34D399]/20' },
-                            { value: featuredDealership.stats.rating, label: 'Rating', accent: 'from-[#D4A853]/15 to-[#D4A853]/5', text: 'text-[#D4A853]', border: 'border-[#D4A853]/20' },
+                            { value: featuredDealership.stats.rating, label: 'Rating', accent: 'from-[#C9A84C]/15 to-[#C9A84C]/5', text: 'text-[#C9A84C]', border: 'border-[#C9A84C]/20' },
                             { value: featuredDealership.stats.yearsInBusiness, label: 'Experience', accent: 'from-[#60A5FA]/15 to-[#60A5FA]/5', text: 'text-[#60A5FA]', border: 'border-[#60A5FA]/20' },
                           ].map((s) => (
                             <div key={s.label} className={`text-center p-4 bg-gradient-to-br ${s.accent} rounded-xl border ${s.border}`}>
@@ -243,12 +244,12 @@ export default function Home() {
                     )}
 
                     {/* Special offer */}
-                    <div className="bg-gradient-to-r from-[#D4A853]/10 to-[#D4A853]/5 border border-[#D4A853]/20 rounded-xl p-4 mb-6">
+                    <div className="bg-gradient-to-r from-[#C9A84C]/10 to-[#C9A84C]/5 border border-[#C9A84C]/20 rounded-xl p-4 mb-6">
                       <div className="flex items-center gap-2.5 mb-2">
-                        <div className="w-7 h-7 bg-[#D4A853] rounded-lg flex items-center justify-center">
+                        <div className="w-7 h-7 bg-[#C9A84C] rounded-lg flex items-center justify-center">
                           <Zap className="w-3.5 h-3.5 text-[#0B1628]" />
                         </div>
-                        <span className="font-bold text-[#D4A853] text-sm">Special Offer</span>
+                        <span className="font-bold text-[#C9A84C] text-sm">Special Offer</span>
                       </div>
                       <p className="text-xs text-white/60 leading-relaxed">0% financing available on selected vehicles. Trade-in bonuses up to N$50,000!</p>
                     </div>
@@ -256,7 +257,7 @@ export default function Home() {
                     {/* Action buttons */}
                     <div className="flex gap-3">
                       <Button
-                        className="flex-1 bg-[#D4A853] hover:bg-[#E8C878] text-[#0B1628] font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 rounded-xl"
+                        className="flex-1 bg-[#C9A84C] hover:bg-[#D4B65C] text-[#0B1628] font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 rounded-xl"
                         onClick={() => featuredDealership?.slug ? router.push(`/dealership/${featuredDealership.slug}`) : router.push('/vehicles')}
                       >
                         View Inventory
@@ -274,7 +275,7 @@ export default function Home() {
 
                 {/* Floating badges */}
                 <div className="absolute -top-5 -left-5 animate-subtle-float z-20">
-                  <div className="bg-gradient-to-br from-[#D4A853] to-[#E8C878] rounded-2xl p-4 shadow-xl rotate-[-6deg]">
+                  <div className="bg-gradient-to-br from-[#C9A84C] to-[#D4B65C] rounded-2xl p-4 shadow-xl rotate-[-6deg]">
                     <div className="text-lg font-black text-[#0B1628] leading-none font-display">TOP</div>
                     <div className="text-[10px] text-[#0B1628]/70 font-bold uppercase tracking-widest mt-0.5">Dealer</div>
                   </div>
@@ -291,11 +292,11 @@ export default function Home() {
             {/* ── Mobile featured dealership ── */}
             <div className="relative block lg:hidden mt-10 mb-8 animate-fade-up delay-400">
               <div className="rounded-2xl overflow-hidden bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-xl">
-                <div className="bg-gradient-to-r from-[#D4A853] to-[#E8C878] p-4">
+                <div className="bg-gradient-to-r from-[#C9A84C] to-[#D4B65C] p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 bg-[#0B1628] rounded-full flex items-center justify-center">
-                        <Star className="w-3.5 h-3.5 text-[#D4A853]" />
+                        <Star className="w-3.5 h-3.5 text-[#C9A84C]" />
                       </div>
                       <div>
                         <h3 className="text-sm font-bold text-[#0B1628]">Featured Dealership</h3>
@@ -326,8 +327,8 @@ export default function Home() {
                       <div className="text-base font-bold text-[#34D399] font-display">{featuredDealership?.stats?.vehiclesCount || '150+'}</div>
                       <div className="text-[10px] text-white/40">Vehicles</div>
                     </div>
-                    <div className="text-center p-2.5 bg-[#D4A853]/10 rounded-lg border border-[#D4A853]/20">
-                      <div className="text-base font-bold text-[#D4A853] font-display">{featuredDealership?.stats?.rating || '4.9'}</div>
+                    <div className="text-center p-2.5 bg-[#C9A84C]/10 rounded-lg border border-[#C9A84C]/20">
+                      <div className="text-base font-bold text-[#C9A84C] font-display">{featuredDealership?.stats?.rating || '4.9'}</div>
                       <div className="text-[10px] text-white/40">Rating</div>
                     </div>
                     <div className="text-center p-2.5 bg-[#60A5FA]/10 rounded-lg border border-[#60A5FA]/20">
@@ -336,7 +337,7 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button className="flex-1 bg-[#D4A853] hover:bg-[#E8C878] text-[#0B1628] font-semibold text-sm rounded-xl" onClick={() => featuredDealership?.slug ? router.push(`/dealership/${featuredDealership.slug}`) : router.push('/vehicles')}>
+                    <Button className="flex-1 bg-[#C9A84C] hover:bg-[#D4B65C] text-[#0B1628] font-semibold text-sm rounded-xl" onClick={() => featuredDealership?.slug ? router.push(`/dealership/${featuredDealership.slug}`) : router.push('/vehicles')}>
                       View Inventory
                     </Button>
                     <Button variant="outline" className="border-white/15 text-white hover:bg-white/10 text-sm px-4 rounded-xl" onClick={() => setContactModalOpen(true)}>
@@ -370,7 +371,7 @@ export default function Home() {
                       value={searchQuery}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                       onKeyPress={(e: React.KeyboardEvent) => { if (e.key === 'Enter') handleMainSearch(); }}
-                      className="w-full h-12 bg-white/[0.06] border-white/10 text-white placeholder:text-white/30 focus:border-[#D4A853] focus:ring-[#D4A853]/30 rounded-xl"
+                      className="w-full h-12 bg-white/[0.06] border-white/10 text-white placeholder:text-white/30 focus:border-[#C9A84C] focus:ring-[#C9A84C]/30 rounded-xl"
                     />
                   </div>
                   <div className="space-y-2">
@@ -382,7 +383,7 @@ export default function Home() {
                       id="make-select"
                       value={selectedMake}
                       onChange={(e) => setSelectedMake(e.target.value)}
-                      className="w-full h-12 bg-white/[0.06] border border-white/10 text-white rounded-xl px-3 text-sm focus:border-[#D4A853] focus:ring-1 focus:ring-[#D4A853]/30 outline-none"
+                      className="w-full h-12 bg-white/[0.06] border border-white/10 text-white rounded-xl px-3 text-sm focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 outline-none"
                     >
                       <option value="" className="bg-[#0B1628]">Any Make</option>
                       {['Toyota', 'Ford', 'Volkswagen', 'BMW', 'Mercedes-Benz', 'Nissan', 'Isuzu', 'Hyundai', 'Kia'].map(make => (
@@ -399,7 +400,7 @@ export default function Home() {
                       id="location-select-main"
                       value={selectedLocation}
                       onChange={(e) => setSelectedLocation(e.target.value)}
-                      className="w-full h-12 bg-white/[0.06] border border-white/10 text-white rounded-xl px-3 text-sm focus:border-[#D4A853] focus:ring-1 focus:ring-[#D4A853]/30 outline-none"
+                      className="w-full h-12 bg-white/[0.06] border border-white/10 text-white rounded-xl px-3 text-sm focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 outline-none"
                     >
                       <option value="" className="bg-[#0B1628]">All Locations</option>
                       {['Windhoek', 'Swakopmund', 'Walvis Bay', 'Oshakati', 'Rundu', 'Katima Mulilo', 'Otjiwarongo', 'Gobabis'].map(loc => (
@@ -439,7 +440,7 @@ export default function Home() {
                     </div>
                     <div className="flex items-center justify-center lg:justify-end gap-6">
                       {[
-                        { value: 'NAD 150K', label: 'Avg. Price', color: 'text-[#D4A853]' },
+                        { value: 'NAD 150K', label: 'Avg. Price', color: 'text-[#C9A84C]' },
                         { value: '24hrs', label: 'Avg. Response', color: 'text-[#CB2030]' },
                         { value: '98%', label: 'Satisfaction', color: 'text-[#34D399]' },
                       ].map((s, i) => (
@@ -471,16 +472,16 @@ export default function Home() {
       <section className="py-24 relative overflow-hidden bg-[#FAFAF8]">
         {/* Background texture */}
         <div className="absolute inset-0 bg-[radial-gradient(#0B162808_1px,transparent_1px)] [background-size:20px_20px]" />
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D4A853]/30 to-transparent" />
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#C9A84C]/30 to-transparent" />
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
             <span className="animate-fade-up inline-flex items-center gap-2 bg-[#0B1628]/[0.04] rounded-full px-5 py-2 mb-5 border border-[#0B1628]/[0.06]">
-              <span className="w-1.5 h-1.5 bg-[#D4A853] rounded-full" />
+              <span className="w-1.5 h-1.5 bg-[#C9A84C] rounded-full" />
               <span className="text-xs font-semibold text-[#0B1628]/60 uppercase tracking-wider">Simple & Transparent</span>
             </span>
             <h2 className="text-4xl md:text-5xl font-extrabold text-[#0B1628] font-display mb-4">
-              How It <span className="bg-gradient-to-r from-[#D4A853] to-[#CB2030] bg-clip-text text-transparent">Works</span>
+              How It <span className="bg-gradient-to-r from-[#C9A84C] to-[#CB2030] bg-clip-text text-transparent">Works</span>
             </h2>
             <p className="text-lg text-[#0B1628]/50 max-w-xl mx-auto">
               Find your perfect vehicle in three simple steps
@@ -557,7 +558,7 @@ export default function Home() {
               <Button
                 size="lg"
                 onClick={() => router.push('/vehicles')}
-                className="bg-[#D4A853] hover:bg-[#E8C878] text-[#0B1628] font-semibold px-8 py-5 whitespace-nowrap rounded-xl"
+                className="bg-[#C9A84C] hover:bg-[#D4B65C] text-[#0B1628] font-semibold px-8 py-5 whitespace-nowrap rounded-xl"
               >
                 Browse All Vehicles
               </Button>
@@ -572,7 +573,7 @@ export default function Home() {
       <section className="py-16 relative overflow-hidden bg-white">
         {/* Subtle mesh gradient */}
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-[#D4A853]/[0.04] rounded-full blur-[80px]" />
+          <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-[#C9A84C]/[0.04] rounded-full blur-[80px]" />
           <div className="absolute bottom-0 right-1/4 w-[500px] h-[300px] bg-[#1F3469]/[0.04] rounded-full blur-[80px]" />
         </div>
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#0B1628]/10 to-transparent" />
@@ -605,7 +606,7 @@ export default function Home() {
               <button
                 key={brand.name}
                 onClick={() => router.push(`/vehicles?make=${brand.name}`)}
-                className="bg-white rounded-xl p-5 w-full h-24 flex items-center justify-center group hover:scale-105 transition-all duration-300 border border-[#0B1628]/[0.06] hover:border-[#D4A853]/40 hover:shadow-lg cursor-pointer"
+                className="bg-white rounded-xl p-5 w-full h-24 flex items-center justify-center group hover:scale-105 transition-all duration-300 border border-[#0B1628]/[0.06] hover:border-[#C9A84C]/40 hover:shadow-lg cursor-pointer"
               >
                 {brand.useNext ? (
                   <Image src={brand.src} alt={brand.name} width={56} height={56} className="group-hover:scale-110 transition-transform duration-200 object-contain" />
@@ -646,7 +647,7 @@ export default function Home() {
                       <p className="text-white/50 mb-6 leading-relaxed text-sm">
                         Reach thousands of car buyers across Namibia with our premium advertising solutions
                       </p>
-                      <Button size="sm" className="bg-[#D4A853] hover:bg-[#E8C878] text-[#0B1628] font-semibold rounded-xl">
+                      <Button size="sm" className="bg-[#C9A84C] hover:bg-[#D4B65C] text-[#0B1628] font-semibold rounded-xl">
                         Advertise With Us
                       </Button>
                     </div>
@@ -664,12 +665,12 @@ export default function Home() {
       <section className="py-20 bg-[#0B1628] text-white relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:24px_24px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#D4A853]/10 rounded-full blur-[120px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#C9A84C]/10 rounded-full blur-[120px]" />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
           <h2 className="text-3xl md:text-5xl font-extrabold mb-4 font-display">
             Ready to Find Your{' '}
-            <span className="bg-gradient-to-r from-[#D4A853] to-[#E8C878] bg-clip-text text-transparent">Perfect Car</span>?
+            <span className="bg-gradient-to-r from-[#C9A84C] to-[#D4B65C] bg-clip-text text-transparent">Perfect Car</span>?
           </h2>
           <p className="text-lg mb-8 text-white/40 max-w-xl mx-auto">
             Join thousands of satisfied customers who found their dream car through Cars.na
@@ -677,7 +678,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              className="bg-[#D4A853] hover:bg-[#E8C878] text-[#0B1628] font-semibold px-8 py-6 rounded-xl shadow-lg shadow-[#D4A853]/25"
+              className="bg-[#C9A84C] hover:bg-[#D4B65C] text-[#0B1628] font-semibold px-8 py-6 rounded-xl shadow-lg shadow-[#C9A84C]/25"
               onClick={() => router.push('/vehicles')}
             >
               Browse All Vehicles
