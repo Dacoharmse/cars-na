@@ -1,0 +1,28 @@
+name: Add Admin SSH Key (one-time)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  add-key:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Setup SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$VPS_SSH_KEY" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p 2222 -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Add admin key
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+        run: |
+          SSH="ssh -T -p 2222 -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=15"
+          ADMIN_KEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKA8uws4Z/Vi0W8u+zJT30AjR8NxfQHNH0ONbjmSlnRX local-admin"
+          $SSH "${VPS_USERNAME}@${VPS_HOST}" "echo '$ADMIN_KEY' >> ~/.ssh/authorized_keys && echo 'Admin key added successfully'"
