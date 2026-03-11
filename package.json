@@ -49,7 +49,7 @@
     "date-fns": "^4.1.0",
     "express-rate-limit": "^8.0.1",
     "lucide-react": "^0.363.0",
-    "next": "15.4.2",
+    "next": "^16.1.6",
     "next-auth": "^4.24.7",
     "next-rate-limit": "^0.0.3",
     "nodemailer": "^7.0.11",
