@@ -1,37 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { prisma } from '@/lib/prisma';
 
-const SETTINGS_FILE = path.join(process.cwd(), 'data', 'auto-moderate.json');
-
-// Ensure data directory exists
-async function ensureDataDir() {
-  const dataDir = path.join(process.cwd(), 'data');
-  try {
-    await fs.access(dataDir);
-  } catch {
-    await fs.mkdir(dataDir, { recursive: true });
-  }
-}
-
-// Read auto-moderate setting
+// Read auto-moderate setting from PlatformSettings table
 async function getAutoModerate(): Promise<boolean> {
   try {
-    await ensureDataDir();
-    const data = await fs.readFile(SETTINGS_FILE, 'utf-8');
-    const settings = JSON.parse(data);
-    return settings.enabled ?? false;
+    const setting = await prisma.platformSettings.findUnique({
+      where: { key: 'auto-moderate' },
+    });
+    if (!setting) return false;
+    const value = setting.value as { enabled?: boolean };
+    return value.enabled ?? false;
   } catch {
-    return false; // Default to disabled
+    return false;
   }
 }
 
-// Write auto-moderate setting
-async function setAutoModerate(enabled: boolean): Promise<void> {
-  await ensureDataDir();
-  await fs.writeFile(SETTINGS_FILE, JSON.stringify({ enabled }, null, 2));
+// Write auto-moderate setting to PlatformSettings table
+async function setAutoModerate(enabled: boolean, userId?: string): Promise<void> {
+  await prisma.platformSettings.upsert({
+    where: { key: 'auto-moderate' },
+    update: { value: { enabled }, updatedBy: userId },
+    create: { key: 'auto-moderate', value: { enabled }, updatedBy: userId },
+  });
 }
 
 export async function GET(request: NextRequest) {
@@ -71,7 +63,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await setAutoModerate(enabled);
+    await setAutoModerate(enabled, session.user.id);
 
     return NextResponse.json({ enabled });
   } catch (error) {

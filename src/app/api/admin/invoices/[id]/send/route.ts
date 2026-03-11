@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { generateInvoicePDF } from '@/lib/invoice-generator';
 import nodemailer from 'nodemailer';
-import path from 'path';
-import fs from 'fs/promises';
 
 function createTransporter() {
   const smtpHost = process.env.SMTP_HOST || 'localhost';
@@ -47,7 +46,11 @@ export async function POST(
 
     const invoice = await prisma.invoice.findUnique({
       where: { id },
-      include: { dealership: { select: { name: true, email: true, contactPerson: true } } },
+      include: {
+        dealership: {
+          select: { id: true, name: true, email: true, contactPerson: true, streetAddress: true, city: true, region: true, phone: true },
+        },
+      },
     });
 
     if (!invoice) {
@@ -57,14 +60,12 @@ export async function POST(
     const NAD = (n: number) => `N$ ${n.toLocaleString('en-NA', { minimumFractionDigits: 2 })}`;
     const monthName = new Date(invoice.billingYear, invoice.billingMonth - 1).toLocaleString('en-US', { month: 'long' });
 
-    const attachments: { filename: string; path: string }[] = [];
-    if (invoice.pdfPath) {
-      const pdfFullPath = path.join(process.cwd(), 'public', invoice.pdfPath);
-      try {
-        await fs.access(pdfFullPath);
-        attachments.push({ filename: `${invoice.invoiceNumber}.pdf`, path: pdfFullPath });
-      } catch { /* PDF file missing, send without attachment */ }
-    }
+    // Generate PDF in memory for attachment
+    const attachments: any[] = [];
+    try {
+      const pdfBuffer = await generateInvoicePDF(invoice as any);
+      attachments.push({ filename: `${invoice.invoiceNumber}.pdf`, content: pdfBuffer, contentType: 'application/pdf' });
+    } catch { /* Send without attachment if PDF generation fails */ }
 
     const transporter = createTransporter();
     await transporter.sendMail({

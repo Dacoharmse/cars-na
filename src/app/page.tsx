@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { HomeShowcase } from "@/components/HomeShowcase";
 import { Card, CardContent } from '@/components/ui/Card';
-import { Search, Eye, Star, Car, DollarSign, MapPin, Phone, Zap, ArrowRight } from 'lucide-react';
+import { Search, Eye, Star, Car, DollarSign, MapPin, Phone, Zap, ArrowRight, ChevronRight } from 'lucide-react';
 import CarFilterSearch from "@/components/CarFilterSearch";
 import { DealerContactModal } from "@/components/DealerContactModal";
 import { DynamicBanner } from "@/components/DynamicBanner";
@@ -63,398 +63,192 @@ export default function Home() {
   return (
     <MainLayout>
       {/* ═══════════════════════════════════════════
-          HERO SECTION — Dark, immersive, cinematic
+          HERO — Editorial automotive, asymmetric
          ═══════════════════════════════════════════ */}
-      <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-[#0B1628]">
-        {/* Layered background */}
+      <section className="relative min-h-[88vh] flex items-end overflow-hidden bg-[#080C18]">
+        {/* ── Atmospheric background layers ── */}
         <div className="absolute inset-0">
-          {/* Base gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0B1628] via-[#122044] to-[#0B1628]" />
-          {/* Dot pattern */}
-          <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:24px_24px]" />
-          {/* Glow accents */}
-          <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#1F3469]/30 rounded-full blur-[120px]" />
-          <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-[#CB2030]/15 rounded-full blur-[100px]" />
-          <div className="absolute top-0 right-1/3 w-[300px] h-[300px] bg-[#C9A84C]/10 rounded-full blur-[80px]" />
-          {/* Diagonal accent line */}
-          <div className="absolute top-0 right-0 w-[600px] h-full bg-gradient-to-l from-[#1F3469]/8 to-transparent skew-x-[-12deg] translate-x-20" />
+          {/* Deep base gradient */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#080C18] via-[#0D1425] to-[#080C18]" />
+          {/* Warm amber glow — bottom center, like headlights approaching */}
+          <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-[#C9A84C]/[0.07] rounded-full blur-[150px] animate-glow-pulse" />
+          {/* Cool blue atmospheric — top left */}
+          <div className="absolute -top-[10%] -left-[10%] w-[700px] h-[500px] bg-[#1A2744]/30 rounded-full blur-[120px]" />
+          {/* Subtle red accent — far right */}
+          <div className="absolute top-[30%] -right-[5%] w-[300px] h-[400px] bg-[#CB2030]/[0.04] rounded-full blur-[100px]" />
+          {/* Fine grain texture overlay */}
+          <div className="absolute inset-0 opacity-[0.35]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.04\'/%3E%3C/svg%3E")' }} />
         </div>
 
-        <div className="relative container mx-auto px-4 py-12 lg:py-0">
-          <div className="max-w-7xl mx-auto">
-            <div className={`grid grid-cols-1 ${featuredDealership ? 'lg:grid-cols-2 gap-10 lg:gap-16' : 'gap-10'} items-center`}>
+        {/* ── Massive decorative background text — depth layer ── */}
+        <div className="absolute top-1/2 -translate-y-[45%] -right-[3vw] select-none pointer-events-none hidden lg:block">
+          <span className="font-serif text-[22vw] leading-none font-normal italic text-white/[0.015] tracking-[0.08em]">
+            drive
+          </span>
+        </div>
 
-              {/* ── Left: Hero content ── */}
-              <div className={`${featuredDealership ? 'text-left' : 'text-center mx-auto max-w-2xl'} z-10 space-y-7`}>
-                {/* Trust badge */}
-                <div className="animate-fade-up delay-0 inline-flex items-center gap-3 bg-white/[0.06] backdrop-blur-md rounded-full px-5 py-2.5 border border-white/10">
-                  <span className="w-2 h-2 bg-[#34D399] rounded-full animate-pulse" />
-                  <span className="text-sm font-medium text-[#34D399] tracking-wide">Namibia&apos;s Leading Car Marketplace</span>
-                </div>
+        {/* ── Horizontal accent line ── */}
+        <div className="absolute top-[38%] left-0 w-full h-px hidden lg:block">
+          <div className="animate-line-reveal delay-600 h-full bg-gradient-to-r from-transparent via-[#C9A84C]/15 to-transparent origin-left" />
+        </div>
 
-                {/* Headline — Outfit, clean geometric */}
-                <h1 className="animate-fade-up delay-100 font-display">
-                  <span className="block text-[2.8rem] sm:text-[3.5rem] md:text-[4.2rem] lg:text-[4.8rem] font-light leading-[1.05] tracking-[-0.02em] text-white/80">
-                    Find Your
-                  </span>
-                  <span className="block text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5.2rem] font-bold leading-[1.05] tracking-[-0.03em] text-white mt-1">
-                    Perfect Car
-                  </span>
-                  <span className="block text-lg sm:text-xl md:text-2xl font-medium text-[#C9A84C] mt-3 tracking-wide">
-                    Trusted by Namibian Drivers
-                  </span>
-                </h1>
+        {/* ── Main content ── */}
+        <div className="relative container mx-auto px-4 pb-12 lg:pb-20 pt-28 lg:pt-32 z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-end">
 
-                {/* Subtitle */}
-                <p className="animate-fade-up delay-200 text-lg md:text-xl text-white/50 max-w-lg leading-relaxed font-light">
-                  Connect with verified dealers across Windhoek, Swakopmund, and beyond.{' '}
-                  <span className="text-white/70 font-medium">No hidden fees, secure transactions.</span>
-                </p>
+            {/* ── Left: Editorial hero content — 8 cols ── */}
+            <div className="lg:col-span-8 space-y-8">
+              {/* Marketplace badge */}
+              <div className="animate-fade-up delay-0 flex items-center gap-3">
+                <span className="w-1.5 h-1.5 bg-[#C9A84C] rounded-full" />
+                <span className="text-sm font-medium text-[#C9A84C]/80 tracking-[0.2em] uppercase">Namibia&apos;s #1 Car Marketplace</span>
+              </div>
 
-                {/* Stats row — animated counters */}
-                <div className={`animate-fade-up delay-300 flex items-center gap-8 pt-2 ${!featuredDealership ? 'justify-center' : ''}`}>
-                  {[
-                    { value: '200+', label: 'Dealers', color: 'text-[#34D399]' },
-                    { value: '5,000+', label: 'Listings', color: 'text-[#C9A84C]' },
-                    { value: '5 Yrs', label: 'Trusted', color: 'text-[#60A5FA]' },
-                  ].map((stat, i) => (
-                    <div key={stat.label} className="animate-count-up" style={{ animationDelay: `${400 + i * 100}ms` }}>
-                      <div className={`text-2xl md:text-3xl font-extrabold font-display ${stat.color}`}>{stat.value}</div>
-                      <div className="text-xs uppercase tracking-[0.2em] text-white/40 mt-1">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
+              {/* Headline — Instrument Serif for editorial feel, extreme size contrast */}
+              <h1 className="animate-fade-up delay-100">
+                <span className="block font-serif italic text-[2.4rem] sm:text-[3.2rem] md:text-[4.2rem] lg:text-[5rem] xl:text-[5.8rem] leading-[0.95] text-white/60">
+                  The smarter way
+                </span>
+                <span className="block font-display text-[2.6rem] sm:text-[3.5rem] md:text-[4.5rem] lg:text-[5.4rem] xl:text-[6.2rem] font-extrabold leading-[0.95] tracking-[-0.03em] text-white mt-2">
+                  to buy &amp; sell
+                </span>
+                <span className="block font-display text-[2.6rem] sm:text-[3.5rem] md:text-[4.5rem] lg:text-[5.4rem] xl:text-[6.2rem] font-extrabold leading-[0.95] tracking-[-0.03em] mt-1">
+                  <span className="bg-gradient-to-r from-[#C9A84C] via-[#D4B65C] to-[#C9A84C] bg-clip-text text-transparent">cars</span>
+                  <span className="text-white/30 font-light ml-2">in Namibia.</span>
+                </span>
+              </h1>
 
-                {/* Search bar */}
-                <div className="animate-fade-up delay-500 hidden lg:block pt-2">
+              {/* Subtitle — clean, understated */}
+              <p className="animate-fade-up delay-200 text-base md:text-lg text-white/35 max-w-lg leading-relaxed">
+                Connect with 200+ verified dealers across Windhoek, Swakopmund, and beyond.
+                Transparent pricing. No hidden fees.
+              </p>
+
+              {/* CTA buttons — bold red primary, ghost secondary */}
+              <div className="animate-fade-up delay-300 flex flex-col sm:flex-row gap-4 pt-2">
+                <Button
+                  size="lg"
+                  className="bg-[#CB2030] hover:bg-[#D93440] text-white font-semibold text-base px-8 py-6 rounded-xl shadow-lg shadow-[#CB2030]/20 hover:shadow-xl hover:shadow-[#CB2030]/30 hover:-translate-y-0.5 transition-all duration-300 group"
+                  onClick={() => setSearchDialogOpen(true)}
+                >
+                  Browse All Cars
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border border-white/10 text-white/70 hover:text-white hover:bg-white/[0.06] hover:border-white/20 font-medium text-base px-8 py-6 rounded-xl transition-all duration-300"
+                  onClick={() => router.push('/sell')}
+                >
+                  Sell Your Car
+                </Button>
+              </div>
+            </div>
+
+            {/* ── Right: Stats sidebar — 3 cols, editorial vertical layout ── */}
+            <div className="lg:col-span-3 lg:col-start-10 animate-fade-up delay-400">
+              <div className="border-l border-[#C9A84C]/15 pl-8 space-y-10">
+                {[
+                  { value: '200+', label: 'Verified Dealers', color: 'text-[#C9A84C]' },
+                  { value: '5K+', label: 'Active Listings', color: 'text-white' },
+                  { value: '5yr', label: 'Trusted Platform', color: 'text-white/40' },
+                ].map((stat, i) => (
+                  <div key={stat.label} className="animate-count-up" style={{ animationDelay: `${500 + i * 120}ms` }}>
+                    <div className={`text-4xl lg:text-5xl font-serif ${stat.color} leading-none`}>{stat.value}</div>
+                    <div className="text-xs text-white/30 mt-2 tracking-[0.1em] uppercase">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Popular searches strip — subtle, bottom of hero ── */}
+          <div className="animate-fade-up delay-500 mt-14 pt-6 border-t border-white/[0.05]">
+            <div className="flex items-center gap-4 md:gap-6 flex-wrap">
+              <span className="text-[11px] text-white/20 uppercase tracking-[0.2em] font-semibold shrink-0">Popular</span>
+              <div className="w-px h-4 bg-white/10 hidden md:block" />
+              {['Toyota Hilux', 'Ford Ranger', 'BMW X5', 'Toyota Fortuner', 'Mercedes E-Class'].map((car, i) => (
+                <React.Fragment key={car}>
+                  {i > 0 && <span className="text-white/10 hidden md:inline">·</span>}
                   <button
-                    onClick={() => setSearchDialogOpen(true)}
-                    className="group w-full max-w-md flex items-center gap-3 px-5 py-4 rounded-2xl bg-white/[0.06] backdrop-blur-md border border-white/10 hover:border-white/25 hover:bg-white/[0.1] transition-all duration-300"
+                    onClick={() => handleQuickSearch(car)}
+                    className="text-sm text-white/30 hover:text-[#C9A84C] transition-colors duration-200 cursor-pointer"
                   >
-                    <Search className="w-5 h-5 text-white/40 group-hover:text-[#C9A84C] transition-colors" />
-                    <span className="text-white/40 group-hover:text-white/60 text-sm transition-colors">Search 5,000+ verified listings...</span>
-                    <kbd className="ml-auto hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/10 text-white/30 text-xs font-mono">
-                      ⌘K
-                    </kbd>
+                    {car}
                   </button>
-                </div>
-
-                {/* CTA buttons */}
-                <div className={`animate-fade-up delay-600 flex flex-col sm:flex-row gap-4 pt-2 ${!featuredDealership ? 'justify-center' : ''}`}>
-                  <Button
-                    size="lg"
-                    className="bg-[#CB2030] hover:bg-[#E04B56] text-white font-semibold text-base px-8 py-6 rounded-xl shadow-lg shadow-[#CB2030]/25 hover:shadow-xl hover:shadow-[#CB2030]/30 hover:-translate-y-0.5 transition-all duration-300"
-                    onClick={() => setSearchDialogOpen(true)}
-                  >
-                    <Car className="w-5 h-5 mr-2" />
-                    Find Your Car
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-2 border-white/20 text-white hover:bg-white/10 hover:border-white/40 font-semibold text-base px-8 py-6 rounded-xl transition-all duration-300"
-                    onClick={() => router.push('/sell')}
-                  >
-                    <DollarSign className="w-5 h-5 mr-2" />
-                    Sell Your Car
-                  </Button>
-                </div>
-              </div>
-
-              {/* ── Right: Featured dealership card (hidden when no dealership) ── */}
-              <div className={`relative hidden ${featuredDealership ? 'lg:block' : ''} animate-slide-right delay-400`}>
-                <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 bg-white/[0.04] backdrop-blur-xl border border-white/10">
-                  {/* Card header */}
-                  <div className="bg-gradient-to-r from-[#C9A84C] via-[#D4B65C] to-[#C9A84C] p-5 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.3),transparent_70%)]" />
-                    <div className="relative flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-[#0B1628] rounded-xl flex items-center justify-center">
-                          <Star className="w-5 h-5 text-[#C9A84C]" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-[#0B1628] tracking-tight font-display">Featured Dealership</h3>
-                          <p className="text-sm text-[#0B1628]/70 font-medium">Premium Partner</p>
-                        </div>
-                      </div>
-                      <span className="text-xs bg-[#0B1628]/15 px-3 py-1.5 rounded-full font-semibold text-[#0B1628]/80">Sponsored</span>
-                    </div>
-                  </div>
-
-                  {/* Card body */}
-                  <div className="p-7">
-                    {dealershipLoading ? (
-                      <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-[#C9A84C]" />
-                      </div>
-                    ) : !featuredDealership ? (
-                      <div className="text-center py-12">
-                        <p className="text-white/50">No featured dealership available</p>
-                      </div>
-                    ) : (
-                      <>
-                        {/* Dealership info */}
-                        <div className="flex items-start gap-5 mb-6">
-                          <div className="relative">
-                            <div className="w-20 h-20 bg-gradient-to-br from-[#1F3469] to-[#3B4F86] rounded-2xl flex items-center justify-center shadow-lg border border-white/10">
-                              <span className="text-2xl font-bold text-white font-display">
-                                {featuredDealership.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                              </span>
-                            </div>
-                            {featuredDealership.isVerified && (
-                              <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 bg-[#34D399] rounded-full flex items-center justify-center border-2 border-[#0B1628]">
-                                <span className="text-white text-xs font-bold">✓</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="text-xl font-bold text-white mb-1.5 tracking-tight font-display">{featuredDealership.name}</h4>
-                            <p className="text-white/50 text-sm mb-3 leading-relaxed">{featuredDealership.description || 'Premium automotive dealer'}</p>
-                            <div className="flex flex-wrap items-center gap-3">
-                              {featuredDealership.city && (
-                                <span className="flex items-center gap-1.5 bg-white/[0.06] rounded-lg px-3 py-1.5 text-xs text-white/70">
-                                  <MapPin className="w-3.5 h-3.5 text-[#CB2030]" />
-                                  {featuredDealership.city}
-                                </span>
-                              )}
-                              {featuredDealership.phone && (
-                                <span className="flex items-center gap-1.5 bg-white/[0.06] rounded-lg px-3 py-1.5 text-xs text-white/70">
-                                  <Phone className="w-3.5 h-3.5 text-[#34D399]" />
-                                  {featuredDealership.phone}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Stats */}
-                        <div className="grid grid-cols-3 gap-3 mb-6">
-                          {[
-                            { value: featuredDealership.stats.vehiclesCount, label: 'Vehicles', accent: 'from-[#34D399]/15 to-[#34D399]/5', text: 'text-[#34D399]', border: 'border-[#34D399]/20' },
-                            { value: featuredDealership.stats.rating, label: 'Rating', accent: 'from-[#C9A84C]/15 to-[#C9A84C]/5', text: 'text-[#C9A84C]', border: 'border-[#C9A84C]/20' },
-                            { value: featuredDealership.stats.yearsInBusiness, label: 'Experience', accent: 'from-[#60A5FA]/15 to-[#60A5FA]/5', text: 'text-[#60A5FA]', border: 'border-[#60A5FA]/20' },
-                          ].map((s) => (
-                            <div key={s.label} className={`text-center p-4 bg-gradient-to-br ${s.accent} rounded-xl border ${s.border}`}>
-                              <div className={`text-2xl font-extrabold font-display ${s.text}`}>{s.value}</div>
-                              <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mt-1">{s.label}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
-
-                    {/* Special offer */}
-                    <div className="bg-gradient-to-r from-[#C9A84C]/10 to-[#C9A84C]/5 border border-[#C9A84C]/20 rounded-xl p-4 mb-6">
-                      <div className="flex items-center gap-2.5 mb-2">
-                        <div className="w-7 h-7 bg-[#C9A84C] rounded-lg flex items-center justify-center">
-                          <Zap className="w-3.5 h-3.5 text-[#0B1628]" />
-                        </div>
-                        <span className="font-bold text-[#C9A84C] text-sm">Special Offer</span>
-                      </div>
-                      <p className="text-xs text-white/60 leading-relaxed">0% financing available on selected vehicles. Trade-in bonuses up to N$50,000!</p>
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="flex gap-3">
-                      <Button
-                        className="flex-1 bg-[#C9A84C] hover:bg-[#D4B65C] text-[#0B1628] font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 rounded-xl"
-                        onClick={() => featuredDealership?.slug ? router.push(`/dealership/${featuredDealership.slug}`) : router.push('/vehicles')}
-                      >
-                        View Inventory
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="border-2 border-white/15 text-white hover:bg-white/10 hover:border-white/30 font-semibold transition-all duration-300 rounded-xl"
-                        onClick={() => setContactModalOpen(true)}
-                      >
-                        Contact Dealer
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Floating badges */}
-                <div className="absolute -top-5 -left-5 animate-subtle-float z-20">
-                  <div className="bg-gradient-to-br from-[#C9A84C] to-[#D4B65C] rounded-2xl p-4 shadow-xl rotate-[-6deg]">
-                    <div className="text-lg font-black text-[#0B1628] leading-none font-display">TOP</div>
-                    <div className="text-[10px] text-[#0B1628]/70 font-bold uppercase tracking-widest mt-0.5">Dealer</div>
-                  </div>
-                </div>
-                <div className="absolute -bottom-3 -right-3 z-20">
-                  <div className="bg-[#0B1628] border border-white/10 rounded-xl p-3 shadow-xl">
-                    <div className="text-base font-bold text-[#34D399] font-display">24/7</div>
-                    <div className="text-[10px] text-white/50 font-medium">Support</div>
-                  </div>
-                </div>
-              </div>
+                </React.Fragment>
+              ))}
             </div>
+          </div>
+        </div>
+      </section>
 
-            {/* ── Mobile featured dealership (hidden when no dealership) ── */}
-            <div className={`relative ${featuredDealership ? 'block lg:hidden' : 'hidden'} mt-10 mb-8 animate-fade-up delay-400`}>
-              <div className="rounded-2xl overflow-hidden bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-xl">
-                <div className="bg-gradient-to-r from-[#C9A84C] to-[#D4B65C] p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-[#0B1628] rounded-full flex items-center justify-center">
-                        <Star className="w-3.5 h-3.5 text-[#C9A84C]" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-[#0B1628]">Featured Dealership</h3>
-                        <p className="text-xs text-[#0B1628]/60">Premium Partner</p>
-                      </div>
-                    </div>
-                    <span className="text-xs bg-[#0B1628]/10 px-2 py-1 rounded-full font-medium text-[#0B1628]/70">Sponsored</span>
-                  </div>
-                </div>
-                <div className="p-5">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-[#1F3469] to-[#3B4F86] rounded-xl flex items-center justify-center">
-                      <span className="text-lg font-bold text-white font-display">
-                        {featuredDealership ? featuredDealership.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2) : 'NM'}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-base font-bold text-white mb-0.5 font-display">{featuredDealership?.name || 'Namibia Motors'}</h4>
-                      <p className="text-xs text-white/50 mb-2">{featuredDealership?.description || 'Premium dealer in Windhoek since 1995'}</p>
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className="flex items-center gap-1 text-white/50"><MapPin className="w-3 h-3 text-[#CB2030]" />{featuredDealership?.city || 'Windhoek'}</span>
-                        <span className="flex items-center gap-1 text-white/50"><Phone className="w-3 h-3 text-[#34D399]" />{featuredDealership?.phone || '+264 61 123 456'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 mb-4">
-                    <div className="text-center p-2.5 bg-[#34D399]/10 rounded-lg border border-[#34D399]/20">
-                      <div className="text-base font-bold text-[#34D399] font-display">{featuredDealership?.stats?.vehiclesCount || '150+'}</div>
-                      <div className="text-[10px] text-white/40">Vehicles</div>
-                    </div>
-                    <div className="text-center p-2.5 bg-[#C9A84C]/10 rounded-lg border border-[#C9A84C]/20">
-                      <div className="text-base font-bold text-[#C9A84C] font-display">{featuredDealership?.stats?.rating || '4.9'}</div>
-                      <div className="text-[10px] text-white/40">Rating</div>
-                    </div>
-                    <div className="text-center p-2.5 bg-[#60A5FA]/10 rounded-lg border border-[#60A5FA]/20">
-                      <div className="text-base font-bold text-[#60A5FA] font-display">{featuredDealership?.stats?.yearsInBusiness || '28yrs'}</div>
-                      <div className="text-[10px] text-white/40">Experience</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button className="flex-1 bg-[#C9A84C] hover:bg-[#D4B65C] text-[#0B1628] font-semibold text-sm rounded-xl" onClick={() => featuredDealership?.slug ? router.push(`/dealership/${featuredDealership.slug}`) : router.push('/vehicles')}>
-                      View Inventory
-                    </Button>
-                    <Button variant="outline" className="border-white/15 text-white hover:bg-white/10 text-sm px-4 rounded-xl" onClick={() => setContactModalOpen(true)}>
-                      Contact
-                    </Button>
-                  </div>
-                </div>
+      {/* ═══════════════════════════════════
+          SEARCH FORM — Clean, integrated
+         ═══════════════════════════════════ */}
+      <section className="bg-[#0B1628] pb-12">
+        <div className="container mx-auto px-4">
+          <div className="animate-fade-up delay-700 bg-white/[0.03] backdrop-blur-sm rounded-2xl p-6 lg:p-8 border border-white/[0.06]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="main-search" className="text-xs font-semibold text-white/40 flex items-center gap-1.5">
+                  <Search className="w-3.5 h-3.5" />
+                  Search
+                </label>
+                <Input
+                  id="main-search"
+                  type="text"
+                  placeholder="e.g., Toyota Hilux, BMW X3..."
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e: React.KeyboardEvent) => { if (e.key === 'Enter') handleMainSearch(); }}
+                  className="w-full h-12 bg-white/[0.05] border-white/[0.08] text-white placeholder:text-white/20 focus:border-[#C9A84C]/50 focus:ring-[#C9A84C]/20 rounded-xl"
+                />
               </div>
-            </div>
-
-            {/* ═══════════════════════════════════
-                SEARCH FORM — Frosted glass card
-               ═══════════════════════════════════ */}
-            <div className="animate-fade-up delay-700 mt-8 lg:mt-16 mb-8">
-              <div className="bg-white/[0.04] backdrop-blur-xl rounded-2xl p-6 lg:p-8 border border-white/10 shadow-xl">
-                <div className="text-center mb-6">
-                  <h3 className="text-xl lg:text-2xl font-bold text-white font-display">Find Your Perfect Car</h3>
-                  <p className="text-white/40 text-sm mt-1">Search through 5,000+ verified listings from trusted Namibian dealers</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="main-search" className="text-xs font-semibold text-white/60 flex items-center gap-1.5">
-                      <Search className="w-3.5 h-3.5" />
-                      What are you looking for?
-                    </label>
-                    <Input
-                      id="main-search"
-                      type="text"
-                      placeholder="e.g., Toyota Hilux, BMW X3..."
-                      value={searchQuery}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                      onKeyPress={(e: React.KeyboardEvent) => { if (e.key === 'Enter') handleMainSearch(); }}
-                      className="w-full h-12 bg-white/[0.06] border-white/10 text-white placeholder:text-white/30 focus:border-[#C9A84C] focus:ring-[#C9A84C]/30 rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="make-select" className="text-xs font-semibold text-white/60 flex items-center gap-1.5">
-                      <Car className="w-3.5 h-3.5" />
-                      Make
-                    </label>
-                    <select
-                      id="make-select"
-                      value={selectedMake}
-                      onChange={(e) => setSelectedMake(e.target.value)}
-                      className="w-full h-12 bg-white/[0.06] border border-white/10 text-white rounded-xl px-3 text-sm focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 outline-none"
-                    >
-                      <option value="" className="bg-[#0B1628]">Any Make</option>
-                      {['Toyota', 'Ford', 'Volkswagen', 'BMW', 'Mercedes-Benz', 'Nissan', 'Isuzu', 'Hyundai', 'Kia'].map(make => (
-                        <option key={make} value={make.toLowerCase()} className="bg-[#0B1628]">{make}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="location-select-main" className="text-xs font-semibold text-white/60 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5" />
-                      Location
-                    </label>
-                    <select
-                      id="location-select-main"
-                      value={selectedLocation}
-                      onChange={(e) => setSelectedLocation(e.target.value)}
-                      className="w-full h-12 bg-white/[0.06] border border-white/10 text-white rounded-xl px-3 text-sm focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]/30 outline-none"
-                    >
-                      <option value="" className="bg-[#0B1628]">All Locations</option>
-                      {['Windhoek', 'Swakopmund', 'Walvis Bay', 'Oshakati', 'Rundu', 'Katima Mulilo', 'Otjiwarongo', 'Gobabis'].map(loc => (
-                        <option key={loc} value={loc.toLowerCase().replace(' ', '-')} className="bg-[#0B1628]">{loc}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-white/60">&nbsp;</label>
-                    <Button
-                      className="w-full h-12 bg-[#CB2030] hover:bg-[#E04B56] text-white font-bold text-sm shadow-lg shadow-[#CB2030]/25 hover:shadow-xl transition-all duration-300 rounded-xl"
-                      size="lg"
-                      onClick={handleMainSearch}
-                    >
-                      <Search className="w-4 h-4 mr-2" />
-                      Search Cars
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Popular searches */}
-                <div className="mt-6 pt-5 border-t border-white/[0.06]">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs font-semibold text-white/40 mb-2.5 uppercase tracking-wider">Popular in Namibia</p>
-                      <div className="flex flex-wrap gap-2">
-                        {['Toyota Hilux', 'Ford Ranger', 'BMW X5', 'Toyota Fortuner', 'Mercedes E-Class', 'Toyota Corolla'].map((tag) => (
-                          <button
-                            key={tag}
-                            onClick={() => handleQuickSearch(tag)}
-                            className="px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.1] text-white/50 hover:text-white rounded-lg text-xs font-medium transition-all duration-200 border border-white/[0.06] hover:border-white/15 cursor-pointer"
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-center lg:justify-end gap-6">
-                      {[
-                        { value: 'NAD 150K', label: 'Avg. Price', color: 'text-[#C9A84C]' },
-                        { value: '24hrs', label: 'Avg. Response', color: 'text-[#CB2030]' },
-                        { value: '98%', label: 'Satisfaction', color: 'text-[#34D399]' },
-                      ].map((s, i) => (
-                        <React.Fragment key={s.label}>
-                          {i > 0 && <div className="w-px h-6 bg-white/10" />}
-                          <div className="text-center">
-                            <div className={`text-sm font-bold ${s.color}`}>{s.value}</div>
-                            <div className="text-[10px] text-white/30">{s.label}</div>
-                          </div>
-                        </React.Fragment>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <label htmlFor="make-select" className="text-xs font-semibold text-white/40 flex items-center gap-1.5">
+                  <Car className="w-3.5 h-3.5" />
+                  Make
+                </label>
+                <select
+                  id="make-select"
+                  value={selectedMake}
+                  onChange={(e) => setSelectedMake(e.target.value)}
+                  className="w-full h-12 bg-white/[0.05] border border-white/[0.08] text-white rounded-xl px-3 text-sm focus:border-[#C9A84C]/50 focus:ring-1 focus:ring-[#C9A84C]/20 outline-none"
+                >
+                  <option value="" className="bg-[#0B1628]">Any Make</option>
+                  {['Toyota', 'Ford', 'Volkswagen', 'BMW', 'Mercedes-Benz', 'Nissan', 'Isuzu', 'Hyundai', 'Kia'].map(make => (
+                    <option key={make} value={make.toLowerCase()} className="bg-[#0B1628]">{make}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="location-select-main" className="text-xs font-semibold text-white/40 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5" />
+                  Location
+                </label>
+                <select
+                  id="location-select-main"
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="w-full h-12 bg-white/[0.05] border border-white/[0.08] text-white rounded-xl px-3 text-sm focus:border-[#C9A84C]/50 focus:ring-1 focus:ring-[#C9A84C]/20 outline-none"
+                >
+                  <option value="" className="bg-[#0B1628]">All Locations</option>
+                  {['Windhoek', 'Swakopmund', 'Walvis Bay', 'Oshakati', 'Rundu', 'Katima Mulilo', 'Otjiwarongo', 'Gobabis'].map(loc => (
+                    <option key={loc} value={loc.toLowerCase().replace(' ', '-')} className="bg-[#0B1628]">{loc}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-white/40">&nbsp;</label>
+                <Button
+                  className="w-full h-12 bg-[#CB2030] hover:bg-[#D93440] text-white font-bold text-sm shadow-lg shadow-[#CB2030]/20 hover:shadow-xl transition-all duration-300 rounded-xl"
+                  size="lg"
+                  onClick={handleMainSearch}
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Search Cars
+                </Button>
               </div>
             </div>
           </div>
@@ -465,6 +259,57 @@ export default function Home() {
           HOME SHOWCASE — Vehicle carousels
          ═══════════════════════════════════ */}
       <HomeShowcase />
+
+      {/* ═══════════════════════════════════
+          FEATURED DEALER — Compact strip (only when exists)
+         ═══════════════════════════════════ */}
+      {featuredDealership && (
+        <section className="py-6 bg-[#FAFAF8] border-b border-[#0B1628]/[0.04]">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 bg-white rounded-xl p-4 sm:p-5 border border-[#0B1628]/[0.06] shadow-sm">
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#C9A84C] to-[#D4B65C] rounded-lg flex items-center justify-center">
+                  <Star className="w-5 h-5 text-[#0B1628]" />
+                </div>
+                <span className="text-xs font-semibold text-[#0B1628]/40 uppercase tracking-wider">Featured Dealer</span>
+              </div>
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#1F3469] to-[#3B4F86] rounded-xl flex items-center justify-center shrink-0">
+                  <span className="text-sm font-bold text-white font-display">
+                    {featuredDealership.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-base font-bold text-[#0B1628] truncate font-display">{featuredDealership.name}</h4>
+                  <div className="flex items-center gap-3 text-xs text-[#0B1628]/50">
+                    {featuredDealership.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{featuredDealership.city}</span>}
+                    {featuredDealership.stats?.vehiclesCount && <span>{featuredDealership.stats.vehiclesCount} vehicles</span>}
+                    {featuredDealership.isVerified && <span className="text-[#34D399] font-medium">Verified</span>}
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <Button
+                  size="sm"
+                  className="bg-[#0B1628] hover:bg-[#1F3469] text-white font-semibold rounded-lg text-sm"
+                  onClick={() => featuredDealership?.slug ? router.push(`/dealership/${featuredDealership.slug}`) : router.push('/vehicles')}
+                >
+                  View Inventory
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-[#0B1628]/15 text-[#0B1628] hover:bg-[#0B1628]/5 rounded-lg text-sm"
+                  onClick={() => setContactModalOpen(true)}
+                >
+                  Contact
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════════════════════════
           HOW IT WORKS — Asymmetric layout

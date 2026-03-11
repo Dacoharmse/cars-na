@@ -3,20 +3,20 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { VehicleCategory } from '@prisma/client';
-import { promises as fs } from 'fs';
-import path from 'path';
 import nodemailer from 'nodemailer';
 import { withRateLimit, sellVehicleLimiter } from '@/lib/rate-limit';
 
-// Helper function to check auto-moderate setting
+// Helper function to check auto-moderate setting (reads from PlatformSettings DB table)
 async function isAutoModerateEnabled(): Promise<boolean> {
   try {
-    const settingsFile = path.join(process.cwd(), 'data', 'auto-moderate.json');
-    const data = await fs.readFile(settingsFile, 'utf-8');
-    const settings = JSON.parse(data);
-    return settings.enabled ?? false;
+    const setting = await prisma.platformSettings.findUnique({
+      where: { key: 'auto-moderate' },
+    });
+    if (!setting) return false;
+    const value = setting.value as { enabled?: boolean };
+    return value.enabled ?? false;
   } catch {
-    return false; // Default to disabled
+    return false;
   }
 }
 

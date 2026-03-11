@@ -1,10 +1,8 @@
 /**
  * Invoice generation service for Cars.na
- * Handles PDF creation, DB record management, and escalation logic.
+ * Handles PDF creation in memory (serverless-compatible), DB record management, and escalation logic.
  */
 import { prisma } from './prisma';
-import path from 'path';
-import { promises as fs, createWriteStream } from 'fs';
 import nodemailer from 'nodemailer';
 import type { Dealership, Invoice, SubscriptionPlan, DealershipSubscription } from '@prisma/client';
 
@@ -32,27 +30,22 @@ async function generateInvoiceNumber(month: number, year: number): Promise<strin
 }
 
 // ---------------------------------------------------------------------------
-// PDF generation using pdfkit
+// PDF generation using pdfkit — returns Buffer (no filesystem writes)
 // ---------------------------------------------------------------------------
 export async function generateInvoicePDF(
   invoice: InvoiceWithDealership
-): Promise<string> {
+): Promise<Buffer> {
   // Lazy-import pdfkit (CommonJS module)
   const PDFDocument = (await import('pdfkit')).default;
 
-  const invoicesDir = path.join(process.cwd(), 'public', 'invoices');
-  await fs.mkdir(invoicesDir, { recursive: true });
-
-  const fileName = `${invoice.invoiceNumber}.pdf`;
-  const filePath = path.join(invoicesDir, fileName);
-  const publicPath = `/invoices/${fileName}`;
-
   const d = invoice.dealership;
 
-  await new Promise<void>((resolve, reject) => {
+  return new Promise<Buffer>((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
-    const stream = createWriteStream(filePath);
-    doc.pipe(stream);
+    const chunks: Buffer[] = [];
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
 
     const NAD = (n: number) => `N$ ${n.toLocaleString('en-NA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const monthName = new Date(invoice.billingYear, invoice.billingMonth - 1, 1)
@@ -148,11 +141,7 @@ export async function generateInvoicePDF(
       .text('Cars.na — Namibia\'s Premier Vehicle Marketplace | support@cars.na | cars.na', 50, 778, { align: 'center' });
 
     doc.end();
-    stream.on('finish', resolve);
-    stream.on('error', reject);
   });
-
-  return publicPath;
 }
 
 // ---------------------------------------------------------------------------
@@ -239,14 +228,15 @@ export async function generateMonthlyInvoices(
         },
       }) as InvoiceWithDealership;
 
-      // Generate PDF
+      // Generate PDF buffer (no filesystem needed)
+      let pdfBuffer: Buffer | null = null;
       try {
-        const pdfPath = await generateInvoicePDF(invoice);
+        pdfBuffer = await generateInvoicePDF(invoice);
+        // Store a marker that PDF was generated (no file path needed)
         await prisma.invoice.update({
           where: { id: invoice.id },
-          data: { pdfPath },
+          data: { pdfPath: `generated:${invoice.invoiceNumber}` },
         });
-        invoice.pdfPath = pdfPath;
       } catch (pdfErr) {
         console.error(`PDF generation failed for ${invoiceNumber}:`, pdfErr);
       }
@@ -265,10 +255,10 @@ export async function generateMonthlyInvoices(
         });
       }
 
-      // Send email to dealer principal
+      // Send email to dealer principal with PDF attachment
       const principal = dealership.users[0];
       if (principal?.email) {
-        await sendInvoiceEmail(principal, dealership, invoice).catch(err =>
+        await sendInvoiceEmail(principal, dealership, invoice, pdfBuffer).catch(err =>
           console.error(`Invoice email failed for ${dealership.name}:`, err.message)
         );
       }
@@ -333,7 +323,7 @@ export async function runEscalationChecks(): Promise<{
       } catch (err: any) {
         console.error(`Failed to delete dealership ${dealership.id}:`, err.message);
       }
-      continue; // No further processing needed
+      continue;
     }
 
     // ── 30+ days: suspend dealership (hides from public) ───────────────
@@ -434,22 +424,16 @@ function esc(s: unknown): string {
 async function sendInvoiceEmail(
   principal: { email: string; name: string | null },
   dealership: Pick<Dealership, 'name'>,
-  invoice: InvoiceWithDealership
+  invoice: InvoiceWithDealership,
+  pdfBuffer: Buffer | null
 ): Promise<void> {
   const transporter = createTransporter();
   const NAD = (n: number) => `N$ ${n.toLocaleString('en-NA', { minimumFractionDigits: 2 })}`;
   const monthName = new Date(invoice.billingYear, invoice.billingMonth - 1).toLocaleString('en-US', { month: 'long' });
 
-  const pdfFullPath = invoice.pdfPath
-    ? path.join(process.cwd(), 'public', invoice.pdfPath)
-    : null;
-
   const attachments: any[] = [];
-  if (pdfFullPath) {
-    try {
-      await fs.access(pdfFullPath);
-      attachments.push({ filename: `${invoice.invoiceNumber}.pdf`, path: pdfFullPath });
-    } catch {}
+  if (pdfBuffer) {
+    attachments.push({ filename: `${invoice.invoiceNumber}.pdf`, content: pdfBuffer, contentType: 'application/pdf' });
   }
 
   await transporter.sendMail({

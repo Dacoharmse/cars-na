@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const BUCKET = 'dealership-images';
 
 export async function POST(request: Request) {
   try {
@@ -39,25 +40,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'File size must be less than 5MB' }, { status: 400 });
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'dealerships', dealershipId);
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
     // Generate unique filename
     const timestamp = Date.now();
     const extension = file.name.split('.').pop();
-    const filename = `${type}-${timestamp}.${extension}`;
-    const filepath = join(uploadDir, filename);
+    const filePath = `${dealershipId}/${type}-${timestamp}.${extension}`;
 
-    // Convert file to buffer and save
+    // Upload to Supabase Storage
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
+    const uploadRes = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${filePath}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Content-Type': file.type,
+          'x-upsert': 'true',
+        },
+        body: bytes,
+      }
+    );
+
+    if (!uploadRes.ok) {
+      const err = await uploadRes.text();
+      console.error('Supabase Storage upload error:', err);
+      return NextResponse.json({ success: false, error: 'Failed to upload image' }, { status: 500 });
+    }
 
     // Generate public URL
-    const publicUrl = `/uploads/dealerships/${dealershipId}/${filename}`;
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${filePath}`;
 
     // Update dealership record
     const updateData = type === 'logo'

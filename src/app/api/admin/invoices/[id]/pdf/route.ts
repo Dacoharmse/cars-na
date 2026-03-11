@@ -3,10 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateInvoicePDF } from '@/lib/invoice-generator';
-import { promises as fs } from 'fs';
-import path from 'path';
 
-// GET /api/admin/invoices/[id]/pdf — generate (if needed) and download invoice PDF
+// GET /api/admin/invoices/[id]/pdf — generate and download invoice PDF (in memory)
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -31,37 +29,14 @@ export async function GET(
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 
-    // If PDF doesn't exist yet, generate it
-    let pdfPath = invoice.pdfPath;
-    if (!pdfPath) {
-      pdfPath = await generateInvoicePDF(invoice as any);
-      await prisma.invoice.update({
-        where: { id },
-        data: { pdfPath },
-      });
-    }
+    // Generate PDF in memory
+    const pdfBuffer = await generateInvoicePDF(invoice as any);
 
-    const filePath = path.join(process.cwd(), 'public', pdfPath);
-
-    // If file is missing on disk, regenerate
-    try {
-      await fs.access(filePath);
-    } catch {
-      pdfPath = await generateInvoicePDF(invoice as any);
-      await prisma.invoice.update({
-        where: { id },
-        data: { pdfPath },
-      });
-    }
-
-    const finalPath = path.join(process.cwd(), 'public', pdfPath);
-    const fileBuffer = await fs.readFile(finalPath);
-
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${invoice.invoiceNumber}.pdf"`,
-        'Content-Length': fileBuffer.length.toString(),
+        'Content-Length': pdfBuffer.length.toString(),
         'Cache-Control': 'private, no-store',
       },
     });

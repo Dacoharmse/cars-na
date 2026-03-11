@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { generateInvoicePDF } from '@/lib/invoice-generator';
 
-// GET /api/invoices/[id]/pdf — stream PDF to dealer
+// GET /api/invoices/[id]/pdf — generate and stream PDF to dealer (in memory)
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -19,7 +18,11 @@ export async function GET(
     const { id } = await params;
     const invoice = await prisma.invoice.findUnique({
       where: { id },
-      select: { id: true, dealershipId: true, invoiceNumber: true, pdfPath: true },
+      include: {
+        dealership: {
+          select: { id: true, name: true, email: true, contactPerson: true, streetAddress: true, city: true, region: true, phone: true },
+        },
+      },
     });
 
     if (!invoice) {
@@ -33,25 +36,17 @@ export async function GET(
       }
     }
 
-    if (!invoice.pdfPath) {
-      return NextResponse.json({ error: 'PDF not available for this invoice' }, { status: 404 });
-    }
+    // Generate PDF in memory
+    const pdfBuffer = await generateInvoicePDF(invoice as any);
 
-    const filePath = path.join(process.cwd(), 'public', invoice.pdfPath);
-
-    try {
-      const fileBuffer = await fs.readFile(filePath);
-      return new NextResponse(fileBuffer, {
-        headers: {
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${invoice.invoiceNumber}.pdf"`,
-          'Content-Length': fileBuffer.length.toString(),
-          'Cache-Control': 'private, no-store',
-        },
-      });
-    } catch {
-      return NextResponse.json({ error: 'PDF file not found on server' }, { status: 404 });
-    }
+    return new NextResponse(pdfBuffer, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${invoice.invoiceNumber}.pdf"`,
+        'Content-Length': pdfBuffer.length.toString(),
+        'Cache-Control': 'private, no-store',
+      },
+    });
   } catch (error) {
     console.error('Error serving invoice PDF:', error);
     return NextResponse.json({ error: 'Failed to serve PDF' }, { status: 500 });
