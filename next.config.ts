@@ -1,25 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Standalone output for smaller deployment footprint (ideal for low RAM VPS)
-  output: 'standalone',
-  eslint: {
-    // ESLint warnings (unused vars, any types, etc.) are pre-existing style issues
-    // that don't affect correctness. Type checking still runs via TypeScript.
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     // Pre-existing implicit any / strict-mode violations across the codebase.
     // Compilation succeeds; type issues should be addressed gradually.
     ignoreBuildErrors: true,
   },
-  // Reduce memory usage during build
-  experimental: {
-    webpackMemoryOptimizations: true,
-    outputFileTracingIncludes: {
-      '/api/admin/invoices/\\[id\\]/pdf': ['./node_modules/pdfkit/js/data/**/*'],
-      '/api/admin/invoices': ['./node_modules/pdfkit/js/data/**/*'],
-    },
+  // pdfkit font data needs to be traced for invoice PDF generation
+  outputFileTracingIncludes: {
+    '/api/admin/invoices/[id]/pdf': ['./node_modules/pdfkit/js/data/**/*'],
+    '/api/admin/invoices': ['./node_modules/pdfkit/js/data/**/*'],
   },
   images: {
     remotePatterns: [
@@ -52,7 +42,6 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Long-lived cache for immutable static assets
         source: '/_next/static/:path*',
         headers: [
           {
@@ -62,7 +51,6 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Public read-only API routes may be lightly cached (no auth required)
         source: '/api/vehicles',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=60, stale-while-revalidate=120' },
@@ -87,7 +75,6 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // All other API routes must NOT be publicly cached (auth-protected routes)
         source: '/api/:path*',
         headers: [
           { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate' },
@@ -95,7 +82,6 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Security headers for all routes
         source: '/(.*)',
         headers: [
           { key: 'X-Frame-Options', value: 'DENY' },
@@ -107,15 +93,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // CSP — removed unsafe-eval; unsafe-inline kept for Next.js inline styles/scripts
         source: '/(.*)',
         headers: [
           {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              // Next.js requires 'unsafe-inline' for its runtime scripts in dev;
-              // js.paystack.co needed for payment widget
               "script-src 'self' 'unsafe-inline' https://js.paystack.co",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
