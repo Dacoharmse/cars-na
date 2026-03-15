@@ -1,0 +1,1 @@
+INSERT INTO public."LeadMessage" ("id", "leadId", "content", "senderType", "senderName", "senderId", "emailSent", "emailSentAt", "createdAt") VALUES ('cmkwc6em60005dhvtp2arxmg6', 'cmkwc6elm0003dhvtcmnjx6ck', 'Test', 'CUSTOMER', 'Daco', NULL, 'f', NULL, '2026-01-27 08:30:28.734') ON CONFLICT DO NOTHING;
