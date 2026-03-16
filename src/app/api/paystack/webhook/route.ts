@@ -184,12 +184,17 @@ async function handlePaymentSuccess(paymentData: any) {
     },
   });
 
-  // Create payment record
+  // Get the plan to store the NAD amount
+  const plan = await prisma.subscriptionPlan.findUnique({
+    where: { id: subscription.planId },
+  });
+
+  // Create payment record — store in NAD (original currency)
   await prisma.payment.create({
     data: {
       subscriptionId: subscription.id,
-      amount: amount / 100, // Paystack amounts are in kobo
-      currency: currency.toUpperCase(),
+      amount: plan?.price ?? amount / 100,
+      currency: 'NAD',
       status: 'COMPLETED',
       paymentMethod: 'PAYSTACK',
       paystackPaymentId: reference,
@@ -198,12 +203,14 @@ async function handlePaymentSuccess(paymentData: any) {
       metadata: {
         paystackReference: reference,
         customerCode: customer.customer_code,
+        paystackAmountKobo: amount,
+        paystackCurrency: currency?.toUpperCase(),
       },
     },
   });
 
   // Create notification
-  await createNotification(dealershipId, 'PAYMENT_SUCCESS', paymentData);
+  await createNotification(dealershipId, 'INVOICE_PAID', paymentData);
 }
 
 async function handlePaymentFailure(paymentData: any) {
@@ -288,10 +295,10 @@ async function createNotification(
   type: string,
   data: any
 ) {
-  const notificationMessages = {
+  const notificationMessages: Record<string, string> = {
     PLAN_UPGRADED: 'Your subscription has been activated successfully!',
     PLAN_DOWNGRADED: 'Your subscription has been cancelled.',
-    PAYMENT_SUCCESS: 'Payment received successfully.',
+    INVOICE_PAID: 'Payment received successfully.',
     PAYMENT_FAILED: 'Payment failed. Please update your payment method.',
   };
 
@@ -301,8 +308,7 @@ async function createNotification(
         dealershipId,
         type: type as any,
         title: 'Subscription Update',
-        message: notificationMessages[type as keyof typeof notificationMessages] || 'Subscription updated',
-        metadata: data,
+        message: notificationMessages[type] || 'Subscription updated',
       },
     });
   } catch (error) {

@@ -154,11 +154,11 @@ export async function GET() {
         status: sub.status,
         billingCycle: 'Monthly',
         monthlyFee: sub.plan.price,
-        nextBilling: sub.billingDate?.toISOString() || null,
+        nextBilling: sub.nextPaymentDate?.toISOString() || null,
         totalPaid: totalPaid,
         autoRenew: sub.autoRenew,
         currentListings: sub.currentListings,
-        startedAt: sub.startedAt?.toISOString() || sub.createdAt.toISOString(),
+        startedAt: sub.startDate?.toISOString() || sub.createdAt.toISOString(),
         createdAt: sub.createdAt.toISOString(),
       };
     });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { withRateLimit, authLimiter } from '@/lib/rate-limit';
 
 const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Reset token is required'),
@@ -9,6 +10,7 @@ const resetPasswordSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  return withRateLimit(request, { ...authLimiter, endpoint: 'auth-reset-password' }, async () => {
   try {
     const body = await request.json();
     
@@ -64,4 +66,5 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+  });
 }

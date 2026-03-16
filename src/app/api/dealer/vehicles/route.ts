@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { checkListingLimit } from '@/lib/subscription-middleware';
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,6 +48,15 @@ export async function POST(request: NextRequest) {
     if (user.dealership.accessRestrictedAt) {
       return NextResponse.json(
         { error: 'Account restricted due to unpaid invoice. Please contact support@cars.na.' },
+        { status: 403 }
+      );
+    }
+
+    // Check subscription listing limit
+    const withinLimit = await checkListingLimit(user.dealership.id);
+    if (!withinLimit) {
+      return NextResponse.json(
+        { error: 'You have reached the maximum number of listings for your subscription plan. Please upgrade to add more vehicles.' },
         { status: 403 }
       );
     }

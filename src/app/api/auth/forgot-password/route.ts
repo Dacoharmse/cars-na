@@ -3,12 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email';
 import { z } from 'zod';
 import { randomBytes } from 'crypto';
+import { withRateLimit, authLimiter } from '@/lib/rate-limit';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
 
 export async function POST(request: NextRequest) {
+  return withRateLimit(request, { ...authLimiter, endpoint: 'auth-forgot-password' }, async () => {
   try {
     const body = await request.json();
     
@@ -71,4 +73,5 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+  });
 }
