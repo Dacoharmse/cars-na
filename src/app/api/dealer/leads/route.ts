@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const limit = parseInt(searchParams.get('limit') || '50');
+    const cursor = searchParams.get('cursor');
     const leadId = searchParams.get('leadId'); // For fetching a specific lead with messages
 
     // If fetching a specific lead with messages
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    // Fetch leads with message count
+    // Fetch leads with message count (cursor-based pagination)
     const leads = await prisma.lead.findMany({
       where,
       include: {
@@ -81,8 +82,15 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: { createdAt: 'desc' },
-      take: limit,
+      take: limit + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     });
+
+    let nextCursor: string | null = null;
+    if (leads.length > limit) {
+      const nextItem = leads.pop();
+      nextCursor = nextItem!.id;
+    }
 
     // Get stats
     const [total, newCount, contacted, converted] = await Promise.all([
@@ -96,6 +104,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       leads,
+      nextCursor,
       stats: {
         total,
         new: newCount,

@@ -220,35 +220,48 @@ export async function GET() {
     const totalPageViews = dailyVehicleViews._sum.viewCount || 0;
     const conversionRate = totalVehicles > 0 ? (recentLeads / totalVehicles) * 100 : 0;
 
-    // Process vehicle performance by make
-    const makePerformance = await Promise.all(
-      vehiclesByMake.map(async (make) => {
-        const vehicles = await prisma.vehicle.findMany({
-          where: { make: make.make },
-          select: { id: true, price: true },
-        });
+    // Process vehicle performance by make — single batch query instead of N+1
+    const topMakes = vehiclesByMake.map(m => m.make);
+    const [leadsByMake, avgPriceByMake] = await Promise.all([
+      prisma.lead.groupBy({
+        by: ['vehicleId'],
+        where: {
+          createdAt: { gte: thirtyDaysAgo },
+          vehicle: { make: { in: topMakes } },
+        },
+        _count: { id: true },
+      }).then(async (leadGroups) => {
+        // Map vehicle IDs to makes
+        const vehicleIds = leadGroups.map(l => l.vehicleId).filter(Boolean) as string[];
+        const vehicles = vehicleIds.length > 0 ? await prisma.vehicle.findMany({
+          where: { id: { in: vehicleIds } },
+          select: { id: true, make: true },
+        }) : [];
+        const vehicleMakeMap = new Map(vehicles.map(v => [v.id, v.make]));
+        const makeLeadCounts = new Map<string, number>();
+        for (const lg of leadGroups) {
+          if (!lg.vehicleId) continue;
+          const make = vehicleMakeMap.get(lg.vehicleId);
+          if (make) makeLeadCounts.set(make, (makeLeadCounts.get(make) || 0) + lg._count.id);
+        }
+        return makeLeadCounts;
+      }),
+      prisma.vehicle.groupBy({
+        by: ['make'],
+        where: { make: { in: topMakes } },
+        _avg: { price: true },
+      }),
+    ]);
 
-        const vehicleIds = vehicles.map(v => v.id);
-        const inquiries = await prisma.lead.count({
-          where: {
-            vehicleId: { in: vehicleIds },
-            createdAt: { gte: thirtyDaysAgo },
-          },
-        });
+    const avgPriceMap = new Map(avgPriceByMake.map(a => [a.make, a._avg.price || 0]));
 
-        const avgPrice = vehicles.length > 0
-          ? vehicles.reduce((sum, v) => sum + v.price, 0) / vehicles.length
-          : 0;
-
-        return {
-          make: make.make,
-          views: make._sum.viewCount || 0,
-          inquiries,
-          conversions: 0, // Would need a sales table to track this
-          avgPrice: Math.round(avgPrice),
-        };
-      })
-    );
+    const makePerformance = vehiclesByMake.map(make => ({
+      make: make.make,
+      views: make._sum.viewCount || 0,
+      inquiries: leadsByMake.get(make.make) || 0,
+      conversions: 0,
+      avgPrice: Math.round(avgPriceMap.get(make.make) || 0),
+    }));
 
     // Process geographic data
     const regionMap = new Map<string, { users: number; revenue: number }>();

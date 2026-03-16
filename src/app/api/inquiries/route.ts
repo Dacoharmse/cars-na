@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         const dealerUsers = await prisma.user.findMany({
           where: {
             dealershipId: vehicle.dealershipId,
-            role: 'DEALER',
+            role: 'DEALER_PRINCIPAL',
           },
           take: 1,
         });

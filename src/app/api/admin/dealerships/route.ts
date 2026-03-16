@@ -27,12 +27,6 @@ export async function GET(request: NextRequest) {
             status: true
           }
         },
-        vehicles: {
-          select: {
-            id: true,
-            status: true
-          }
-        },
         subscription: {
           include: {
             plan: true
@@ -50,10 +44,18 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Get active listing counts per dealership in a single query
+    const activeListingCounts = await prisma.vehicle.groupBy({
+      by: ['dealershipId'],
+      where: { status: 'AVAILABLE' },
+      _count: { id: true },
+    });
+    const activeCountMap = new Map(activeListingCounts.map(a => [a.dealershipId, a._count.id]));
+
     // Transform data to match admin panel format
     const formattedDealerships = dealerships.map(dealership => {
-      const activeListings = dealership.vehicles.filter(v => v.status === 'AVAILABLE').length;
       const totalListings = dealership._count.vehicles;
+      const activeListings = activeCountMap.get(dealership.id) || 0;
       const principalUser = dealership.users.find(u => u.role === 'DEALER_PRINCIPAL');
 
       return {

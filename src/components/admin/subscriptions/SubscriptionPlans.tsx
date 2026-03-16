@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -44,91 +44,7 @@ interface SubscriptionPlan {
   subscriberCount: number;
 }
 
-// Mock data for demonstration
-const mockPlans: SubscriptionPlan[] = [
-  {
-    id: '1',
-    name: 'Starter',
-    slug: 'starter',
-    description: 'Perfect for small dealerships and independent sellers',
-    price: 899,
-    currency: 'NAD',
-    duration: 1,
-    features: [
-      'Up to 25 vehicle listings',
-      'Basic vehicle detail pages',
-      'Standard search visibility',
-      'Customer inquiry management',
-      'Basic analytics dashboard',
-      '5 high-quality photos per vehicle',
-      'Email support'
-    ],
-    maxListings: 25,
-    maxPhotos: 5,
-    priority: 1,
-    isActive: true,
-    subscriberCount: 127
-  },
-  {
-    id: '2',
-    name: 'Professional',
-    slug: 'professional',
-    description: 'Most popular for established dealerships',
-    price: 2499,
-    currency: 'NAD',
-    duration: 1,
-    features: [
-      'Up to 100 vehicle listings',
-      'Priority search placement',
-      'Featured listings (10/month)',
-      'Enhanced vehicle detail pages',
-      'Advanced analytics & reporting',
-      '15 photos + 360° spins per vehicle',
-      'Customer lead scoring',
-      'Automated email campaigns',
-      'Homepage carousel feature',
-      'Social media integration',
-      'Custom dealership branding',
-      'Phone & email support'
-    ],
-    maxListings: 100,
-    maxPhotos: 15,
-    priority: 2,
-    isActive: true,
-    subscriberCount: 89
-  },
-  {
-    id: '3',
-    name: 'Enterprise',
-    slug: 'enterprise',
-    description: 'For large dealerships and dealer groups',
-    price: 4999,
-    currency: 'NAD',
-    duration: 1,
-    features: [
-      'Unlimited vehicle listings',
-      'Hero section featured placement',
-      'Premium featured listings (unlimited)',
-      'Top search results guarantee',
-      'Dedicated account manager',
-      'Advanced inventory sync APIs',
-      'Multiple location management',
-      'White-label solutions',
-      'Custom integrations',
-      'Advanced CRM integration',
-      'Real-time chat support',
-      'Custom reporting dashboards',
-      'Homepage hero section (weekly)',
-      'Newsletter sponsorship',
-      'Exclusive dealer badge'
-    ],
-    maxListings: 0, // Unlimited
-    maxPhotos: 50,
-    priority: 3,
-    isActive: true,
-    subscriberCount: 23
-  }
-];
+// Plans are fetched from the API on mount
 
 const getPlanIcon = (planName: string) => {
   switch (planName.toLowerCase()) {
@@ -157,9 +73,41 @@ const getPlanColor = (planName: string) => {
 };
 
 export default function SubscriptionPlans() {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>(mockPlans);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
+
+  useEffect(() => {
+    async function fetchPlans() {
+      try {
+        const res = await fetch('/api/subscription-plans');
+        const data = await res.json();
+        if (data.success && data.plans) {
+          setPlans(data.plans.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            slug: p.slug || p.name.toLowerCase().replace(/\s+/g, '-'),
+            description: p.description || '',
+            price: p.price,
+            currency: 'NAD',
+            duration: p.duration || 1,
+            features: Array.isArray(p.features) ? p.features : [],
+            maxListings: p.maxListings || 0,
+            maxPhotos: p.maxPhotos || 10,
+            priority: p.priority || 0,
+            isActive: p.isActive ?? true,
+            subscriberCount: p._count?.subscriptions ?? 0,
+          })));
+        }
+      } catch (err) {
+        console.error('Failed to fetch subscription plans:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPlans();
+  }, []);
 
   const [formData, setFormData] = useState({
     name: '',

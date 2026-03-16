@@ -113,10 +113,10 @@ export async function generateInvoicePDF(
     const r2y = r1y + 30;
     doc.rect(50, r2y - 5, 495, 36).fill('white').stroke('#e5e7eb');
     doc.fillColor('#111')
-      .text(`Stock Value Fee (0.1% of total stock)`, colDesc + 5, r2y)
+      .text(`Stock Value Fee (0.01% of total stock)`, colDesc + 5, r2y)
       .text(`${invoice.vehicleCount} vehicles @ total ${NAD(invoice.stockValue)}`, colDesc + 5, r2y + 12, { fontSize: 8 })
       .text(invoice.vehicleCount.toString(), colQty, r2y)
-      .text(`0.1%`, colUnit, r2y)
+      .text(`0.01%`, colUnit, r2y)
       .text(NAD(invoice.stockFeeAmount), colTotal, r2y);
 
     // Subtotal / Total row
@@ -197,7 +197,7 @@ export async function generateMonthlyInvoices(
       const vehicleCount = stockAgg._count.id;
 
       const subscriptionAmount = dealership.subscription.plan.price;
-      const stockFeeAmount = Math.round(stockValue * 0.001 * 100) / 100; // 0.1%, 2dp
+      const stockFeeAmount = Math.round(stockValue * 0.0001 * 100) / 100; // 0.01%, 2dp
       const totalAmount = subscriptionAmount + stockFeeAmount;
 
       const dueDate = new Date();
@@ -235,7 +235,7 @@ export async function generateMonthlyInvoices(
         // Store a marker that PDF was generated (no file path needed)
         await prisma.invoice.update({
           where: { id: invoice.id },
-          data: { pdfPath: `generated:${invoice.invoiceNumber}` },
+          data: { pdfPath: `/invoices/${invoice.invoiceNumber}.pdf` },
         });
       } catch (pdfErr) {
         console.error(`PDF generation failed for ${invoiceNumber}:`, pdfErr);

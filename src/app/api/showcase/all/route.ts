@@ -1,25 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// Cache for 2 minutes (120 seconds)
+// Cache duration in seconds — relies on Vercel CDN cache via Cache-Control headers
 const CACHE_DURATION = 120;
-let showcaseCache: {
-  data: any;
-  timestamp: number;
-} | null = null;
 
 export async function GET(request: NextRequest) {
   try {
-    // Check cache first
-    const now = Date.now();
-    if (showcaseCache && (now - showcaseCache.timestamp) < CACHE_DURATION * 1000) {
-      return NextResponse.json(showcaseCache.data, {
-        headers: {
-          'Cache-Control': `public, s-maxage=${CACHE_DURATION}, stale-while-revalidate=60`,
-        },
-      });
-    }
-
     const { searchParams } = new URL(request.url);
     const take = parseInt(searchParams.get('take') || '4');
 
@@ -130,12 +116,6 @@ export async function GET(request: NextRequest) {
         topNewCars,
         topUsedCars,
       },
-    };
-
-    // Update cache
-    showcaseCache = {
-      data: responseData,
-      timestamp: now,
     };
 
     return NextResponse.json(responseData, {
