@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -55,105 +55,84 @@ interface DealershipSubscription {
   nextPaymentDate: string;
 }
 
-// Mock data for demonstration
-const mockSubscriptions: DealershipSubscription[] = [
-  {
-    id: '1',
+interface ApiSubscription {
+  id: string;
+  dealershipId: string;
+  dealershipName: string;
+  billingEmail: string;
+  planId: string;
+  plan: string;
+  planPrice: number;
+  status: string;
+  billingCycle: string;
+  monthlyFee: number;
+  nextBilling: string | null;
+  totalPaid: number;
+  autoRenew: boolean;
+  currentListings: number;
+  startedAt: string;
+  createdAt: string;
+}
+
+interface ApiPlan {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  currency: string;
+  maxListings: number;
+  maxPhotos: number;
+  features: unknown;
+  status: string;
+  subscribers: number;
+  priority: number;
+}
+
+interface ApiResponse {
+  success: boolean;
+  error?: string;
+  stats: {
+    totalSubscriptions: number;
+    activeSubscriptions: number;
+    pendingSubscriptions: number;
+    overdueSubscriptions: number;
+    cancelledSubscriptions: number;
+    monthlyRevenue: number;
+    annualRevenue: number;
+    avgSubscriptionValue: number;
+    churnRate: number;
+  };
+  subscriptions: ApiSubscription[];
+  plans: ApiPlan[];
+}
+
+function mapApiToSubscription(sub: ApiSubscription, plans: ApiPlan[]): DealershipSubscription {
+  const matchedPlan = plans.find(p => p.id === sub.planId);
+  return {
+    id: sub.id,
     dealership: {
-      id: '1',
-      name: 'Premium Motors Windhoek',
-      contactPerson: 'Johannes Müller',
-      email: 'johannes@premiummotors.com.na',
-      phone: '+264 61 123 4567'
+      id: sub.dealershipId,
+      name: sub.dealershipName,
+      contactPerson: '', // Not available from API
+      email: sub.billingEmail,
+      phone: '',         // Not available from API
     },
     plan: {
-      name: 'Enterprise',
-      price: 4999,
-      currency: 'NAD'
+      name: sub.plan,
+      price: sub.planPrice,
+      currency: matchedPlan?.currency || 'NAD',
     },
-    status: 'ACTIVE',
-    startDate: '2024-01-15',
-    endDate: '2024-12-15',
-    autoRenew: true,
-    currentListings: 45,
-    maxListings: 0, // Unlimited
-    totalRevenue: 49990,
-    lastPaymentDate: '2024-08-15',
-    nextPaymentDate: '2024-09-15'
-  },
-  {
-    id: '2',
-    dealership: {
-      id: '2',
-      name: 'City Auto Traders',
-      contactPerson: 'Maria Silva',
-      email: 'maria@cityauto.na',
-      phone: '+264 81 987 6543'
-    },
-    plan: {
-      name: 'Professional',
-      price: 2499,
-      currency: 'NAD'
-    },
-    status: 'ACTIVE',
-    startDate: '2024-03-01',
-    endDate: '2024-12-01',
-    autoRenew: true,
-    currentListings: 67,
-    maxListings: 100,
-    totalRevenue: 17493,
-    lastPaymentDate: '2024-08-01',
-    nextPaymentDate: '2024-09-01'
-  },
-  {
-    id: '3',
-    dealership: {
-      id: '3',
-      name: 'Desert Wheels',
-      contactPerson: 'David Shikongo',
-      email: 'david@desertwheels.na',
-      phone: '+264 64 456 7890'
-    },
-    plan: {
-      name: 'Starter',
-      price: 899,
-      currency: 'NAD'
-    },
-    status: 'PAST_DUE',
-    startDate: '2024-02-10',
-    endDate: '2024-11-10',
-    autoRenew: false,
-    currentListings: 23,
-    maxListings: 25,
-    totalRevenue: 6293,
-    lastPaymentDate: '2024-07-10',
-    nextPaymentDate: '2024-08-10'
-  },
-  {
-    id: '4',
-    dealership: {
-      id: '4',
-      name: 'Coastal Cars',
-      contactPerson: 'Sarah Johnson',
-      email: 'sarah@coastalcars.na',
-      phone: '+264 64 789 0123'
-    },
-    plan: {
-      name: 'Professional',
-      price: 2499,
-      currency: 'NAD'
-    },
-    status: 'SUSPENDED',
-    startDate: '2024-01-20',
-    endDate: '2024-10-20',
-    autoRenew: true,
-    currentListings: 0,
-    maxListings: 100,
-    totalRevenue: 19992,
-    lastPaymentDate: '2024-07-20',
-    nextPaymentDate: '2024-08-20'
-  }
-];
+    status: sub.status as DealershipSubscription['status'],
+    startDate: sub.startedAt,
+    endDate: '',           // Not returned by API
+    autoRenew: sub.autoRenew,
+    currentListings: sub.currentListings,
+    maxListings: matchedPlan?.maxListings ?? 0,
+    totalRevenue: sub.totalPaid,
+    lastPaymentDate: '',   // Not returned by API
+    nextPaymentDate: sub.nextBilling || '',
+  };
+}
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -194,10 +173,36 @@ const getStatusIcon = (status: string) => {
 };
 
 export default function SubscriptionManagement() {
-  const [subscriptions, setSubscriptions] = useState<DealershipSubscription[]>(mockSubscriptions);
+  const [subscriptions, setSubscriptions] = useState<DealershipSubscription[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedSubscription, setSelectedSubscription] = useState<DealershipSubscription | null>(null);
+
+  useEffect(() => {
+    async function fetchSubscriptions() {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch('/api/admin/subscriptions');
+        if (!res.ok) {
+          throw new Error(`Failed to fetch subscriptions (${res.status})`);
+        }
+        const data: ApiResponse = await res.json();
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to fetch subscriptions');
+        }
+        const mapped = data.subscriptions.map(sub => mapApiToSubscription(sub, data.plans));
+        setSubscriptions(mapped);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSubscriptions();
+  }, []);
 
   const filteredSubscriptions = subscriptions.filter(sub => {
     const matchesSearch = sub.dealership.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -233,6 +238,27 @@ export default function SubscriptionManagement() {
     console.log('Exporting data:', csvData);
     // Implementation would generate and download CSV
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <RefreshCw className="w-6 h-6 animate-spin text-blue-500 mr-3" />
+        <span className="text-gray-600">Loading subscriptions...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <AlertTriangle className="w-10 h-10 text-red-500" />
+        <p className="text-red-600 font-medium">{error}</p>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

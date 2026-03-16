@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -32,7 +32,6 @@ import {
 import { DealershipActions } from './DealershipActions';
 import { DealershipDetails } from './DealershipDetails';
 import { CreateDealership } from './CreateDealership';
-import { trpc } from '@/lib/trpc';
 
 export type DealershipStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
 
@@ -76,118 +75,61 @@ export function DealershipList({ onSelectDealership }: DealershipListProps) {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState<string | null>(null);
+  const [dealerships, setDealerships] = useState<DealershipData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data - in real app, this would come from tRPC
-  const mockDealerships: DealershipData[] = [
-    {
-      id: '1',
-      name: 'Premium Motors Namibia',
-      contactPerson: 'John Smith',
-      phone: '+264 61 123456',
-      email: 'john@premiummotors.na',
-      city: 'Windhoek',
-      region: 'Khomas',
-      status: 'APPROVED',
-      isVerified: true,
-      createdAt: '2024-01-15T10:30:00Z',
-      updatedAt: '2024-09-15T14:20:00Z',
-      vehiclesCount: 45,
-      leadsCount: 123,
-      monthlyRevenue: 125000,
-      totalRevenue: 980000,
-      commissionRate: 5,
-      website: 'https://premiummotors.na',
-      businessType: 'Car Dealership',
-      registrationNumber: 'CC/2020/12345'
-    },
-    {
-      id: '2',
-      name: 'City Cars Swakopmund',
-      contactPerson: 'Sarah Wilson',
-      phone: '+264 64 987654',
-      email: 'sarah@citycars.na',
-      city: 'Swakopmund',
-      region: 'Erongo',
-      status: 'APPROVED',
-      isVerified: true,
-      createdAt: '2024-02-20T09:15:00Z',
-      updatedAt: '2024-09-16T11:45:00Z',
-      vehiclesCount: 32,
-      leadsCount: 89,
-      monthlyRevenue: 89000,
-      totalRevenue: 670000,
-      commissionRate: 5,
-      website: 'https://citycars.na',
-      businessType: 'Car Dealership',
-      registrationNumber: 'CC/2020/67890'
-    },
-    {
-      id: '3',
-      name: 'Auto Palace',
-      contactPerson: 'Mike Brown',
-      phone: '+264 61 555123',
-      email: 'mike@autopalace.na',
-      city: 'Windhoek',
-      region: 'Khomas',
-      status: 'PENDING',
-      isVerified: false,
-      createdAt: '2024-09-10T16:45:00Z',
-      updatedAt: '2024-09-10T16:45:00Z',
-      vehiclesCount: 0,
-      leadsCount: 0,
-      monthlyRevenue: 0,
-      totalRevenue: 0,
-      commissionRate: 5,
-      businessType: 'Car Dealership',
-      registrationNumber: 'CC/2024/11111'
-    },
-    {
-      id: '4',
-      name: 'Elite Autos Oshakati',
-      contactPerson: 'Lisa Davis',
-      phone: '+264 65 444789',
-      email: 'lisa@eliteautos.na',
-      city: 'Oshakati',
-      region: 'Oshana',
-      status: 'SUSPENDED',
-      isVerified: true,
-      createdAt: '2024-03-08T13:20:00Z',
-      updatedAt: '2024-09-01T08:30:00Z',
-      vehiclesCount: 28,
-      leadsCount: 45,
-      monthlyRevenue: 0,
-      totalRevenue: 340000,
-      commissionRate: 5,
-      website: 'https://eliteautos.na',
-      businessType: 'Car Dealership',
-      registrationNumber: 'CC/2024/22222'
-    },
-    {
-      id: '5',
-      name: 'Coastal Motors',
-      contactPerson: 'David Johnson',
-      phone: '+264 64 777333',
-      email: 'david@coastalmotors.na',
-      city: 'Walvis Bay',
-      region: 'Erongo',
-      status: 'REJECTED',
-      isVerified: false,
-      createdAt: '2024-09-05T12:00:00Z',
-      updatedAt: '2024-09-12T15:30:00Z',
-      vehiclesCount: 0,
-      leadsCount: 0,
-      monthlyRevenue: 0,
-      totalRevenue: 0,
-      commissionRate: 5,
-      businessType: 'Car Dealership',
-      registrationNumber: 'CC/2024/33333'
+  const fetchDealerships = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/dealerships');
+      if (!res.ok) {
+        throw new Error(`Failed to fetch dealerships (${res.status})`);
+      }
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch dealerships');
+      }
+      // Map API response fields to DealershipData interface
+      const mapped: DealershipData[] = (data.dealerships || []).map((d: any) => ({
+        id: d.id,
+        name: d.name || '',
+        contactPerson: d.contactPerson || '',
+        phone: d.phone || '',
+        email: d.email || undefined,
+        city: d.city || '',
+        region: d.region || '',
+        status: (d.status || 'PENDING') as DealershipStatus,
+        isVerified: d.verificationStatus === 'VERIFIED',
+        isFeatured: false,
+        createdAt: d.joinedAt || new Date().toISOString(),
+        updatedAt: d.joinedAt || new Date().toISOString(),
+        vehiclesCount: d.activeListings ?? d.totalListings ?? 0,
+        leadsCount: 0,
+        monthlyRevenue: d.monthlyRevenue ?? 0,
+        totalRevenue: d.totalSales ?? 0,
+        commissionRate: 5,
+        website: d.website || undefined,
+        businessType: d.businessType || undefined,
+        registrationNumber: d.businessLicense || d.taxNumber || undefined,
+      }));
+      setDealerships(mapped);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  }, []);
+
+  useEffect(() => {
+    fetchDealerships();
+  }, [fetchDealerships]);
 
   const regions = ['ALL', 'Khomas', 'Erongo', 'Oshana', 'Hardap', 'Kavango East', 'Kavango West', 'Kunene', 'Ohangwena', 'Omaheke', 'Omusati', 'Oshikoto', 'Otjozondjupa', 'Zambezi'];
 
   const filteredAndSortedDealerships = useMemo(() => {
-    let filtered = mockDealerships.filter(dealership => {
+    let filtered = dealerships.filter(dealership => {
       const matchesSearch = searchTerm === '' ||
         dealership.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         dealership.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -223,7 +165,7 @@ export function DealershipList({ onSelectDealership }: DealershipListProps) {
     });
 
     return filtered;
-  }, [mockDealerships, searchTerm, statusFilter, regionFilter, sortField, sortDirection]);
+  }, [dealerships, searchTerm, statusFilter, regionFilter, sortField, sortDirection]);
 
   const getStatusBadge = (status: DealershipStatus) => {
     const variants = {
@@ -425,8 +367,36 @@ export function DealershipList({ onSelectDealership }: DealershipListProps) {
         </CardContent>
       </Card>
 
+      {/* Loading State */}
+      {isLoading && (
+        <Card>
+          <CardContent className="p-12">
+            <div className="text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+              <p className="mt-4 text-sm text-gray-600">Loading dealerships...</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error State */}
+      {error && !isLoading && (
+        <Card>
+          <CardContent className="p-12">
+            <div className="text-center">
+              <XCircle className="mx-auto h-12 w-12 text-red-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">Failed to load dealerships</h3>
+              <p className="mt-1 text-sm text-gray-500">{error}</p>
+              <Button variant="outline" className="mt-4" onClick={fetchDealerships}>
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Dealerships Table */}
-      <Card>
+      {!isLoading && !error && <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -594,7 +564,7 @@ export function DealershipList({ onSelectDealership }: DealershipListProps) {
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card>}
 
       {/* Modals */}
       {showDetailsModal && selectedDealership && (

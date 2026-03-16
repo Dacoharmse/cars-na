@@ -429,6 +429,14 @@ export const vehicleRouter = router({
               ...(filters.maxMileage && { lte: filters.maxMileage }),
             },
           }),
+          ...(filters?.location && {
+            dealership: {
+              OR: [
+                { city: { contains: filters.location, mode: 'insensitive' } },
+                { region: { contains: filters.location, mode: 'insensitive' } },
+              ],
+            },
+          }),
           ...(filters?.search && {
             OR: [
               { make: { contains: filters.search, mode: 'insensitive' } },

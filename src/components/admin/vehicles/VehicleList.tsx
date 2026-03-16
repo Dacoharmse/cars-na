@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -73,122 +73,37 @@ interface VehicleListProps {
   onVehicleAction?: (action: string, vehicleId: string) => void;
 }
 
-// Mock data for demonstration
-const MOCK_VEHICLES: Vehicle[] = [
-  {
-    id: '1',
-    make: 'BMW',
-    model: 'X5',
-    year: 2020,
-    price: 450000,
-    originalPrice: 520000,
-    mileage: 25000,
-    color: 'Black',
-    vin: 'WBAXL4C53LDH12345',
-    description: 'Luxury SUV in excellent condition',
-    transmission: 'Automatic',
-    fuelType: 'Petrol',
-    bodyType: 'SUV',
-    status: 'AVAILABLE',
-    moderationStatus: 'APPROVED',
-    featured: true,
-    dealerPick: true,
-    isNew: false,
-    isPrivate: false,
-    viewCount: 1234,
-    leadCount: 45,
-    qualityScore: 92,
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-20'),
-    dealership: {
-      id: 'dealer1',
-      name: 'Premium Motors',
-      email: 'contact@premium.com',
-      phone: '+264-61-123456'
-    },
-    images: [{
-      id: 'img1',
-      url: '/images/bmw-x5.jpg',
-      isPrimary: true
-    }]
-  },
-  {
-    id: '2',
-    make: 'Toyota',
-    model: 'Hilux',
-    year: 2021,
-    price: 520000,
-    mileage: 15000,
-    color: 'White',
-    vin: 'JTKKU4B41M1234567',
-    description: 'Brand new pickup truck',
-    transmission: 'Manual',
-    fuelType: 'Diesel',
-    bodyType: 'Pickup',
-    status: 'AVAILABLE',
-    moderationStatus: 'PENDING',
-    featured: false,
-    dealerPick: false,
-    isNew: true,
-    isPrivate: false,
-    viewCount: 567,
-    leadCount: 12,
-    qualityScore: 85,
-    createdAt: new Date('2024-01-18'),
-    updatedAt: new Date('2024-01-18'),
-    dealership: {
-      id: 'dealer2',
-      name: 'City Cars',
-      email: 'info@citycars.com',
-      phone: '+264-61-789012'
-    },
-    images: [{
-      id: 'img2',
-      url: '/images/toyota-hilux.jpg',
-      isPrimary: true
-    }]
-  },
-  {
-    id: '3',
-    make: 'Audi',
-    model: 'A4',
-    year: 2018,
-    price: 320000,
-    mileage: 45000,
-    color: 'Silver',
-    vin: 'WAUZZZF4XMA123456',
-    description: 'Sporty sedan with premium features',
-    transmission: 'Automatic',
-    fuelType: 'Petrol',
-    bodyType: 'Sedan',
-    status: 'AVAILABLE',
-    moderationStatus: 'FLAGGED',
-    featured: false,
-    dealerPick: false,
-    isNew: false,
-    isPrivate: false,
-    viewCount: 234,
-    leadCount: 3,
-    qualityScore: 67,
-    flaggedReasons: ['Suspicious pricing', 'Poor image quality'],
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-12'),
-    dealership: {
-      id: 'dealer3',
-      name: 'Elite Autos',
-      email: 'sales@elite.com',
-      phone: '+264-61-345678'
-    },
-    images: [{
-      id: 'img3',
-      url: '/images/audi-a4.jpg',
-      isPrimary: true
-    }]
-  }
-];
-
 export default function VehicleList({ onVehicleSelect, onVehicleAction }: VehicleListProps) {
-  const [vehicles] = useState<Vehicle[]>(MOCK_VEHICLES);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchVehicles = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/vehicles');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to fetch vehicles (${res.status})`);
+      }
+      const data = await res.json();
+      const parsed: Vehicle[] = (data.vehicles || []).map((v: Record<string, unknown>) => ({
+        ...v,
+        createdAt: new Date(v.createdAt as string),
+        updatedAt: new Date(v.updatedAt as string),
+      }));
+      setVehicles(parsed);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch vehicles');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchVehicles();
+  }, [fetchVehicles]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [moderationFilter, setModerationFilter] = useState<string>('all');
@@ -313,6 +228,30 @@ export default function VehicleList({ onVehicleSelect, onVehicleAction }: Vehicl
   const clearSelection = () => {
     setSelectedVehicles([]);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900 mx-auto" />
+          <p className="mt-4 text-sm text-gray-500">Loading vehicles...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20">
+        <Car className="mx-auto h-12 w-12 text-red-400" />
+        <h3 className="mt-2 text-sm font-medium text-gray-900">Failed to load vehicles</h3>
+        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <Button variant="outline" className="mt-4" onClick={fetchVehicles}>
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

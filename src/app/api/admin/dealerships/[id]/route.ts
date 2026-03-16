@@ -108,14 +108,23 @@ export async function PATCH(
         }
       });
 
-      // Send approval email to the dealer
+      // Send approval email to the dealer (only if email is available)
       try {
-        await emailService.sendDealerApprovalEmail({
-          name: updatedDealership.name,
-          email: updatedDealership.email,
-          dealershipName: updatedDealership.name,
-        });
-        console.log(`Approval email sent to ${updatedDealership.email}`);
+        const approvalEmail = updatedDealership.email || (await prisma.user.findFirst({
+          where: { dealershipId: id, role: 'DEALER_PRINCIPAL' },
+          select: { email: true },
+        }))?.email;
+
+        if (approvalEmail) {
+          await emailService.sendDealerApprovalEmail({
+            name: updatedDealership.name,
+            email: approvalEmail,
+            dealershipName: updatedDealership.name,
+          });
+          console.log(`Approval email sent to ${approvalEmail}`);
+        } else {
+          console.warn(`No email found for dealership ${id}, skipping approval email`);
+        }
       } catch (emailError) {
         console.error('Failed to send approval email:', emailError);
         // Continue even if email fails - approval was successful
