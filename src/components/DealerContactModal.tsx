@@ -9,6 +9,7 @@ interface DealerContactModalProps {
   isOpen: boolean;
   onClose: () => void;
   dealership: {
+    id?: string;
     name: string;
     address: string;
     city: string;
@@ -40,28 +41,45 @@ export const DealerContactModal: React.FC<DealerContactModalProps> = ({
     }));
   };
 
+  const [error, setError] = useState('');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError('');
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setSubmitted(true);
-    setIsSubmitting(false);
-
-    // Reset form after delay
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        message: '',
-        interestedIn: 'General Inquiry'
+    try {
+      const res = await fetch('/api/dealership-inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senderName: formData.name,
+          senderEmail: formData.email,
+          senderPhone: formData.phone || undefined,
+          subject: formData.interestedIn,
+          message: formData.message,
+          dealershipId: dealership.id,
+        }),
       });
-      onClose();
-    }, 2000);
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to send message');
+      }
+
+      setSubmitted(true);
+
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({ name: '', email: '', phone: '', message: '', interestedIn: 'General Inquiry' });
+        onClose();
+      }, 2000);
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -102,6 +120,11 @@ export const DealerContactModal: React.FC<DealerContactModalProps> = ({
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Send us a message</h3>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                      {error}
+                    </div>
+                  )}
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                       Full Name *

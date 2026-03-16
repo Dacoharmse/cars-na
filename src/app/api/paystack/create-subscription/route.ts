@@ -212,8 +212,7 @@ export async function PUT(req: NextRequest) {
     }
 
     // Calculate end date
-    const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + plan.duration);
+    const endDate = addMonths(new Date(), plan.duration);
 
     // Create or update dealership subscription
     await prisma.dealershipSubscription.upsert({
@@ -244,8 +243,8 @@ export async function PUT(req: NextRequest) {
       await prisma.payment.create({
         data: {
           subscriptionId: subscription.id,
-          amount: paymentData.amount / 100, // Convert from kobo
-          currency: paymentData.currency.toUpperCase(),
+          amount: plan.price, // Store in NAD (original currency)
+          currency: 'NAD',
           status: 'COMPLETED',
           paymentMethod: 'PAYSTACK',
           paystackPaymentId: paymentReference,
@@ -254,6 +253,8 @@ export async function PUT(req: NextRequest) {
           metadata: {
             paystackReference: paymentReference,
             customerEmail: email,
+            paystackAmountKobo: paymentData.amount,
+            paystackCurrency: paymentData.currency?.toUpperCase(),
           },
         },
       });

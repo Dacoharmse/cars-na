@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         host: smtpHost,
         port: parseInt(process.env.SMTP_PORT || '25'),
         secure: process.env.SMTP_SECURE === 'true',
-        tls: { rejectUnauthorized: false },
+        tls: { rejectUnauthorized: process.env.NODE_ENV === 'production' },
       };
 
       if (process.env.SMTP_REQUIRE_AUTH === 'true') {

@@ -3,8 +3,10 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 import { emailService } from '@/lib/email';
 import { addMonths } from 'date-fns';
+import { withRateLimit, authLimiter } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
+  return withRateLimit(request, { ...authLimiter, endpoint: 'auth-register' }, async () => {
   try {
     const data = await request.json();
 
@@ -199,4 +201,5 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+  });
 }
