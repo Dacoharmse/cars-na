@@ -65,7 +65,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════
           HERO — Editorial automotive, asymmetric
          ═══════════════════════════════════════════ */}
-      <section className="relative min-h-[88vh] flex items-end overflow-hidden bg-[#080C18]">
+      <section className="relative min-h-[100vh] flex items-end overflow-hidden bg-[#080C18] -mt-[6.5rem]">
         {/* ── Atmospheric background layers ── */}
         <div className="absolute inset-0">
           {/* Deep base gradient */}
@@ -93,7 +93,7 @@ export default function Home() {
         </div>
 
         {/* ── Main content ── */}
-        <div className="relative container mx-auto px-4 pb-12 lg:pb-20 pt-28 lg:pt-32 z-10">
+        <div className="relative container mx-auto px-4 pb-12 lg:pb-20 pt-40 lg:pt-48 z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-end">
 
             {/* ── Left: Editorial hero content — 8 cols ── */}
@@ -186,7 +186,7 @@ export default function Home() {
       {/* ═══════════════════════════════════
           SEARCH FORM — Clean, integrated
          ═══════════════════════════════════ */}
-      <section className="bg-[#0B1628] pb-12">
+      <section className="bg-[#080C18] pb-16">
         <div className="container mx-auto px-4">
           <div className="animate-fade-up delay-700 bg-white/[0.03] backdrop-blur-sm rounded-2xl p-6 lg:p-8 border border-white/[0.06]">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

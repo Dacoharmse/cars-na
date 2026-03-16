@@ -301,8 +301,12 @@ const TopNewUsedSection: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>No new cars available</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-50 to-slate-50 flex items-center justify-center">
+                <Zap className="w-7 h-7 text-blue-200" />
+              </div>
+              <p className="text-sm font-medium text-slate-400">No new cars available yet</p>
+              <p className="text-xs text-slate-300 mt-1">New inventory added regularly</p>
             </div>
           )}
         </div>
@@ -374,8 +378,12 @@ const TopNewUsedSection: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p>No used cars available</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-50 to-slate-50 flex items-center justify-center">
+                <TrendingUp className="w-7 h-7 text-orange-200" />
+              </div>
+              <p className="text-sm font-medium text-slate-400">No used cars available yet</p>
+              <p className="text-xs text-slate-300 mt-1">Pre-owned vehicles coming soon</p>
             </div>
           )}
         </div>
@@ -485,12 +493,14 @@ export const HomeShowcase: React.FC = () => {
 
   if (isLoading) {
     return (
-      <section className="py-16 bg-gradient-to-b from-white to-neutral-50">
-        <div className="container mx-auto px-4">
+      <section className="relative bg-[#FAFAF8]">
+        {/* Dark-to-light transition gradient */}
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#080C18] to-transparent pointer-events-none" />
+        <div className="container mx-auto px-4 pt-20 pb-16">
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">Loading showcase...</span>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1F3469]"></div>
+              <span className="ml-3 text-slate-500">Loading vehicles...</span>
             </div>
           </div>
         </div>
@@ -499,8 +509,10 @@ export const HomeShowcase: React.FC = () => {
   }
 
   return (
-    <section className="py-16 bg-gradient-to-b from-white to-neutral-50" data-testid="home-showcase">
-      <div className="container mx-auto px-4">
+    <section className="relative bg-[#FAFAF8]" data-testid="home-showcase">
+      {/* Dark-to-light transition gradient */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#080C18] to-transparent pointer-events-none" />
+      <div className="container mx-auto px-4 pt-20 pb-16">
         <div className="max-w-7xl mx-auto space-y-12">
           {showcaseSections.map((section) => (
             <div key={section.id} className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden" data-testid={`showcase-${section.id}`}>
@@ -519,8 +531,12 @@ export const HomeShowcase: React.FC = () => {
                     sectionId={section.id}
                   />
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No vehicles available in this category</p>
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center">
+                      <Eye className="w-7 h-7 text-slate-300" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-400">No vehicles available yet</p>
+                    <p className="text-xs text-slate-300 mt-1">Check back soon for new listings</p>
                   </div>
                 )}
               </div>
