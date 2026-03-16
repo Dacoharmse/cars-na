@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/api/admin/invoices/[id]/pdf': ['./node_modules/pdfkit/js/data/**/*'],
     '/api/admin/invoices': ['./node_modules/pdfkit/js/data/**/*'],
+    '/api/invoices/[id]/pdf': ['./node_modules/pdfkit/js/data/**/*'],
   },
   images: {
     remotePatterns: [

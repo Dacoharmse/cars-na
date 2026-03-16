@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
-// Mock data - in production, this would come from the database
+// Helper to escape CSV values
 const DEALERS_DATA = [
   {
     id: 'dealer-001',
