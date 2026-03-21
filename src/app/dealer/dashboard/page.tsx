@@ -208,7 +208,7 @@ const monthlyData = [
 ];
 
 const leadSourceData = [
-  { name: 'Contact Form', value: 65, count: 45, color: '#3B82F6' },
+  { name: 'Contact Form', value: 65, count: 45, color: '#CB2030' },
   { name: 'WhatsApp', value: 25, count: 17, color: '#10B981' },
   { name: 'Phone Calls', value: 10, count: 7, color: '#F59E0B' }
 ];
@@ -223,11 +223,11 @@ const vehiclePerformanceData = [
 
 const conversionData = [
   { name: 'Views', value: 4800, color: '#E5E7EB' },
-  { name: 'Inquiries', value: 180, color: '#93C5FD' },
-  { name: 'Sales', value: 42, color: '#3B82F6' }
+  { name: 'Inquiries', value: 180, color: '#FCA5A5' },
+  { name: 'Sales', value: 42, color: '#CB2030' }
 ];
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+const COLORS = ['#CB2030', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 // Mock subscription data
 const mockSubscription = {
@@ -426,7 +426,7 @@ function VehicleListingsTab() {
       }
     } catch (error) {
       console.error('Error fetching listings:', error);
-      showToast('Failed to load vehicle listings', 'error');
+      showToast({ title: 'Error', description: 'Failed to load vehicle listings', variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -449,16 +449,16 @@ function VehicleListingsTab() {
 
       const data = await response.json();
       if (data.success) {
-        showToast('Interest expressed successfully!', 'success');
+        showToast({ title: 'Success', description: 'Interest expressed successfully!', variant: 'success' });
         setShowInterestModal(false);
         setOfferPrice('');
         setMessage('');
         fetchListings(); // Refresh listings
       } else {
-        showToast(data.error || 'Failed to express interest', 'error');
+        showToast({ title: 'Error', description: data.error || 'Failed to express interest', variant: 'error' });
       }
     } catch (error) {
-      showToast('An error occurred', 'error');
+      showToast({ title: 'Error', description: 'An error occurred', variant: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -467,7 +467,7 @@ function VehicleListingsTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CB2030]"></div>
       </div>
     );
   }
@@ -519,7 +519,7 @@ function VehicleListingsTab() {
                         <p className="text-sm text-gray-600">{listing.category}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xl font-bold text-blue-600">
+                        <p className="text-xl font-bold" style={{ color: '#CB2030' }}>
                           NAD {listing.price.toLocaleString()}
                         </p>
                         {listing.negotiable && (
@@ -559,7 +559,7 @@ function VehicleListingsTab() {
                       <div className="text-xs text-gray-500">
                         <p>Posted: {new Date(listing.createdAt).toLocaleDateString()}</p>
                         {listing.totalInterests > 0 && (
-                          <p className="text-blue-600">{listing.totalInterests} dealer(s) interested</p>
+                          <p style={{ color: '#CB2030' }}>{listing.totalInterests} dealer(s) interested</p>
                         )}
                       </div>
                       <div className="flex gap-2">
@@ -644,12 +644,12 @@ function VehicleListingsTab() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300"
                   placeholder="Introduce yourself and express your interest..."
                 />
               </div>
 
-              <div className="bg-blue-50 p-3 rounded-md text-sm text-gray-700">
+              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-700">
                 <p className="font-medium mb-1">Contact Information:</p>
                 <p>Name: {selectedListing.userName}</p>
                 <p>Email: {selectedListing.userEmail}</p>
@@ -716,10 +716,10 @@ function VehicleListingsTab() {
               )}
 
               {/* Price and Key Info */}
-              <div className="bg-blue-50 p-6 rounded-lg mb-6">
+              <div className="bg-gray-50 p-6 rounded-lg mb-6">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-3xl font-bold text-blue-600">
+                    <p className="text-3xl font-bold" style={{ color: '#CB2030' }}>
                       NAD {selectedListing.price.toLocaleString()}
                     </p>
                     {selectedListing.negotiable && (
@@ -1014,13 +1014,13 @@ function DealerDashboardContent() {
     setDownloadingInvoice(invoice.id);
     try {
       const res = await fetch(`/api/invoices/${invoice.id}/pdf`);
-      if (!res.ok) { alert('PDF not available. Please contact support.'); return; }
+      if (!res.ok) { showToast({ title: 'Error', description: 'PDF not available. Please contact support.', variant: 'error' }); return; }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = `${invoice.invoiceNumber}.pdf`; a.click();
       URL.revokeObjectURL(url);
-    } catch { alert('Failed to download PDF. Please try again.'); }
+    } catch { showToast({ title: 'Error', description: 'Failed to download PDF. Please try again.', variant: 'error' }); }
     finally { setDownloadingInvoice(null); }
   };
 
@@ -1202,18 +1202,19 @@ function DealerDashboardContent() {
         setSelectedLead((prev: any) => ({ ...prev, status: 'CONTACTED' }));
 
         // Show success message using toast
-        showToast(
-          result.emailSent ? 'Response sent and email delivered!' : 'Response saved (email delivery pending)',
-          result.emailSent ? 'success' : 'info'
-        );
+        showToast({
+          title: result.emailSent ? 'Response Sent' : 'Response Saved',
+          description: result.emailSent ? 'Response sent and email delivered!' : 'Response saved (email delivery pending)',
+          variant: result.emailSent ? 'success' : 'info',
+        });
         setLeadResponse('');
       } else {
         const error = await response.json();
-        showToast(`Failed to send response: ${error.error || 'Unknown error'}`, 'error');
+        showToast({ title: 'Error', description: `Failed to send response: ${error.error || 'Unknown error'}`, variant: 'error' });
       }
     } catch (error) {
       console.error('Error sending response:', error);
-      showToast('Failed to send response. Please try again.', 'error');
+      showToast({ title: 'Error', description: 'Failed to send response. Please try again.', variant: 'error' });
     } finally {
       setSendingResponse(false);
     }
@@ -1231,13 +1232,13 @@ function DealerDashboardContent() {
       if (response.ok) {
         // Update the selected lead status without page reload
         setSelectedLead((prev: any) => ({ ...prev, status: newStatus }));
-        showToast(`Lead status updated to ${newStatus}`, 'success');
+        showToast({ title: 'Success', description: `Lead status updated to ${newStatus}`, variant: 'success' });
       } else {
-        showToast('Failed to update status', 'error');
+        showToast({ title: 'Error', description: 'Failed to update status', variant: 'error' });
       }
     } catch (error) {
       console.error('Error updating lead status:', error);
-      showToast('Failed to update status', 'error');
+      showToast({ title: 'Error', description: 'Failed to update status', variant: 'error' });
     }
   };
 
@@ -1270,9 +1271,11 @@ function DealerDashboardContent() {
 
   const getLeadStatusColor = (status: string) => {
     switch (status) {
-      case 'NEW': return 'bg-blue-100 text-blue-800';
-      case 'CONTACTED': return 'bg-yellow-100 text-yellow-800';
-      case 'QUALIFIED': return 'bg-green-100 text-green-800';
+      case 'NEW': return 'bg-[#CB2030]/10 text-[#CB2030]';
+      case 'CONTACTED': return 'bg-amber-100 text-amber-700';
+      case 'INTERESTED': return 'bg-emerald-100 text-emerald-700';
+      case 'QUALIFIED': return 'bg-emerald-100 text-emerald-700';
+      case 'CONVERTED': return 'bg-indigo-100 text-indigo-600';
       case 'CLOSED': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -1639,7 +1642,7 @@ function DealerDashboardContent() {
   };
 
   const generateInviteLink = () => {
-    const inviteId = Math.random().toString(36).substring(2, 15);
+    const inviteId = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2,'0')).join('');
     const baseUrl = window.location.origin;
     return `${baseUrl}/dealer/invite/${inviteId}`;
   };
@@ -1758,7 +1761,7 @@ function DealerDashboardContent() {
 
   const handleConfirmPasswordReset = () => {
     // Generate password reset link
-    const resetLink = `https://cars.na/reset-password?token=${Math.random().toString(36).substring(7)}&email=${selectedUser.email}`;
+    const resetLink = `https://cars.na/reset-password?token=${Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2,'0')).join('')}&email=${selectedUser.email}`;
     navigator.clipboard.writeText(resetLink);
     setShowPasswordResetModal(false);
     setSelectedUser(null);
@@ -1770,7 +1773,7 @@ function DealerDashboardContent() {
   };
 
   const handleResendInvite = (user: any) => {
-    const inviteLink = `https://cars.na/dealer/accept-invite?token=${Math.random().toString(36).substring(7)}&email=${user.email}`;
+    const inviteLink = `https://cars.na/dealer/accept-invite?token=${Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2,'0')).join('')}&email=${user.email}`;
     showToast({
       title: 'Invite Resent',
       description: `Invite link sent to ${user.email}`,
@@ -1795,7 +1798,7 @@ function DealerDashboardContent() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CB2030] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading dashboard...</p>
         </div>
       </div>
@@ -1810,7 +1813,8 @@ function DealerDashboardContent() {
           <p className="text-gray-600 mb-6">{vehiclesError?.message || leadsError?.message}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 text-white rounded hover:opacity-90"
+            style={{ background: '#CB2030' }}
           >
             Reload Dashboard
           </button>
@@ -1824,11 +1828,11 @@ function DealerDashboardContent() {
     <InvoiceReminderModal />
     <div className="fixed inset-0 bg-gray-50 flex overflow-hidden">
       {/* Sidebar Navigation - Inspired by professional dealer systems */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-56 bg-white border-r border-gray-100 flex flex-col">
         {/* Sidebar Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-5 border-b border-gray-100">
           <div className="flex items-center">
-            <Car className="h-8 w-8 text-blue-600 mr-3" />
+            <Car className="h-7 w-7 mr-3" style={{ color: '#CB2030' }} />
             <div>
               <h1 className="text-lg font-bold text-gray-900">Cars.na</h1>
               <p className="text-sm text-gray-600">Dealer Portal</p>
@@ -1839,31 +1843,31 @@ function DealerDashboardContent() {
         {/* Navigation Menu */}
         <nav className="flex-1 p-4 space-y-2">
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Main Menu</h3>
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 px-3 mb-2">Main Menu</h3>
             <div className="space-y-1">
               <button
                 onClick={() => handleTabSwitch('overview')}
                 disabled={isLoading}
-                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 ${
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === 'overview'
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                    ? 'bg-red-50 text-[#CB2030] border-l-2 border-[#CB2030]'
+                    : 'text-gray-600 hover:bg-gray-50'
                 } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <BarChart3 className="h-4 w-4 mr-3" />
                 Dashboard Overview
                 {isLoading && activeTab === 'overview' && (
-                  <div className="ml-auto w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="ml-auto w-4 h-4 border-2 border-[#CB2030] border-t-transparent rounded-full animate-spin"></div>
                 )}
               </button>
               
               <button
                 onClick={() => handleTabSwitch('inventory')}
                 disabled={isLoading}
-                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 ${
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === 'inventory'
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                    ? 'bg-red-50 text-[#CB2030] border-l-2 border-[#CB2030]'
+                    : 'text-gray-600 hover:bg-gray-50'
                 } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <Car className="h-4 w-4 mr-3" />
@@ -1876,10 +1880,10 @@ function DealerDashboardContent() {
               <button
                 onClick={() => handleTabSwitch('leads')}
                 disabled={isLoading}
-                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 ${
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === 'leads'
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                    ? 'bg-red-50 text-[#CB2030] border-l-2 border-[#CB2030]'
+                    : 'text-gray-600 hover:bg-gray-50'
                 } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <Users className="h-4 w-4 mr-3" />
@@ -1892,10 +1896,10 @@ function DealerDashboardContent() {
               <button
                 onClick={() => handleTabSwitch('listings')}
                 disabled={isLoading}
-                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 ${
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === 'listings'
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                    ? 'bg-red-50 text-[#CB2030] border-l-2 border-[#CB2030]'
+                    : 'text-gray-600 hover:bg-gray-50'
                 } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <Tag className="h-4 w-4 mr-3" />
@@ -1905,10 +1909,10 @@ function DealerDashboardContent() {
               <button
                 onClick={() => handleTabSwitch('analytics')}
                 disabled={isLoading}
-                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 ${
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === 'analytics'
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                    ? 'bg-red-50 text-[#CB2030] border-l-2 border-[#CB2030]'
+                    : 'text-gray-600 hover:bg-gray-50'
                 } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <TrendingUp className="h-4 w-4 mr-3" />
@@ -1920,10 +1924,10 @@ function DealerDashboardContent() {
                 <button
                   onClick={() => handleTabSwitch('subscription')}
                   disabled={isLoading}
-                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 ${
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                     activeTab === 'subscription'
-                      ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700 shadow-sm'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                      ? 'bg-red-50 text-[#CB2030] border-l-2 border-[#CB2030]'
+                      : 'text-gray-600 hover:bg-gray-50'
                   } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <CreditCard className="h-4 w-4 mr-3" />
@@ -1937,10 +1941,10 @@ function DealerDashboardContent() {
                 <button
                   onClick={() => handleTabSwitch('billing')}
                   disabled={isLoading}
-                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 ${
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                     activeTab === 'billing'
-                      ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700 shadow-sm'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                      ? 'bg-red-50 text-[#CB2030] border-l-2 border-[#CB2030]'
+                      : 'text-gray-600 hover:bg-gray-50'
                   } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <FileText className="h-4 w-4 mr-3" />
@@ -1956,10 +1960,10 @@ function DealerDashboardContent() {
                 <button
                   onClick={() => handleTabSwitch('users')}
                   disabled={isLoading}
-                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 ${
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                     activeTab === 'users'
-                      ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700 shadow-sm'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                      ? 'bg-red-50 text-[#CB2030] border-l-2 border-[#CB2030]'
+                      : 'text-gray-600 hover:bg-gray-50'
                   } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <Users className="h-4 w-4 mr-3" />
@@ -1971,15 +1975,15 @@ function DealerDashboardContent() {
           </div>
           
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Website</h3>
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 px-3 mb-2">Website</h3>
             <div className="space-y-1">
               <button
                 onClick={() => handleTabSwitch('profile')}
                 disabled={isLoading}
-                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 ${
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeTab === 'profile'
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700 shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                    ? 'bg-red-50 text-[#CB2030] border-l-2 border-[#CB2030]'
+                    : 'text-gray-600 hover:bg-gray-50'
                 } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <Settings className="h-4 w-4 mr-3" />
@@ -1987,7 +1991,7 @@ function DealerDashboardContent() {
               </button>
               <button
                 onClick={() => router.push('/dealer/profile')}
-                className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:bg-gray-50"
               >
                 <UserCheck className="h-4 w-4 mr-3" />
                 My Sales Profile
@@ -1999,7 +2003,7 @@ function DealerDashboardContent() {
         {/* Sidebar Footer */}
         <div className="p-4 border-t border-gray-200">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium" style={{ background: '#CB2030' }}>
               {dealership?.name?.charAt(0) || 'D'}
             </div>
             <div className="ml-3">
@@ -2013,10 +2017,10 @@ function DealerDashboardContent() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
         {/* Top Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="bg-white border-b border-gray-100 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-lg font-extrabold text-gray-900">
                 {activeTab === 'overview' && 'Dashboard Overview'}
                 {activeTab === 'inventory' && 'Stock Manager'}
                 {activeTab === 'leads' && 'Lead Manager'}
@@ -2027,7 +2031,7 @@ function DealerDashboardContent() {
                 {activeTab === 'users' && 'Team Management'}
                 {activeTab === 'profile' && 'Website Manager'}
               </h1>
-              <p className="text-gray-600">
+              <p className="text-xs text-gray-400">
                 {activeTab === 'overview' && 'Monitor your dealership performance'}
                 {activeTab === 'inventory' && 'Manage your vehicle inventory'}
                 {activeTab === 'leads' && 'Track and manage customer inquiries'}
@@ -2054,9 +2058,9 @@ function DealerDashboardContent() {
               <div className="relative">
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="relative p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-300"
                 >
-                  <Bell className="h-5 w-5 text-gray-600" />
+                  <Bell className="h-5 w-5 text-gray-600 hover:text-[#CB2030]" />
                   {newLeadsCount > 0 && (
                     <span className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full px-1 animate-pulse">
                       {newLeadsCount > 99 ? '99+' : newLeadsCount}
@@ -2076,10 +2080,10 @@ function DealerDashboardContent() {
                       {/* Header */}
                       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Bell className="h-4 w-4 text-blue-600" />
+                          <Bell className="h-4 w-4 text-[#CB2030]" />
                           <h3 className="font-semibold text-gray-900">New Leads</h3>
                           {newLeadsCount > 0 && (
-                            <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                            <Badge variant="secondary" className="bg-red-100 text-[#CB2030]">
                               {newLeadsCount} new
                             </Badge>
                           )}
@@ -2090,7 +2094,7 @@ function DealerDashboardContent() {
                       <div className="max-h-96 overflow-y-auto">
                         {leadsLoading ? (
                           <div className="p-8 text-center">
-                            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                            <div className="w-6 h-6 border-2 border-[#CB2030] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
                             <p className="text-sm text-gray-500">Loading...</p>
                           </div>
                         ) : newLeadsForNotification.length === 0 ? (
@@ -2105,10 +2109,10 @@ function DealerDashboardContent() {
                               <button
                                 key={lead.id}
                                 onClick={handleNotificationClick}
-                                className="w-full p-4 hover:bg-blue-50 transition-colors text-left flex items-start gap-3"
+                                className="w-full p-4 hover:bg-red-50 transition-colors text-left flex items-start gap-3"
                               >
-                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                                  <Users className="h-5 w-5 text-blue-600" />
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(203,32,48,0.08)' }}>
+                                  <Users className="h-5 w-5 text-[#CB2030]" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center justify-between gap-2">
@@ -2133,7 +2137,7 @@ function DealerDashboardContent() {
                                     </span>
                                   )}
                                 </div>
-                                <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-2"></div>
+                                <div className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{ background: '#CB2030' }}></div>
                               </button>
                             ))}
                           </div>
@@ -2147,7 +2151,7 @@ function DealerDashboardContent() {
                             setActiveTab('leads');
                             setShowNotifications(false);
                           }}
-                          className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+                          className="w-full text-center text-sm font-medium hover:underline" style={{ color: '#CB2030' }}
                         >
                           View all leads →
                         </button>
@@ -2160,7 +2164,8 @@ function DealerDashboardContent() {
               {activeTab === 'inventory' && (
                 <Button 
                   onClick={handleAddVehicle}
-                  className="bg-blue-600 hover:bg-blue-700 hover:scale-105 transition-all duration-200"
+                  className="hover:opacity-90 hover:scale-105 transition-all duration-200 text-white"
+                  style={{ background: '#CB2030' }}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Vehicle
@@ -2176,7 +2181,7 @@ function DealerDashboardContent() {
           {isLoading && (
             <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
               <div className="text-center">
-                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-2" style={{ borderColor: '#CB2030', borderTopColor: 'transparent' }}></div>
                 <p className="text-sm text-gray-600">Loading...</p>
               </div>
             </div>
@@ -2189,57 +2194,49 @@ function DealerDashboardContent() {
               <div className={`space-y-6 transition-all duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
                 {/* Key Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Vehicles</CardTitle>
-                      <Car className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{totalVehicles}</div>
-                      <p className="text-xs text-muted-foreground">
-                        {availableVehicles} available, {soldVehicles} sold
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Vehicles</p>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(203,32,48,0.08)' }}>
+                        <Car className="h-5 w-5 text-[#CB2030]" />
+                      </div>
+                    </div>
+                    <div className="text-3xl font-extrabold text-gray-900">{totalVehicles}</div>
+                    <p className="text-xs text-gray-400 mt-1">{availableVehicles} available, {soldVehicles} sold</p>
+                  </div>
 
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{totalViews.toLocaleString()}</div>
-                      <p className="text-xs text-muted-foreground">
-                        +12% from last month
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Views</p>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.08)' }}>
+                        <Eye className="h-5 w-5 text-emerald-600" />
+                      </div>
+                    </div>
+                    <div className="text-3xl font-extrabold text-gray-900">{totalViews.toLocaleString()}</div>
+                    <p className="text-xs text-gray-400 mt-1">+12% from last month</p>
+                  </div>
 
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Inquiries</CardTitle>
-                      <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{totalInquiries}</div>
-                      <p className="text-xs text-muted-foreground">
-                        {newLeads} new leads
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Inquiries</p>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(245,158,11,0.08)' }}>
+                        <MessageCircle className="h-5 w-5 text-amber-500" />
+                      </div>
+                    </div>
+                    <div className="text-3xl font-extrabold text-gray-900">{totalInquiries}</div>
+                    <p className="text-xs text-gray-400 mt-1">{newLeads} new leads</p>
+                  </div>
 
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">8.5%</div>
-                      <p className="text-xs text-muted-foreground">
-                        +2.1% from last month
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Conversion Rate</p>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(99,102,241,0.08)' }}>
+                        <TrendingUp className="h-5 w-5 text-indigo-500" />
+                      </div>
+                    </div>
+                    <div className="text-3xl font-extrabold text-gray-900">8.5%</div>
+                    <p className="text-xs text-gray-400 mt-1">+2.1% from last month</p>
+                  </div>
                 </div>
 
                 {/* Recent Activity */}
@@ -2378,7 +2375,7 @@ function DealerDashboardContent() {
                         {showFilters ? 'Hide' : 'More'} Filters
                         {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         {hasActiveFilters() && !showFilters && (
-                          <span className="ml-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          <span className="ml-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" style={{ background: '#CB2030' }}>
                             {[searchTerm, statusFilter !== 'ALL', categoryFilter !== 'ALL', manufacturerFilter !== 'ALL', transmissionFilter !== 'ALL', fuelTypeFilter !== 'ALL', minPrice, maxPrice, minYear, maxYear].filter(Boolean).length}
                           </span>
                         )}
@@ -2486,7 +2483,7 @@ function DealerDashboardContent() {
                   <div className="flex items-center justify-between text-sm text-gray-600">
                     <span>
                       Showing <strong>{filteredVehicles.length}</strong> of <strong>{vehicles.length}</strong> vehicles
-                      {hasActiveFilters() && <span className="ml-2 text-blue-600">(filtered)</span>}
+                      {hasActiveFilters() && <span className="ml-2" style={{ color: '#CB2030' }}>(filtered)</span>}
                     </span>
                   </div>
                 </div>
@@ -2496,8 +2493,8 @@ function DealerDashboardContent() {
                   <Card className="col-span-full">
                     <CardContent className="flex flex-col items-center justify-center py-16 px-4 text-center">
                       <div className="mb-6 relative">
-                        <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-50 rounded-full flex items-center justify-center mb-4 mx-auto">
-                          <Car className="w-12 h-12 text-blue-600" />
+                        <div className="w-24 h-24 rounded-full flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(203,32,48,0.08)' }}>
+                          <Car className="w-12 h-12 text-[#CB2030]" />
                         </div>
                         <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-br from-yellow-100 to-yellow-50 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
                           <Plus className="w-6 h-6 text-yellow-600" />
@@ -2516,14 +2513,15 @@ function DealerDashboardContent() {
                         <Button
                           onClick={handleAddVehicle}
                           size="lg"
-                          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                          className="text-white font-semibold px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 hover:opacity-90"
+                          style={{ background: '#CB2030' }}
                         >
                           <Plus className="w-5 h-5 mr-2" />
                           Add Your First Vehicle
                         </Button>
                         <button
                           onClick={() => { setTutorialStep(0); setShowTutorialModal(true); }}
-                          className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                          className="text-sm font-medium flex items-center gap-1 hover:underline" style={{ color: '#CB2030' }}
                         >
                           <Eye className="w-4 h-4" />
                           View Demo Tutorial
@@ -2531,8 +2529,8 @@ function DealerDashboardContent() {
                       </div>
                       <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl">
                         <div className="text-center">
-                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <Upload className="w-6 h-6 text-blue-600" />
+                          <div className="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(203,32,48,0.08)' }}>
+                            <Upload className="w-6 h-6 text-[#CB2030]" />
                           </div>
                           <h4 className="font-semibold text-sm text-gray-900 mb-1">Quick & Easy</h4>
                           <p className="text-xs text-gray-500">Add vehicles in minutes with our simple form</p>
@@ -2615,7 +2613,7 @@ function DealerDashboardContent() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
-                        <p className="text-2xl font-bold text-blue-600 mb-3">
+                        <p className="text-2xl font-bold mb-3" style={{ color: '#CB2030' }}>
                           {formatPrice(vehicle.price)}
                         </p>
                         <div className="space-y-2 text-sm text-gray-600">
@@ -2684,7 +2682,8 @@ function DealerDashboardContent() {
                 {/* Floating Add Stock Button */}
                 <button
                   onClick={handleAddVehicle}
-                  className="fixed bottom-8 right-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 z-50 flex items-center gap-2 group"
+                  className="fixed bottom-8 right-8 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 hover:opacity-90 z-50 flex items-center gap-2 group"
+                  style={{ background: '#CB2030' }}
                   title="Add New Vehicle"
                 >
                   <Plus className="h-6 w-6" />
@@ -2754,9 +2753,10 @@ function DealerDashboardContent() {
                       onClick={() => setLeadStatusFilter(status)}
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                         leadStatusFilter === status
-                          ? 'bg-blue-600 text-white'
+                          ? 'text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
+                      style={leadStatusFilter === status ? { background: '#CB2030' } : {}}
                     >
                       {status}
                     </button>
@@ -2776,12 +2776,12 @@ function DealerDashboardContent() {
                         .map((lead: any) => (
                         <div
                           key={lead.id}
-                          className="border rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
+                          className="border rounded-lg p-4 hover:border-red-300 hover:shadow-md transition-all cursor-pointer"
                           onClick={() => handleViewLead(lead)}
                         >
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                              <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg" style={{ background: '#CB2030' }}>
                                 {lead.customerName?.charAt(0)?.toUpperCase() || '?'}
                               </div>
                               <div>
@@ -2833,7 +2833,7 @@ function DealerDashboardContent() {
                       ))}
                       {leadsLoading && (
                         <div className="text-center py-8 text-gray-500">
-                          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                          <div className="w-8 h-8 border-2 border-[#CB2030] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                           <p className="text-sm">Loading leads...</p>
                         </div>
                       )}
@@ -2860,7 +2860,7 @@ function DealerDashboardContent() {
                   <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                       {/* Modal Header */}
-                      <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+                      <div className="p-6 text-white" style={{ background: '#CB2030' }}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
@@ -2940,7 +2940,7 @@ function DealerDashboardContent() {
                           <div className="border rounded-lg flex-1 overflow-y-auto min-h-[200px] max-h-[350px]">
                             {loadingMessages ? (
                               <div className="p-4 text-center text-gray-500">
-                                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                                <div className="w-6 h-6 border-2 border-[#CB2030] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
                                 Loading messages...
                               </div>
                             ) : (
@@ -3019,9 +3019,10 @@ function DealerDashboardContent() {
                                 onClick={() => handleUpdateLeadStatus(selectedLead.id, status)}
                                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                                   selectedLead.status === status
-                                    ? 'bg-blue-600 text-white'
+                                    ? 'text-white'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
+                                style={selectedLead.status === status ? { background: '#CB2030' } : {}}
                               >
                                 {status}
                               </button>
@@ -3036,7 +3037,7 @@ function DealerDashboardContent() {
                             value={leadResponse}
                             onChange={(e) => setLeadResponse(e.target.value)}
                             placeholder="Type your response to the customer here..."
-                            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-[#CB2030] resize-none"
                             rows={5}
                           />
                         </div>
@@ -3077,7 +3078,8 @@ function DealerDashboardContent() {
                           <Button
                             onClick={handleSendLeadResponse}
                             disabled={!leadResponse.trim() || sendingResponse}
-                            className="bg-blue-600 hover:bg-blue-700"
+                            className="text-white hover:opacity-90"
+                            style={{ background: '#CB2030' }}
                           >
                             {sendingResponse ? (
                               <>
@@ -3177,7 +3179,7 @@ function DealerDashboardContent() {
                           <YAxis />
                           <Tooltip />
                           <Legend />
-                          <Line type="monotone" dataKey="views" stroke="#3B82F6" strokeWidth={2} />
+                          <Line type="monotone" dataKey="views" stroke="#CB2030" strokeWidth={2} />
                           <Line type="monotone" dataKey="inquiries" stroke="#10B981" strokeWidth={2} />
                           <Line type="monotone" dataKey="sales" stroke="#F59E0B" strokeWidth={2} />
                         </LineChart>
@@ -3229,9 +3231,9 @@ function DealerDashboardContent() {
                           <YAxis />
                           <Tooltip />
                           <Legend />
-                          <Bar dataKey="views" fill="#93C5FD" />
-                          <Bar dataKey="inquiries" fill="#3B82F6" />
-                          <Bar dataKey="sales" fill="#1E40AF" />
+                          <Bar dataKey="views" fill="#FCA5A5" />
+                          <Bar dataKey="inquiries" fill="#CB2030" />
+                          <Bar dataKey="sales" fill="#7F1325" />
                         </BarChart>
                       </ResponsiveContainer>
                     </CardContent>
@@ -3249,7 +3251,7 @@ function DealerDashboardContent() {
                           <XAxis type="number" />
                           <YAxis dataKey="name" type="category" />
                           <Tooltip />
-                          <Bar dataKey="value" fill="#3B82F6" />
+                          <Bar dataKey="value" fill="#CB2030" />
                         </BarChart>
                       </ResponsiveContainer>
                     </CardContent>
@@ -3272,8 +3274,8 @@ function DealerDashboardContent() {
                           <Tooltip />
                           <Legend />
                           <Area type="monotone" dataKey="views" stackId="1" stroke="#E5E7EB" fill="#E5E7EB" />
-                          <Area type="monotone" dataKey="inquiries" stackId="1" stroke="#93C5FD" fill="#93C5FD" />
-                          <Area type="monotone" dataKey="sales" stackId="1" stroke="#3B82F6" fill="#3B82F6" />
+                          <Area type="monotone" dataKey="inquiries" stackId="1" stroke="#FCA5A5" fill="#FCA5A5" />
+                          <Area type="monotone" dataKey="sales" stackId="1" stroke="#CB2030" fill="#CB2030" />
                           <Area type="monotone" dataKey="listings" stackId="1" stroke="#10B981" fill="#10B981" />
                         </AreaChart>
                       </ResponsiveContainer>
@@ -3305,7 +3307,7 @@ function DealerDashboardContent() {
                       <CardDescription>Time to respond to inquiries</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-blue-600">2.4h</div>
+                      <div className="text-3xl font-bold text-indigo-600">2.4h</div>
                       <p className="text-sm text-gray-500 mt-2">
                         Average response time
                       </p>
@@ -3325,7 +3327,7 @@ function DealerDashboardContent() {
                       <p className="text-sm text-gray-500 mt-1">
                         456 views, 18 inquiries
                       </p>
-                      <p className="text-xs text-blue-600 mt-2">
+                      <p className="text-xs mt-2" style={{ color: '#CB2030' }}>
                         View listing →
                       </p>
                     </CardContent>
@@ -3390,8 +3392,9 @@ function DealerDashboardContent() {
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div
-                              className="bg-blue-600 h-2 rounded-full"
+                              className="h-2 rounded-full"
                               style={{
+                                background: '#CB2030',
                                 width: `${(mockSubscription.listings.used / mockSubscription.listings.limit) * 100}%`
                               }}
                             ></div>
@@ -3435,7 +3438,7 @@ function DealerDashboardContent() {
                         <CardTitle className="text-lg">Quick Actions</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                        <Button className="w-full text-white hover:opacity-90" style={{ background: '#CB2030' }}>
                           <CreditCard className="h-4 w-4 mr-2" />
                           Upgrade Plan
                         </Button>
@@ -3481,16 +3484,16 @@ function DealerDashboardContent() {
                           key={plan.id}
                           className={`relative border rounded-lg p-6 ${
                             plan.popular
-                              ? 'border-blue-500 ring-2 ring-blue-200'
+                              ? 'border-[#CB2030] ring-2 ring-red-100'
                               : 'border-gray-200'
                           } ${
                             plan.name === mockSubscription.plan
-                              ? 'bg-blue-50'
+                              ? 'bg-red-50'
                               : 'bg-white'
                           }`}
                         >
                           {plan.popular && (
-                            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-blue-600">
+                            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 text-white" style={{ background: '#CB2030' }}>
                               Most Popular
                             </Badge>
                           )}
@@ -3519,9 +3522,10 @@ function DealerDashboardContent() {
                               plan.name === mockSubscription.plan
                                 ? 'bg-gray-400 cursor-not-allowed'
                                 : plan.popular
-                                  ? 'bg-blue-600 hover:bg-blue-700'
+                                  ? 'text-white hover:opacity-90'
                                   : 'bg-gray-600 hover:bg-gray-700'
                             }`}
+                            style={plan.name !== mockSubscription.plan && plan.popular ? { background: '#CB2030' } : {}}
                             disabled={plan.name === mockSubscription.plan}
                           >
                             {plan.name === mockSubscription.plan ? 'Current Plan' : 'Select Plan'}
@@ -3551,13 +3555,13 @@ function DealerDashboardContent() {
                         {invoices.slice(0, 5).map((invoice: any) => (
                           <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                <CreditCard className="h-5 w-5 text-blue-600" />
+                              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(203,32,48,0.08)' }}>
+                                <CreditCard className="h-5 w-5 text-[#CB2030]" />
                               </div>
                               <div>
                                 <p className="font-medium font-mono text-sm">{invoice.invoiceNumber}</p>
                                 <p className="text-sm text-gray-600">
-                                  {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][invoice.billingMonth - 1]} {invoice.billingYear} • {invoice.planName}
+                                  {(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][invoice.billingMonth - 1] ?? '—')} {invoice.billingYear} • {invoice.planName}
                                 </p>
                               </div>
                             </div>
@@ -3820,7 +3824,7 @@ function DealerDashboardContent() {
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div>
                       <CardTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-blue-600" />
+                        <FileText className="h-5 w-5 text-[#CB2030]" />
                         Invoice History
                       </CardTitle>
                       <CardDescription>Your monthly billing from Cars.na</CardDescription>
@@ -3829,7 +3833,7 @@ function DealerDashboardContent() {
                   <CardContent className="p-0">
                     {invoicesLoading ? (
                       <div className="flex items-center justify-center py-16">
-                        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                        <div className="w-8 h-8 border-2 border-[#CB2030] border-t-transparent rounded-full animate-spin" />
                       </div>
                     ) : invoices.length === 0 ? (
                       <div className="text-center py-16 text-gray-400">
@@ -3862,7 +3866,7 @@ function DealerDashboardContent() {
                                     {invoice.invoiceNumber}
                                   </td>
                                   <td className="px-4 py-3 text-gray-700">
-                                    {INVOICE_MONTHS[invoice.billingMonth - 1]} {invoice.billingYear}
+                                    {INVOICE_MONTHS[invoice.billingMonth - 1] ?? '—'} {invoice.billingYear}
                                     <span className="ml-1 text-xs text-gray-400">• {invoice.planName}</span>
                                   </td>
                                   <td className="px-4 py-3 text-right text-gray-700">{formatNAD(invoice.subscriptionAmount)}</td>
@@ -3888,7 +3892,8 @@ function DealerDashboardContent() {
                                       <button
                                         onClick={() => handleInvoiceDownload(invoice)}
                                         disabled={downloadingInvoice === invoice.id}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50 hover:opacity-90"
+                                        style={{ background: '#CB2030' }}
                                       >
                                         {downloadingInvoice === invoice.id ? (
                                           <span className="animate-spin inline-block w-3 h-3 border border-white border-t-transparent rounded-full" />
@@ -3912,7 +3917,7 @@ function DealerDashboardContent() {
                 </Card>
 
                 {/* Billing explanation */}
-                <div className="bg-blue-50 rounded-xl border border-blue-200 p-5 text-sm text-blue-800">
+                <div className="bg-gray-50 rounded-xl border border-gray-200 p-5 text-sm text-gray-700">
                   <p className="font-semibold mb-1">How your invoice is calculated</p>
                   <p>Monthly invoice = <strong>Subscription plan fee</strong> + <strong>0.1% of total stock value</strong></p>
                   <p className="mt-1 text-blue-700">Stock value is the sum of all your active (AVAILABLE) vehicle listing prices at the time of invoice generation.</p>
@@ -3990,7 +3995,8 @@ function DealerDashboardContent() {
                   <h2 className="text-xl font-semibold">Team Members</h2>
                   <Button
                     onClick={() => setShowInviteModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="text-white hover:opacity-90"
+                    style={{ background: '#CB2030' }}
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
                     Invite Team Member
@@ -4008,8 +4014,8 @@ function DealerDashboardContent() {
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span className="text-blue-700 font-semibold text-lg">
+                              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'rgba(203,32,48,0.08)' }}>
+                                <span className="font-semibold text-lg" style={{ color: '#CB2030' }}>
                                   {member.name.split(' ').map(n => n[0]).join('')}
                                 </span>
                               </div>
@@ -4124,7 +4130,8 @@ function DealerDashboardContent() {
                           <p className="text-gray-500 mb-4">Get started by inviting your first team member</p>
                           <Button
                             onClick={() => setShowInviteModal(true)}
-                            className="bg-blue-600 hover:bg-blue-700"
+                            className="text-white hover:opacity-90"
+                            style={{ background: '#CB2030' }}
                           >
                             <UserPlus className="h-4 w-4 mr-2" />
                             Invite Team Member
@@ -4251,7 +4258,8 @@ function DealerDashboardContent() {
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 text-white hover:opacity-90"
+                  style={{ background: '#CB2030' }}
                 >
                   Add Vehicle
                 </Button>
@@ -4344,7 +4352,8 @@ function DealerDashboardContent() {
                   </Button>
                   <Button
                     type="submit"
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    className="flex-1 text-white hover:opacity-90"
+                  style={{ background: '#CB2030' }}
                   >
                     <Send className="h-4 w-4 mr-2" />
                     Send Invite
@@ -4391,7 +4400,8 @@ function DealerDashboardContent() {
                       setShowInviteLink(false);
                       setInviteForm({ email: '', name: '', role: 'SALES_EXECUTIVE' });
                     }}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    className="flex-1 text-white hover:opacity-90"
+                    style={{ background: '#CB2030' }}
                   >
                     Done
                   </Button>
@@ -4446,7 +4456,8 @@ function DealerDashboardContent() {
               <div className="flex gap-3 mt-6">
                 <Button
                   onClick={handleSaveEditUser}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 text-white hover:opacity-90"
+                  style={{ background: '#CB2030' }}
                 >
                   Save Changes
                 </Button>
@@ -4502,7 +4513,8 @@ function DealerDashboardContent() {
               <div className="flex gap-3 mt-6">
                 <Button
                   onClick={handleSavePermissions}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 text-white hover:opacity-90"
+                  style={{ background: '#CB2030' }}
                 >
                   Save Permissions
                 </Button>
@@ -4590,7 +4602,8 @@ function DealerDashboardContent() {
               <div className="flex gap-3">
                 <Button
                   onClick={handleConfirmPasswordReset}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 text-white hover:opacity-90"
+                  style={{ background: '#CB2030' }}
                 >
                   <Key className="h-4 w-4 mr-2" />
                   Send Reset Link
@@ -4986,7 +4999,7 @@ function DealerDashboardContent() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
             {/* Tutorial Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+            <div className="p-6 text-white" style={{ background: '#CB2030' }}>
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold">How to List a Vehicle</h2>
@@ -5016,8 +5029,8 @@ function DealerDashboardContent() {
             <div className="p-8 overflow-y-auto max-h-[60vh]">
               {tutorialStep === 0 && (
                 <div className="text-center">
-                  <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Plus className="w-12 h-12 text-blue-600" />
+                  <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: 'rgba(203,32,48,0.08)' }}>
+                    <Plus className="w-12 h-12 text-[#CB2030]" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">Step 1: Click "Add Vehicle"</h3>
                   <p className="text-gray-600 mb-6 max-w-lg mx-auto">
@@ -5026,7 +5039,7 @@ function DealerDashboardContent() {
                   </p>
                   <div className="bg-gray-50 rounded-xl p-6 max-w-md mx-auto">
                     <div className="flex items-center justify-center gap-4">
-                      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2">
+                      <div className="text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2" style={{ background: '#CB2030' }}>
                         <Plus className="w-5 h-5" />
                         Add Your First Vehicle
                       </div>
@@ -5200,7 +5213,8 @@ function DealerDashboardContent() {
               {tutorialStep < 4 ? (
                 <button
                   onClick={() => setTutorialStep(Math.min(4, tutorialStep + 1))}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  className="px-6 py-2 text-white rounded-lg font-medium hover:opacity-90 transition-colors"
+                  style={{ background: '#CB2030' }}
                 >
                   Next →
                 </button>

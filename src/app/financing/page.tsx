@@ -1,59 +1,104 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { 
-  Calculator, 
-  CreditCard, 
-  Shield, 
-  Clock, 
+import {
+  Calculator,
+  Shield,
+  Clock,
   CheckCircle,
-  DollarSign,
-  FileText,
   Users,
-  TrendingUp,
-  Star
+  Star,
+  ChevronRight,
+  Info,
 } from 'lucide-react';
 
-// Namibian banks and their typical rates
+/* ─── Brand palette ─────────────────────────────────────────── */
+const RED = '#CB2030';
+
+/* ─── Shared input / select styles ──────────────────────────── */
+const inputCls =
+  'w-full h-10 px-3 rounded-lg border border-gray-300 text-gray-900 text-sm placeholder:text-gray-400 focus:outline-none focus:border-[#CB2030] focus:ring-2 focus:ring-[#CB2030]/10 transition-colors bg-white';
+
+const selectCls =
+  'w-full h-10 px-3 rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:border-[#CB2030] focus:ring-2 focus:ring-[#CB2030]/10 transition-colors bg-white appearance-none cursor-pointer';
+
+const labelCls = 'block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5';
+
+/* ─── Bank data ──────────────────────────────────────────────── */
 const NAMIBIAN_BANKS = [
   {
     name: 'Bank Windhoek',
-    logo: '/banks/bank-windhoek.png',
+    abbr: 'BW',
     interestRate: 11.5,
     maxTerm: 72,
     minDeposit: 10,
-    features: ['Quick approval', 'Flexible terms', 'Online application']
+    features: ['Quick approval', 'Flexible terms', 'Online application'],
   },
   {
     name: 'First National Bank',
-    logo: '/banks/fnb.png',
+    abbr: 'FNB',
     interestRate: 12.0,
     maxTerm: 84,
     minDeposit: 15,
-    features: ['Competitive rates', 'Extended terms', 'Pre-approval']
+    features: ['Competitive rates', 'Extended terms', 'Pre-approval'],
   },
   {
     name: 'Standard Bank',
-    logo: '/banks/standard-bank.png',
+    abbr: 'SB',
     interestRate: 11.8,
     maxTerm: 72,
     minDeposit: 12,
-    features: ['Fast processing', 'Digital banking', 'Insurance options']
+    features: ['Fast processing', 'Digital banking', 'Insurance options'],
   },
   {
     name: 'Nedbank',
-    logo: '/banks/nedbank.png',
+    abbr: 'NB',
     interestRate: 12.2,
     maxTerm: 60,
     minDeposit: 20,
-    features: ['Personal service', 'Balloon payments', 'Trade-in assistance']
-  }
+    features: ['Personal service', 'Balloon payments', 'Trade-in assistance'],
+  },
 ];
+
+/* ─── Feature cards data ─────────────────────────────────────── */
+const FEATURES = [
+  {
+    icon: Calculator,
+    title: 'Easy Calculator',
+    desc: 'Estimate monthly payments based on real Namibian bank rates — no registration needed.',
+  },
+  {
+    icon: CheckCircle,
+    title: 'Accurate Estimates',
+    desc: 'Current interest rates from all major Namibian banks, updated regularly.',
+  },
+  {
+    icon: Shield,
+    title: 'Free to Use',
+    desc: 'Our calculator is completely free. Plan your budget without any commitment.',
+  },
+  {
+    icon: Users,
+    title: 'Apply with Dealers',
+    desc: 'Use your estimates to negotiate with dealerships or apply directly with your bank.',
+  },
+  {
+    icon: Clock,
+    title: 'Save Time',
+    desc: 'Know your budget before visiting dealers. Compare loan terms in seconds.',
+  },
+  {
+    icon: Star,
+    title: 'Trusted Tool',
+    desc: 'Thousands of Namibian car buyers use our calculator to plan their purchase.',
+  },
+];
+
+/* ─── Helpers ────────────────────────────────────────────────── */
+const fmt = (n: number) =>
+  'N$ ' + Math.round(n).toLocaleString('en-NA');
 
 export default function FinancingPage() {
   const [vehiclePrice, setVehiclePrice] = useState('');
@@ -61,302 +106,297 @@ export default function FinancingPage() {
   const [term, setTerm] = useState('60');
   const [selectedBank, setSelectedBank] = useState(NAMIBIAN_BANKS[0]);
 
-  const calculateMonthlyPayment = () => {
-    const price = parseFloat(vehiclePrice) || 0;
-    const depositAmount = parseFloat(deposit) || 0;
-    const loanAmount = price - depositAmount;
-    const monthlyRate = selectedBank.interestRate / 100 / 12;
-    const months = parseInt(term);
+  /* ── Calculation ─────────────────────────────────────────── */
+  const price = parseFloat(vehiclePrice) || 0;
+  const dep = parseFloat(deposit) || 0;
+  const loanAmount = Math.max(0, price - dep);
+  const months = parseInt(term);
+  const monthlyRate = selectedBank.interestRate / 100 / 12;
 
-    if (loanAmount <= 0 || months <= 0) return 0;
+  const monthlyPayment =
+    loanAmount > 0 && months > 0
+      ? (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, months)) /
+        (Math.pow(1 + monthlyRate, months) - 1)
+      : 0;
 
-    const monthlyPayment = (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, months)) / 
-                          (Math.pow(1 + monthlyRate, months) - 1);
-    
-    return monthlyPayment;
-  };
-
-  const monthlyPayment = calculateMonthlyPayment();
-  const totalPayment = monthlyPayment * parseInt(term);
-  const totalInterest = totalPayment - (parseFloat(vehiclePrice) - parseFloat(deposit));
+  const totalPayment = monthlyPayment * months;
+  const totalInterest = totalPayment - loanAmount;
+  const depositPct = price > 0 ? ((dep / price) * 100).toFixed(0) : '0';
 
   return (
     <MainLayout>
       <div className="min-h-screen bg-gray-50">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-r from-[#1F3469] to-[#3B4F86] text-white py-16">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                Car Financing Made Simple
-              </h1>
-              <p className="text-xl mb-8 text-blue-100">
-                Get pre-approved for your dream car with competitive rates from Namibia's leading banks. 
-                Calculate your payments and apply online today.
-              </p>
+
+        {/* ── Page Header ──────────────────────────────────────── */}
+        <section className="bg-white border-b border-gray-200">
+          <div className="max-w-6xl mx-auto px-4 py-10 sm:py-14">
+            <div className="flex items-center gap-2 text-xs text-gray-400 mb-4 uppercase tracking-widest font-semibold">
+              <span>Financing</span>
             </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3 leading-tight">
+              Car Financing <span style={{ color: RED }}>Calculator</span>
+            </h1>
+            <p className="text-base text-gray-500 max-w-xl">
+              Estimate your monthly payments using real interest rates from Namibia&apos;s leading banks.
+              Use your results to apply with a dealership or bank of your choice.
+            </p>
           </div>
         </section>
 
-        {/* Finance Calculator */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                  Vehicle Finance Calculator
-                </h2>
-                <p className="text-xl text-gray-600">
-                  Calculate your monthly payments with real rates from Namibian banks
+        {/* ── Calculator ───────────────────────────────────────── */}
+        <section className="py-10 sm:py-14">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+              {/* Left — Inputs */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 space-y-6">
+                <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: RED }}>
+                    <Calculator className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-base font-bold text-gray-900">Loan Calculator</h2>
+                </div>
+
+                {/* Vehicle Price */}
+                <div>
+                  <label className={labelCls}>Vehicle Price (N$)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 250 000"
+                    value={vehiclePrice}
+                    onChange={(e) => setVehiclePrice(e.target.value)}
+                    className={inputCls}
+                    min="0"
+                  />
+                </div>
+
+                {/* Deposit */}
+                <div>
+                  <div className="flex items-baseline justify-between mb-1.5">
+                    <label className={labelCls.replace('mb-1.5', '')}>Deposit (N$)</label>
+                    {price > 0 && (
+                      <span className="text-xs text-gray-400">{depositPct}% of price</span>
+                    )}
+                  </div>
+                  <input
+                    type="number"
+                    placeholder="e.g. 50 000"
+                    value={deposit}
+                    onChange={(e) => setDeposit(e.target.value)}
+                    className={inputCls}
+                    min="0"
+                  />
+                  {selectedBank.minDeposit > 0 && (
+                    <p className="mt-1.5 text-xs text-gray-400 flex items-center gap-1">
+                      <Info className="w-3 h-3 shrink-0" />
+                      {selectedBank.name} requires min. {selectedBank.minDeposit}% deposit
+                    </p>
+                  )}
+                </div>
+
+                {/* Loan Term */}
+                <div>
+                  <label className={labelCls}>Loan Term</label>
+                  <div className="relative">
+                    <select
+                      value={term}
+                      onChange={(e) => setTerm(e.target.value)}
+                      className={selectCls}
+                    >
+                      {[12, 24, 36, 48, 60, 72, 84].map((m) => (
+                        <option key={m} value={m}>{m} months ({(m / 12).toFixed(m % 12 === 0 ? 0 : 1)} yr{m > 12 ? 's' : ''})</option>
+                      ))}
+                    </select>
+                    <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Bank Selector */}
+                <div>
+                  <label className={labelCls}>Select Bank</label>
+                  <div className="space-y-2">
+                    {NAMIBIAN_BANKS.map((bank) => {
+                      const active = selectedBank.name === bank.name;
+                      return (
+                        <button
+                          key={bank.name}
+                          onClick={() => setSelectedBank(bank)}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border text-left transition-all ${
+                            active
+                              ? 'border-[#CB2030] bg-[#CB2030]/5 ring-1 ring-[#CB2030]/20'
+                              : 'border-gray-200 hover:border-gray-300 bg-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {/* Avatar abbr */}
+                            <div
+                              className="w-8 h-8 rounded-md flex items-center justify-center text-[10px] font-bold shrink-0"
+                              style={active ? { background: RED, color: '#fff' } : { background: '#f3f4f6', color: '#6b7280' }}
+                            >
+                              {bank.abbr}
+                            </div>
+                            <span className={`text-sm font-semibold ${active ? 'text-gray-900' : 'text-gray-700'}`}>
+                              {bank.name}
+                            </span>
+                          </div>
+                          <span className={`text-sm font-bold ${active ? 'text-[#CB2030]' : 'text-gray-500'}`}>
+                            {bank.interestRate}% p.a.
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right — Results */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 flex flex-col">
+                <div className="flex items-center gap-3 pb-4 border-b border-gray-100 mb-6">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-100">
+                    <Calculator className="w-4 h-4 text-gray-500" />
+                  </div>
+                  <h2 className="text-base font-bold text-gray-900">Payment Breakdown</h2>
+                </div>
+
+                {/* Monthly Payment Hero */}
+                <div className="rounded-xl p-6 mb-6 text-center" style={{ background: '#111827' }}>
+                  <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 mb-2">
+                    Estimated Monthly Payment
+                  </p>
+                  <p
+                    className="text-4xl font-extrabold tracking-tight"
+                    style={{ color: monthlyPayment > 0 ? RED : '#6b7280' }}
+                  >
+                    {monthlyPayment > 0 ? fmt(monthlyPayment) : 'N$ —'}
+                  </p>
+                  {monthlyPayment > 0 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      {selectedBank.name} · {selectedBank.interestRate}% p.a. · {term} months
+                    </p>
+                  )}
+                </div>
+
+                {/* Breakdown rows */}
+                <div className="space-y-3 flex-1">
+                  {[
+                    { label: 'Vehicle Price', value: price > 0 ? fmt(price) : '—' },
+                    { label: 'Deposit', value: dep > 0 ? fmt(dep) : '—' },
+                    { label: 'Loan Amount', value: loanAmount > 0 ? fmt(loanAmount) : '—' },
+                    { label: 'Interest Rate', value: `${selectedBank.interestRate}% p.a.` },
+                    { label: 'Loan Term', value: `${term} months` },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                      <span className="text-sm text-gray-500">{label}</span>
+                      <span className="text-sm font-semibold text-gray-900">{value}</span>
+                    </div>
+                  ))}
+
+                  {/* Totals */}
+                  {totalPayment > 0 && (
+                    <>
+                      <div className="pt-1" />
+                      <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="text-sm text-gray-500">Total Repayment</span>
+                        <span className="text-sm font-bold text-gray-900">{fmt(totalPayment)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-sm text-gray-500">Total Interest</span>
+                        <span className="text-sm font-bold" style={{ color: RED }}>{fmt(totalInterest)}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* CTA */}
+                <div className="mt-6 space-y-3">
+                  <Link
+                    href="/vehicles"
+                    className="flex items-center justify-center gap-2 h-11 w-full rounded-lg text-white text-sm font-bold transition-colors"
+                    style={{ background: RED }}
+                  >
+                    Browse Vehicles
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    href="/dealers"
+                    className="flex items-center justify-center gap-2 h-11 w-full rounded-lg border border-gray-200 text-gray-700 text-sm font-semibold hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                  >
+                    Contact a Dealer
+                  </Link>
+                </div>
+
+                {/* Disclaimer */}
+                <p className="mt-4 text-[11px] text-gray-400 leading-relaxed">
+                  * Estimates only. Actual rates and terms are set by banks and may vary based on your credit profile. Contact your preferred bank for a formal quote.
                 </p>
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Calculator Form */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Calculator className="w-5 h-5 mr-2" />
-                      Loan Calculator
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Vehicle Price (NAD)
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="e.g., 250000"
-                        value={vehiclePrice}
-                        onChange={(e) => setVehiclePrice(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Deposit (NAD)
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="e.g., 50000"
-                        value={deposit}
-                        onChange={(e) => setDeposit(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Loan Term (months)
-                      </label>
-                      <select
-                        value={term}
-                        onChange={(e) => setTerm(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="12">12 months</option>
-                        <option value="24">24 months</option>
-                        <option value="36">36 months</option>
-                        <option value="48">48 months</option>
-                        <option value="60">60 months</option>
-                        <option value="72">72 months</option>
-                        <option value="84">84 months</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Select Bank
-                      </label>
-                      <div className="grid grid-cols-1 gap-2">
-                        {NAMIBIAN_BANKS.map((bank) => (
-                          <button
-                            key={bank.name}
-                            onClick={() => setSelectedBank(bank)}
-                            className={`p-3 border rounded-lg text-left transition-colors ${
-                              selectedBank.name === bank.name
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                          >
-                            <div className="flex justify-between items-center">
-                              <span className="font-medium">{bank.name}</span>
-                              <span className="text-sm text-gray-600">{bank.interestRate}% p.a.</span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Results */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <DollarSign className="w-5 h-5 mr-2" />
-                      Payment Breakdown
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="bg-blue-50 p-6 rounded-lg">
-                      <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-2">Monthly Payment</p>
-                        <p className="text-3xl font-bold text-blue-600">
-                          N${monthlyPayment.toLocaleString('en-NA', { maximumFractionDigits: 0 })}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Vehicle Price:</span>
-                        <span className="font-medium">N${parseFloat(vehiclePrice || '0').toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Deposit:</span>
-                        <span className="font-medium">N${parseFloat(deposit || '0').toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Loan Amount:</span>
-                        <span className="font-medium">N${(parseFloat(vehiclePrice || '0') - parseFloat(deposit || '0')).toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Interest Rate:</span>
-                        <span className="font-medium">{selectedBank.interestRate}% p.a.</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Loan Term:</span>
-                        <span className="font-medium">{term} months</span>
-                      </div>
-                      <hr />
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Payment:</span>
-                        <span className="font-medium">N${totalPayment.toLocaleString('en-NA', { maximumFractionDigits: 0 })}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Interest:</span>
-                        <span className="font-medium">N${totalInterest.toLocaleString('en-NA', { maximumFractionDigits: 0 })}</span>
-                      </div>
-                    </div>
-
-                    <Button className="w-full" size="lg">
-                      Apply for Pre-Approval
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
             </div>
           </div>
         </section>
 
-        {/* Calculator Information */}
-        <section className="py-16 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Vehicle Finance Calculator
-              </h2>
-              <p className="text-xl text-gray-600">
-                Use our calculator to estimate your monthly payments, then apply with your preferred dealership or bank
+        {/* ── How It Works / Features ──────────────────────────── */}
+        <section className="py-10 sm:py-14 bg-white border-t border-gray-100">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="mb-8">
+              <p className="text-xs uppercase tracking-widest font-bold mb-2" style={{ color: RED }}>
+                Why use our tool
               </p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+                Plan smarter before you buy
+              </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
-                <CardContent className="p-6">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg mb-4 flex items-center justify-center">
-                    <Calculator className="w-6 h-6 text-blue-600" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {FEATURES.map(({ icon: Icon, title, desc }) => (
+                <div
+                  key={title}
+                  className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:border-gray-200 transition-colors"
+                >
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center mb-4"
+                    style={{ background: RED }}
+                  >
+                    <Icon className="w-4 h-4 text-white" />
                   </div>
-                  <h3 className="font-bold text-gray-900 mb-3 text-lg">Easy Calculator</h3>
-                  <p className="text-gray-600">
-                    Use our simple calculator to estimate monthly payments based on Namibian bank rates.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-green-500">
-                <CardContent className="p-6">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg mb-4 flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-3 text-lg">Accurate Estimates</h3>
-                  <p className="text-gray-600">
-                    Get realistic payment estimates using current interest rates from major Namibian banks.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-purple-500">
-                <CardContent className="p-6">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg mb-4 flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-3 text-lg">Free to Use</h3>
-                  <p className="text-gray-600">
-                    Our calculator is completely free with no registration required. Plan your budget easily.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-orange-500">
-                <CardContent className="p-6">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg mb-4 flex items-center justify-center">
-                    <Users className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-3 text-lg">Apply with Dealers</h3>
-                  <p className="text-gray-600">
-                    Use your estimates to negotiate with dealerships or apply directly with your bank.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
-                <CardContent className="p-6">
-                  <div className="w-12 h-12 bg-red-100 rounded-lg mb-4 flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-red-600" />
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-3 text-lg">Save Time</h3>
-                  <p className="text-gray-600">
-                    Know your budget before visiting dealers. Compare different loan terms quickly.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-teal-500">
-                <CardContent className="p-6">
-                  <div className="w-12 h-12 bg-teal-100 rounded-lg mb-4 flex items-center justify-center">
-                    <Star className="w-6 h-6 text-teal-600" />
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-3 text-lg">Trusted Tool</h3>
-                  <p className="text-gray-600">
-                    Thousands of car buyers use our calculator to plan their vehicle purchases.
-                  </p>
-                </CardContent>
-              </Card>
+                  <h3 className="text-sm font-bold text-gray-900 mb-1.5">{title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-16 bg-gradient-to-r from-[#1F3469] to-[#3B4F86] text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to Buy Your Dream Car?
-            </h2>
-            <p className="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">
-              Use our calculator to estimate your payments, then apply for financing with your preferred dealership or bank.
+        {/* ── Bottom CTA ───────────────────────────────────────── */}
+        <section className="py-12 sm:py-16 bg-gray-900">
+          <div className="max-w-6xl mx-auto px-4 text-center">
+            <p className="text-xs uppercase tracking-widest font-bold mb-3" style={{ color: RED }}>
+              Ready to buy?
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-[#1F3469] hover:bg-gray-100">
-                Browse Cars
-              </Button>
-              <Button variant="outline" size="lg" className="text-white border-white hover:bg-white hover:text-[#1F3469]">
-                Contact Dealers
-              </Button>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">
+              Find your next vehicle on Cars.na
+            </h2>
+            <p className="text-gray-400 text-sm max-w-xl mx-auto mb-8">
+              Browse hundreds of verified listings across Namibia. Apply for financing with your preferred bank or dealer.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/vehicles"
+                className="inline-flex items-center justify-center gap-2 h-11 px-8 rounded-lg text-white text-sm font-bold transition-colors"
+                style={{ background: RED }}
+              >
+                Browse All Cars
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/dealers"
+                className="inline-flex items-center justify-center gap-2 h-11 px-8 rounded-lg border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors"
+              >
+                View Dealerships
+              </Link>
             </div>
           </div>
         </section>
+
       </div>
     </MainLayout>
   );

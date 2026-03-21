@@ -10,6 +10,7 @@ import { Phone, Lock, Search, Menu, X, LogOut, LayoutDashboard, Shield, UserPlus
 import { useSession, signOut } from "next-auth/react";
 import CarFilterSearch from "@/components/CarFilterSearch";
 import DealersDropdown from "@/components/DealersDropdown";
+import EventsDropdown from "@/components/EventsDropdown";
 import NotificationBell from "@/components/NotificationBell";
 
 const navLinks = [
@@ -18,7 +19,6 @@ const navLinks = [
   { href: "/financing", label: "Financing" },
   { href: "/help", label: "Help" },
   { href: "/contact", label: "Contact" },
-  { href: "/about", label: "About" },
 ];
 
 export default function Header() {
@@ -127,6 +127,7 @@ export default function Header() {
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
             <DealersDropdown />
+            <EventsDropdown />
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
@@ -199,6 +200,7 @@ export default function Header() {
 
               <nav className="flex flex-col gap-1">
                 <DealersDropdown isMobile={true} onNavigate={() => setMobileOpen(false)} />
+                <EventsDropdown isMobile={true} onNavigate={() => setMobileOpen(false)} />
                 {navLinks.map(({ href, label }) => (
                   <Link
                     key={href}
