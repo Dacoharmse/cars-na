@@ -606,6 +606,44 @@ function VehiclesContent() {
                 </div>
               )}
 
+              {/* ── Top leaderboard banner ── */}
+              <div className="mb-5 rounded-xl overflow-hidden border border-gray-200 relative">
+                <div className="absolute top-2 left-2 z-10">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 bg-white/80 px-1.5 py-0.5 rounded">
+                    Advertisement
+                  </span>
+                </div>
+                <div className="h-[90px] bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 flex items-center px-6 gap-6 relative overflow-hidden">
+                  {/* Decorative grid */}
+                  <div className="absolute inset-0 opacity-[0.04]"
+                    style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '20px 20px' }}
+                  />
+                  {/* Red left accent */}
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#CB2030]" />
+                  {/* Logo block */}
+                  <div className="relative flex-shrink-0 w-10 h-10 rounded-lg bg-[#CB2030] flex items-center justify-center">
+                    <Car className="w-5 h-5 text-white" />
+                  </div>
+                  {/* Copy */}
+                  <div className="relative flex-1 min-w-0">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-0.5">MFC by FirstRand Bank</p>
+                    <h3 className="text-white font-extrabold text-base leading-tight">
+                      Finance your next vehicle in minutes
+                    </h3>
+                    <p className="text-gray-400 text-xs mt-0.5 hidden sm:block">
+                      Competitive rates · Fast approval · Flexible terms up to 72 months
+                    </p>
+                  </div>
+                  {/* CTA */}
+                  <a
+                    href="#"
+                    className="relative flex-shrink-0 h-9 px-5 bg-[#CB2030] hover:bg-[#b81c2a] text-white text-xs font-bold rounded-lg flex items-center transition-colors whitespace-nowrap"
+                  >
+                    Apply Now →
+                  </a>
+                </div>
+              </div>
+
               {/* ── Loading skeleton ── */}
               {isLoading && (
                 <div className={
@@ -685,6 +723,79 @@ function VehiclesContent() {
                 </div>
               )}
             </div>
+
+            {/* ── Right ad column ── */}
+            <aside className="hidden xl:flex flex-col gap-4 w-[168px] flex-shrink-0">
+
+              {/* Sticky wrapper */}
+              <div className="sticky top-[102px] flex flex-col gap-4">
+
+                {/* Ad 1 — Insurance (tall) */}
+                <div className="rounded-xl overflow-hidden border border-gray-200 relative">
+                  <div className="absolute top-2 left-2 z-10">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 bg-white/80 px-1.5 py-0.5 rounded">
+                      Ad
+                    </span>
+                  </div>
+                  <div className="bg-gradient-to-b from-gray-900 to-gray-800 p-4 pt-8 flex flex-col items-center text-center gap-3 relative overflow-hidden">
+                    <div className="absolute inset-0 opacity-[0.04]"
+                      style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '18px 18px' }}
+                    />
+                    <div className="relative w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </div>
+                    <div className="relative">
+                      <p className="text-[10px] text-blue-400 uppercase tracking-widest font-bold mb-1">Momentum Insurance</p>
+                      <h4 className="text-white font-extrabold text-sm leading-tight">
+                        Protect your vehicle from day one
+                      </h4>
+                      <p className="text-gray-400 text-[11px] mt-2 leading-relaxed">
+                        Comprehensive cover starting from N$ 299/month
+                      </p>
+                    </div>
+                    <a
+                      href="#"
+                      className="relative w-full h-8 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-lg flex items-center justify-center transition-colors"
+                    >
+                      Get a Quote
+                    </a>
+                  </div>
+                </div>
+
+                {/* Ad 2 — Dealer signup (shorter) */}
+                <div className="rounded-xl overflow-hidden border border-[#CB2030]/30 relative">
+                  <div className="absolute top-2 left-2 z-10">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 bg-white/80 px-1.5 py-0.5 rounded">
+                      Ad
+                    </span>
+                  </div>
+                  <div className="bg-red-50 p-4 pt-8 flex flex-col items-center text-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-[#CB2030] flex items-center justify-center">
+                      <Car className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-[#CB2030] uppercase tracking-widest font-bold mb-1">Cars.na Dealers</p>
+                      <h4 className="text-gray-900 font-extrabold text-sm leading-tight">
+                        List your stock on Cars.na
+                      </h4>
+                      <p className="text-gray-500 text-[11px] mt-2 leading-relaxed">
+                        Reach thousands of buyers across Namibia
+                      </p>
+                    </div>
+                    <a
+                      href="/dealers/register"
+                      className="w-full h-8 bg-[#CB2030] hover:bg-[#b81c2a] text-white text-[11px] font-bold rounded-lg flex items-center justify-center transition-colors"
+                    >
+                      Register Now
+                    </a>
+                  </div>
+                </div>
+
+              </div>
+            </aside>
+
           </div>
         </div>
       </div>
