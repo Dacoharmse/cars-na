@@ -41,7 +41,7 @@ export default function RootLayout({
       <body className={`${plusJakarta.variable} ${outfit.variable} ${instrumentSerif.variable} antialiased`}>
         <Providers>
           <Header />
-          <main id="main-content" className="pt-[40px]">
+          <main id="main-content">
             {children}
           </main>
         </Providers>
