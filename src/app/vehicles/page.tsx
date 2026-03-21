@@ -4,7 +4,6 @@ import React, { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { VehicleCard } from '@/components/ui/VehicleCard';
-import { DynamicBanner } from '@/components/DynamicBanner';
 import { api } from '@/lib/api';
 import {
   Search, SlidersHorizontal, X, ChevronLeft, ChevronRight,
@@ -448,7 +447,7 @@ function VehiclesContent() {
 
             {/* ── Desktop sidebar ── */}
             <aside className="hidden lg:block w-56 xl:w-60 flex-shrink-0">
-              <div className="bg-white rounded-xl border border-gray-200 p-5 sticky top-6">
+              <div className="bg-white rounded-xl border border-gray-200 p-5 sticky top-[102px]">
                 <div className="flex items-center justify-between mb-5">
                   <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-900">
                     Filters
@@ -462,10 +461,6 @@ function VehiclesContent() {
                 <FilterPanel {...filterPanelProps} />
               </div>
 
-              {/* Sidebar ad */}
-              <div className="mt-4">
-                <DynamicBanner position="SIDEBAR" />
-              </div>
             </aside>
 
             {/* ── Main content ── */}
