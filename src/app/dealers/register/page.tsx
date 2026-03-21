@@ -2,23 +2,13 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MainLayout } from '@/components/layout/MainLayout';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import Image from 'next/image';
+import Link from 'next/link';
 import { NotificationDialog } from '@/components/notifications/NotificationDialog';
 import {
-  Building2,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  FileText,
-  CheckCircle,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  ArrowLeft
+  Building2, User, Mail, Phone, MapPin, Lock,
+  CheckCircle, AlertCircle, Eye, EyeOff, ArrowLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface SubscriptionPlan {
@@ -37,154 +27,67 @@ interface SubscriptionPlan {
 }
 
 interface RegistrationData {
-  // Business Information
   businessName: string;
   businessType: string;
   registrationNumber: string;
   taxNumber: string;
-
-  // Subscription Plan
   subscriptionPlanId: string;
-
-  // Contact Information
   contactPerson: string;
   email: string;
   phone: string;
   alternatePhone: string;
-
-  // Address Information
   streetAddress: string;
   city: string;
   region: string;
   postalCode: string;
   googleMapsUrl: string;
-
-  // Account Information
   password: string;
   confirmPassword: string;
-
-  // Terms and Conditions
   agreeToTerms: boolean;
   agreeToMarketing: boolean;
 }
 
 const BUSINESS_TYPES = [
-  'Independent Dealer',
-  'Franchise Dealer',
-  'Car Lot',
-  'Auto Auction',
-  'Import/Export'
+  'Independent Dealer', 'Franchise Dealer', 'Car Lot', 'Auto Auction', 'Import/Export'
 ];
 
 const NAMIBIAN_CITIES = [
-  // Major Cities and Regional Capitals
-  'Windhoek',
-  'Walvis Bay',
-  'Swakopmund',
-  'Rundu',
-  'Oshakati',
-  'Katima Mulilo',
-  'Grootfontein',
-  'Rehoboth',
-  'Otjiwarongo',
-  'Tsumeb',
-  'Keetmanshoop',
-  'Gobabis',
-
-  // Towns - Khomas Region
-  'Okahandja',
-
-  // Towns - Erongo Region
-  'Henties Bay',
-  'Arandis',
-  'Karibib',
-  'Usakos',
-
-  // Towns - Hardap Region
-  'Mariental',
-  'Aranos',
-  'Maltahöhe',
-
-  // Towns - Karas Region
-  'Lüderitz',
-  'Karasburg',
-  'Aus',
-  'Bethanie',
-  'Warmbad',
-  'Oranjemund',
-
-  // Towns - Kunene Region
-  'Opuwo',
-  'Outjo',
-  'Khorixas',
-  'Kamanjab',
-  'Sesfontein',
-
-  // Towns - Ohangwena Region
-  'Eenhana',
-  'Okongo',
-  'Engela',
-  'Ongenga',
-
-  // Towns - Omaheke Region
-  'Otjinene',
-  'Witvlei',
-
-  // Towns - Omusati Region
-  'Outapi',
-  'Okahao',
-  'Oshikuku',
-  'Ruacana',
-
-  // Towns - Oshana Region
-  'Ondangwa',
-  'Ongwediva',
-
-  // Towns - Oshikoto Region
-  'Omuthiya',
-  'Onayena',
-
-  // Towns - Otjozondjupa Region
-  'Okakarara',
-  'Otavi',
-
-  // Towns - Zambezi Region (Caprivi)
-  'Bukalo',
-  'Ngoma',
-  'Linyanti',
-
-  // Other Notable Towns
-  'Aroab',
-  'Aminuis',
-  'Gibeon',
-  'Hoachanas',
-  'Leonardville',
-  'Noordoewer',
-  'Stampriet',
-  'Tses'
+  'Aminuis','Arandis','Aroab','Aranos','Aus','Bethanie','Bukalo','Eenhana','Engela',
+  'Gibeon','Gobabis','Grootfontein','Henties Bay','Hoachanas','Kamanjab','Karasburg',
+  'Karibib','Katima Mulilo','Keetmanshoop','Khorixas','Leonardville','Linyanti',
+  'Lüderitz','Maltahöhe','Mariental','Ngoma','Noordoewer','Okahandja','Okakarara',
+  'Okahao','Okongo','Omuthiya','Onayena','Ondangwa','Ongenga','Ongwediva','Opuwo',
+  'Oranjemund','Oshakati','Oshikuku','Otavi','Otjinene','Otjiwarongo','Outapi',
+  'Outjo','Rehoboth','Ruacana','Rundu','Sesfontein','Stampriet','Swakopmund','Tsumeb',
+  'Tses','Usakos','Walvis Bay','Warmbad','Windhoek','Witvlei',
 ].sort();
+
+const STEPS = [
+  { id: 1, label: 'Business Info', icon: Building2 },
+  { id: 2, label: 'Subscription', icon: CheckCircle },
+  { id: 3, label: 'Contact', icon: User },
+  { id: 4, label: 'Address', icon: MapPin },
+  { id: 5, label: 'Security', icon: Lock },
+];
+
+const inputClass = "w-full h-11 px-3.5 rounded-lg border border-gray-300 text-gray-900 placeholder:text-gray-400 text-sm focus:outline-none focus:border-[#CB2030] focus:ring-2 focus:ring-[#CB2030]/20 transition-colors disabled:opacity-50 disabled:bg-gray-50";
+const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
+const errorClass = "mt-1.5 text-xs text-red-600 flex items-center gap-1";
+
+function FieldError({ msg }: { msg?: string }) {
+  if (!msg) return null;
+  return <p className={errorClass}><AlertCircle className="w-3 h-3 shrink-0" />{msg}</p>;
+}
 
 export default function DealerRegisterPage() {
   const router = useRouter();
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<RegistrationData>({
-    businessName: '',
-    businessType: '',
-    registrationNumber: '',
-    taxNumber: '',
-    subscriptionPlanId: '',
-    contactPerson: '',
-    email: '',
-    phone: '',
-    alternatePhone: '',
-    streetAddress: '',
-    city: '',
-    region: '',
-    postalCode: '',
-    googleMapsUrl: '',
-    password: '',
-    confirmPassword: '',
-    agreeToTerms: false,
-    agreeToMarketing: false
+    businessName: '', businessType: '', registrationNumber: '', taxNumber: '',
+    subscriptionPlanId: '', contactPerson: '', email: '', phone: '',
+    alternatePhone: '', streetAddress: '', city: '', region: '',
+    postalCode: '', googleMapsUrl: '', password: '', confirmPassword: '',
+    agreeToTerms: false, agreeToMarketing: false,
   });
 
   const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
@@ -192,22 +95,12 @@ export default function DealerRegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Partial<RegistrationData>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof RegistrationData, string>>>({});
 
-  // Notification dialog state
   const [notification, setNotification] = useState<{
-    isOpen: boolean;
-    variant: 'success' | 'error';
-    title: string;
-    message: string;
-  }>({
-    isOpen: false,
-    variant: 'success',
-    title: '',
-    message: '',
-  });
+    isOpen: boolean; variant: 'success' | 'error'; title: string; message: string;
+  }>({ isOpen: false, variant: 'success', title: '', message: '' });
 
-  // Fetch subscription plans on mount
   React.useEffect(() => {
     const fetchPlans = async () => {
       try {
@@ -215,116 +108,66 @@ export default function DealerRegisterPage() {
         const data = await response.json();
         if (data.success && data.plans) {
           setSubscriptionPlans(data.plans);
-          // Auto-select the middle plan (Standard) as default
           const standardPlan = data.plans.find((p: SubscriptionPlan) => p.slug === 'standard');
-          if (standardPlan) {
-            setFormData(prev => ({ ...prev, subscriptionPlanId: standardPlan.id }));
-          }
+          if (standardPlan) setFormData(prev => ({ ...prev, subscriptionPlanId: standardPlan.id }));
         }
-      } catch (error) {
-        console.error('Failed to fetch subscription plans:', error);
-      } finally {
+      } catch { /* silent */ } finally {
         setLoadingPlans(false);
       }
     };
     fetchPlans();
   }, []);
 
-  const updateFormData = (field: keyof RegistrationData, value: string | boolean) => {
+  const update = (field: keyof RegistrationData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<RegistrationData> = {};
-
-    // Required field validation
-    if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
-    if (!formData.businessType) newErrors.businessType = 'Business type is required';
-    if (!formData.subscriptionPlanId) newErrors.subscriptionPlanId = 'Please select a subscription plan';
-    if (!formData.contactPerson.trim()) newErrors.contactPerson = 'Contact person is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (!formData.streetAddress.trim()) newErrors.streetAddress = 'Street address is required';
-    if (!formData.city) newErrors.city = 'City is required';
-    if (!formData.password) newErrors.password = 'Password is required';
-    if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
-
-    // Email validation
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    // Password validation
-    if (formData.password && formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    // Terms agreement
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const e: Partial<Record<keyof RegistrationData, string>> = {};
+    if (!formData.businessName.trim()) e.businessName = 'Business name is required';
+    if (!formData.businessType) e.businessType = 'Business type is required';
+    if (!formData.subscriptionPlanId) e.subscriptionPlanId = 'Please select a subscription plan';
+    if (!formData.contactPerson.trim()) e.contactPerson = 'Contact person is required';
+    if (!formData.email.trim()) e.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) e.email = 'Please enter a valid email';
+    if (!formData.phone.trim()) e.phone = 'Phone number is required';
+    if (!formData.streetAddress.trim()) e.streetAddress = 'Street address is required';
+    if (!formData.city) e.city = 'City is required';
+    if (!formData.password) e.password = 'Password is required';
+    else if (formData.password.length < 8) e.password = 'Password must be at least 8 characters';
+    if (!formData.confirmPassword) e.confirmPassword = 'Please confirm your password';
+    else if (formData.password !== formData.confirmPassword) e.confirmPassword = 'Passwords do not match';
+    if (!formData.agreeToTerms) e.agreeToTerms = 'You must agree to the terms and conditions';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateForm()) {
+      // Jump to first step with an error
+      if (errors.businessName || errors.businessType) setCurrentStep(1);
+      else if (errors.subscriptionPlanId) setCurrentStep(2);
+      else if (errors.contactPerson || errors.email || errors.phone) setCurrentStep(3);
+      else if (errors.streetAddress || errors.city) setCurrentStep(4);
       return;
     }
-
     setIsSubmitting(true);
-    
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
-      // Try to parse JSON response
       let data;
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        const text = await response.text();
-        console.error('Non-JSON response:', text);
-        throw new Error('Server returned an invalid response');
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
-
-      // Success - show notification dialog
-      setNotification({
-        isOpen: true,
-        variant: 'success',
-        title: 'Registration Successful!',
-        message: data.message || 'Your application is pending admin approval. You will receive an email once approved.',
-      });
-
-    } catch (error) {
-      console.error('Registration error:', error);
-      setNotification({
-        isOpen: true,
-        variant: 'error',
-        title: 'Registration Failed',
-        message: error instanceof Error ? error.message : 'Registration failed. Please try again.',
-      });
+      const ct = response.headers.get('content-type');
+      if (ct?.includes('application/json')) data = await response.json();
+      else throw new Error('Server returned an invalid response');
+      if (!response.ok) throw new Error(data.error || 'Registration failed');
+      setNotification({ isOpen: true, variant: 'success', title: 'Registration Successful!', message: data.message || 'Your application is pending admin approval. You will receive an email once approved.' });
+    } catch (err) {
+      setNotification({ isOpen: true, variant: 'error', title: 'Registration Failed', message: err instanceof Error ? err.message : 'Registration failed. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -332,14 +175,11 @@ export default function DealerRegisterPage() {
 
   const handleNotificationClose = () => {
     setNotification(prev => ({ ...prev, isOpen: false }));
-    // Redirect to login page on success
-    if (notification.variant === 'success') {
-      window.location.href = '/dealer/login?registered=true';
-    }
+    if (notification.variant === 'success') window.location.href = '/dealer/login?registered=true';
   };
 
   return (
-    <MainLayout>
+    <div className="min-h-screen bg-gray-50">
       <NotificationDialog
         isOpen={notification.isOpen}
         onClose={handleNotificationClose}
@@ -348,506 +188,480 @@ export default function DealerRegisterPage() {
         message={notification.message}
         primaryAction={{
           label: notification.variant === 'success' ? 'Go to Login' : 'OK',
-          onClick: () => {
-            if (notification.variant === 'success') {
-              window.location.href = '/dealer/login?registered=true';
-            }
-          },
+          onClick: () => { if (notification.variant === 'success') window.location.href = '/dealer/login?registered=true'; },
         }}
       />
-      <div className="bg-gradient-to-br from-slate-50 to-white py-4">
-        <div className="container mx-auto px-4 max-w-4xl">
-          {/* Back to Site Button */}
-          <div className="mb-6">
-            <button
-              onClick={() => router.push('/')}
-              className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-700 transition-all duration-200 group shadow-sm hover:shadow"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span className="text-sm font-medium">Back to Site</span>
-            </button>
-          </div>
 
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-slate-900 mb-4">
-              Join Cars.na as a Dealer
-            </h1>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Expand your reach and connect with thousands of potential customers across Namibia.
-              Register your dealership today and start selling more cars.
-            </p>
-          </div>
+      {/* Top bar */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            Back to site
+          </Link>
+          <Link href="/">
+            <Image src="/cars-na-logo.png" alt="Cars.na" width={110} height={36} className="h-8 w-auto" />
+          </Link>
+          <Link href="/dealer/login" className="text-sm font-semibold text-[#CB2030] hover:text-[#b81c2a] transition-colors">
+            Sign In
+          </Link>
+        </div>
+      </div>
 
-          {/* Benefits */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Building2 className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold mb-2">Professional Presence</h3>
-                <p className="text-sm text-slate-600">Showcase your inventory with professional listings</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold mb-2">Lead Management</h3>
-                <p className="text-sm text-slate-600">Track and manage customer inquiries efficiently</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-6 h-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold mb-2">Verified Listings</h3>
-                <p className="text-sm text-slate-600">Build trust with verified dealer status</p>
-              </CardContent>
-            </Card>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 py-8 lg:py-12">
+        <div className="lg:grid lg:grid-cols-[260px_1fr] lg:gap-10">
+          {/* ── LEFT: Sticky progress sidebar ── */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              {/* Header */}
+              <div className="mb-8">
+                <h1 className="text-xl font-extrabold text-gray-900 mb-1">Register Your Dealership</h1>
+                <p className="text-sm text-gray-500">Complete all sections to submit your application</p>
+              </div>
 
-          {/* Registration Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                Dealer Registration
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Business Information */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Building2 className="w-5 h-5" />
-                    Business Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Business Name *</label>
-                      <input
-                        type="text"
-                        value={formData.businessName}
-                        onChange={(e) => updateFormData('businessName', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Your dealership name"
-                      />
-                      {errors.businessName && (
-                        <p className="text-red-500 text-sm mt-1">{errors.businessName}</p>
-                      )}
+              {/* Steps */}
+              <nav className="space-y-1">
+                {STEPS.map((step) => {
+                  const Icon = step.icon;
+                  const isActive = currentStep === step.id;
+                  const isDone = currentStep > step.id;
+                  return (
+                    <button
+                      key={step.id}
+                      onClick={() => setCurrentStep(step.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
+                        isActive ? 'bg-[#CB2030] text-white' :
+                        isDone ? 'text-gray-700 hover:bg-gray-100' :
+                        'text-gray-400 hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                        isActive ? 'bg-white/20' :
+                        isDone ? 'bg-green-100 text-green-600' :
+                        'bg-gray-100'
+                      }`}>
+                        {isDone ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Icon className="w-3.5 h-3.5" />}
+                      </div>
+                      <span className="text-sm font-medium">{step.label}</span>
+                      {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {/* Benefits */}
+              <div className="mt-8 pt-8 border-t border-gray-200">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Why Cars.na?</p>
+                <div className="space-y-3">
+                  {[
+                    'Reach thousands of buyers across Namibia',
+                    'Manage leads from one dashboard',
+                    'Verified dealer badge builds trust',
+                    'Real-time analytics on your listings',
+                  ].map(item => (
+                    <div key={item} className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-[#CB2030] shrink-0 mt-0.5" />
+                      <span className="text-xs text-gray-500 leading-relaxed">{item}</span>
                     </div>
-                    
+                  ))}
+                </div>
+              </div>
+
+              {/* Support */}
+              <div className="mt-6 p-4 bg-gray-100 rounded-xl">
+                <p className="text-xs font-semibold text-gray-700 mb-2">Need help?</p>
+                <a href="tel:+264814494433" className="flex items-center gap-1.5 text-xs text-[#CB2030] font-medium mb-1 hover:text-[#b81c2a] transition-colors">
+                  <Phone className="w-3 h-3" /> +264 81 449 4433
+                </a>
+                <a href="mailto:support@cars.na" className="flex items-center gap-1.5 text-xs text-[#CB2030] font-medium hover:text-[#b81c2a] transition-colors">
+                  <Mail className="w-3 h-3" /> support@cars.na
+                </a>
+              </div>
+            </div>
+          </aside>
+
+          {/* ── RIGHT: Form ── */}
+          <main>
+            {/* Mobile step pills */}
+            <div className="lg:hidden flex gap-2 mb-6 overflow-x-auto pb-1">
+              {STEPS.map((step) => (
+                <button
+                  key={step.id}
+                  onClick={() => setCurrentStep(step.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                    currentStep === step.id ? 'bg-[#CB2030] text-white' :
+                    currentStep > step.id ? 'bg-green-100 text-green-700' :
+                    'bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  {step.label}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              {/* ── Step 1: Business ── */}
+              {currentStep === 1 && (
+                <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="w-8 h-8 rounded-lg bg-[#CB2030] flex items-center justify-center">
+                        <Building2 className="w-4 h-4 text-white" />
+                      </div>
+                      <h2 className="text-lg font-bold text-gray-900">Business Information</h2>
+                    </div>
+                    <p className="text-sm text-gray-500 ml-11">Tell us about your dealership</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="sm:col-span-2">
+                      <label className={labelClass}>Business Name <span className="text-[#CB2030]">*</span></label>
+                      <input type="text" value={formData.businessName} onChange={e => update('businessName', e.target.value)} placeholder="Your dealership name" className={inputClass} />
+                      <FieldError msg={errors.businessName} />
+                    </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Business Type *</label>
-                      <select
-                        value={formData.businessType}
-                        onChange={(e) => updateFormData('businessType', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select business type</option>
-                        {BUSINESS_TYPES.map(type => (
-                          <option key={type} value={type}>{type}</option>
-                        ))}
+                      <label className={labelClass}>Business Type <span className="text-[#CB2030]">*</span></label>
+                      <select value={formData.businessType} onChange={e => update('businessType', e.target.value)} className={inputClass}>
+                        <option value="">Select type</option>
+                        {BUSINESS_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                       </select>
-                      {errors.businessType && (
-                        <p className="text-red-500 text-sm mt-1">{errors.businessType}</p>
-                      )}
+                      <FieldError msg={errors.businessType} />
                     </div>
-                    
                     <div>
-                      <label className="block text-sm font-medium mb-2">Registration Number</label>
-                      <input
-                        type="text"
-                        value={formData.registrationNumber}
-                        onChange={(e) => updateFormData('registrationNumber', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Business registration number"
-                      />
+                      <label className={labelClass}>Registration Number <span className="text-gray-400 font-normal">(optional)</span></label>
+                      <input type="text" value={formData.registrationNumber} onChange={e => update('registrationNumber', e.target.value)} placeholder="Business reg. number" className={inputClass} />
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Tax Number</label>
-                      <input
-                        type="text"
-                        value={formData.taxNumber}
-                        onChange={(e) => updateFormData('taxNumber', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="VAT/Tax number"
-                      />
+                    <div className="sm:col-span-2">
+                      <label className={labelClass}>VAT / Tax Number <span className="text-gray-400 font-normal">(optional)</span></label>
+                      <input type="text" value={formData.taxNumber} onChange={e => update('taxNumber', e.target.value)} placeholder="VAT / Tax number" className={inputClass} />
                     </div>
                   </div>
-                </div>
 
-                {/* Subscription Plan Selection */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5" />
-                    Choose Your Subscription Plan
-                  </h3>
+                  <div className="mt-8 flex justify-end">
+                    <button type="button" onClick={() => setCurrentStep(2)} className="h-11 px-7 bg-[#CB2030] hover:bg-[#b81c2a] text-white font-semibold rounded-lg text-sm transition-colors flex items-center gap-2">
+                      Continue <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Step 2: Subscription ── */}
+              {currentStep === 2 && (
+                <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="w-8 h-8 rounded-lg bg-[#CB2030] flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-white" />
+                      </div>
+                      <h2 className="text-lg font-bold text-gray-900">Choose Your Plan</h2>
+                    </div>
+                    <p className="text-sm text-gray-500 ml-11">Select the plan that works for your business</p>
+                  </div>
+
                   {loadingPlans ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="rounded-xl border border-gray-200 p-6 animate-pulse">
+                          <div className="h-4 bg-gray-200 rounded w-2/3 mb-3" />
+                          <div className="h-8 bg-gray-200 rounded w-1/2 mb-4" />
+                          <div className="space-y-2">
+                            {[1,2,3].map(j => <div key={j} className="h-3 bg-gray-100 rounded" />)}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {subscriptionPlans.map((plan) => {
                         const features = Array.isArray(plan.features) ? plan.features : JSON.parse(plan.features as any);
                         const isSelected = formData.subscriptionPlanId === plan.id;
                         const isPopular = plan.slug === 'standard';
-
                         return (
                           <div
                             key={plan.id}
-                            onClick={() => updateFormData('subscriptionPlanId', plan.id)}
-                            className={`relative p-6 border-2 rounded-lg cursor-pointer transition-all ${
-                              isSelected
-                                ? 'border-blue-600 bg-blue-50 shadow-lg'
-                                : 'border-slate-200 hover:border-blue-300 hover:shadow-md'
+                            onClick={() => update('subscriptionPlanId', plan.id)}
+                            className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all ${
+                              isSelected ? 'border-[#CB2030] bg-red-50/40' : 'border-gray-200 hover:border-gray-300'
                             }`}
                           >
                             {isPopular && (
-                              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                                <Badge className="bg-blue-600 text-white px-3 py-1">Most Popular</Badge>
-                              </div>
+                              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#CB2030] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full">
+                                Most Popular
+                              </span>
                             )}
-
-                            <div className="text-center mb-4">
-                              <h4 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h4>
-                              <div className="text-3xl font-bold text-blue-600">
-                                N${(plan.price / 100).toFixed(2)}
-                                <span className="text-sm font-normal text-slate-500">/month</span>
-                              </div>
-                              <p className="text-sm text-slate-600 mt-2">{plan.description}</p>
+                            <h4 className="font-bold text-gray-900 mb-1">{plan.name}</h4>
+                            <div className="text-2xl font-extrabold text-[#CB2030] mb-1">
+                              N${(plan.price / 100).toFixed(0)}
+                              <span className="text-sm font-normal text-gray-400">/mo</span>
                             </div>
-
-                            <div className="space-y-2 mb-4">
-                              {features.map((feature: string, index: number) => (
-                                <div key={index} className="flex items-start gap-2 text-sm">
-                                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                  <span className="text-slate-700">{feature}</span>
+                            <p className="text-xs text-gray-500 mb-4">{plan.description}</p>
+                            <div className="space-y-1.5">
+                              {features.slice(0, 4).map((f: string, i: number) => (
+                                <div key={i} className="flex items-start gap-2 text-xs text-gray-600">
+                                  <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
+                                  {f}
                                 </div>
                               ))}
                             </div>
-
-                            <div className="text-center">
-                              {isSelected ? (
-                                <div className="inline-flex items-center gap-2 text-blue-600 font-medium">
-                                  <CheckCircle className="w-5 h-5" />
-                                  Selected
-                                </div>
-                              ) : (
-                                <div className="text-slate-400 font-medium">Click to select</div>
-                              )}
-                            </div>
+                            {isSelected && (
+                              <div className="mt-4 flex items-center gap-1.5 text-[#CB2030] text-xs font-semibold">
+                                <CheckCircle className="w-4 h-4" /> Selected
+                              </div>
+                            )}
                           </div>
                         );
                       })}
                     </div>
                   )}
-                  {errors.subscriptionPlanId && (
-                    <p className="text-red-500 text-sm mt-2">{errors.subscriptionPlanId}</p>
-                  )}
-                </div>
+                  <FieldError msg={errors.subscriptionPlanId} />
 
-                {/* Contact Information */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <User className="w-5 h-5" />
-                    Contact Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Contact Person *</label>
-                      <input
-                        type="text"
-                        value={formData.contactPerson}
-                        onChange={(e) => updateFormData('contactPerson', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Primary contact name"
-                      />
-                      {errors.contactPerson && (
-                        <p className="text-red-500 text-sm mt-1">{errors.contactPerson}</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Email Address *</label>
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => updateFormData('email', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="contact@yourdealership.com"
-                      />
-                      {errors.email && (
-                        <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Phone Number *</label>
-                      <input
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => updateFormData('phone', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="+264 81 123 4567"
-                      />
-                      {errors.phone && (
-                        <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Alternate Phone</label>
-                      <input
-                        type="tel"
-                        value={formData.alternatePhone}
-                        onChange={(e) => updateFormData('alternatePhone', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="+264 81 234 5678"
-                      />
-                    </div>
+                  <div className="mt-8 flex items-center justify-between">
+                    <button type="button" onClick={() => setCurrentStep(1)} className="h-11 px-5 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg text-sm transition-colors flex items-center gap-2">
+                      <ArrowLeft className="w-4 h-4" /> Back
+                    </button>
+                    <button type="button" onClick={() => setCurrentStep(3)} className="h-11 px-7 bg-[#CB2030] hover:bg-[#b81c2a] text-white font-semibold rounded-lg text-sm transition-colors flex items-center gap-2">
+                      Continue <ChevronRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
+              )}
 
-                {/* Address Information */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <MapPin className="w-5 h-5" />
-                    Business Address
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-2">Street Address *</label>
-                      <input
-                        type="text"
-                        value={formData.streetAddress}
-                        onChange={(e) => updateFormData('streetAddress', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="123 Main Street"
-                      />
-                      {errors.streetAddress && (
-                        <p className="text-red-500 text-sm mt-1">{errors.streetAddress}</p>
-                      )}
+              {/* ── Step 3: Contact ── */}
+              {currentStep === 3 && (
+                <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="w-8 h-8 rounded-lg bg-[#CB2030] flex items-center justify-center">
+                        <User className="w-4 h-4 text-white" />
+                      </div>
+                      <h2 className="text-lg font-bold text-gray-900">Contact Information</h2>
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2">City *</label>
-                      <select
-                        value={formData.city}
-                        onChange={(e) => updateFormData('city', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select city</option>
-                        {NAMIBIAN_CITIES.map(city => (
-                          <option key={city} value={city}>{city}</option>
-                        ))}
-                      </select>
-                      {errors.city && (
-                        <p className="text-red-500 text-sm mt-1">{errors.city}</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Region</label>
-                      <input
-                        type="text"
-                        value={formData.region}
-                        onChange={(e) => updateFormData('region', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Khomas"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Postal Code</label>
-                      <input
-                        type="text"
-                        value={formData.postalCode}
-                        onChange={(e) => updateFormData('postalCode', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="9000"
-                      />
-                    </div>
-                    
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-2">
-                        Google Maps Location (Optional)
-                        <span className="text-xs text-slate-500 ml-2">Share your Google Maps link to help customers find you</span>
-                      </label>
-                      <input
-                        type="url"
-                        value={formData.googleMapsUrl}
-                        onChange={(e) => updateFormData('googleMapsUrl', e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="https://maps.google.com/..."
-                      />
-                      <p className="text-xs text-slate-500 mt-1">
-                        To get your Google Maps link: Search for your business on Google Maps, click "Share", then copy the link.
-                      </p>
-                    </div>
+                    <p className="text-sm text-gray-500 ml-11">Who should we contact about your account?</p>
                   </div>
-                </div>
 
-                {/* Account Security */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    Account Security
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Password *</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="sm:col-span-2">
+                      <label className={labelClass}>Contact Person <span className="text-[#CB2030]">*</span></label>
                       <div className="relative">
+                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input type="text" value={formData.contactPerson} onChange={e => update('contactPerson', e.target.value)} placeholder="Primary contact name" className={inputClass + ' pl-10'} />
+                      </div>
+                      <FieldError msg={errors.contactPerson} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Email Address <span className="text-[#CB2030]">*</span></label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input type="email" value={formData.email} onChange={e => update('email', e.target.value)} placeholder="contact@dealership.com" className={inputClass + ' pl-10'} />
+                      </div>
+                      <FieldError msg={errors.email} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Phone Number <span className="text-[#CB2030]">*</span></label>
+                      <div className="relative">
+                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input type="tel" value={formData.phone} onChange={e => update('phone', e.target.value)} placeholder="+264 81 123 4567" className={inputClass + ' pl-10'} />
+                      </div>
+                      <FieldError msg={errors.phone} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className={labelClass}>Alternate Phone <span className="text-gray-400 font-normal">(optional)</span></label>
+                      <div className="relative">
+                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input type="tel" value={formData.alternatePhone} onChange={e => update('alternatePhone', e.target.value)} placeholder="+264 81 234 5678" className={inputClass + ' pl-10'} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 flex items-center justify-between">
+                    <button type="button" onClick={() => setCurrentStep(2)} className="h-11 px-5 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg text-sm transition-colors flex items-center gap-2">
+                      <ArrowLeft className="w-4 h-4" /> Back
+                    </button>
+                    <button type="button" onClick={() => setCurrentStep(4)} className="h-11 px-7 bg-[#CB2030] hover:bg-[#b81c2a] text-white font-semibold rounded-lg text-sm transition-colors flex items-center gap-2">
+                      Continue <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Step 4: Address ── */}
+              {currentStep === 4 && (
+                <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="w-8 h-8 rounded-lg bg-[#CB2030] flex items-center justify-center">
+                        <MapPin className="w-4 h-4 text-white" />
+                      </div>
+                      <h2 className="text-lg font-bold text-gray-900">Business Address</h2>
+                    </div>
+                    <p className="text-sm text-gray-500 ml-11">Where is your dealership located?</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="sm:col-span-2">
+                      <label className={labelClass}>Street Address <span className="text-[#CB2030]">*</span></label>
+                      <input type="text" value={formData.streetAddress} onChange={e => update('streetAddress', e.target.value)} placeholder="123 Main Street" className={inputClass} />
+                      <FieldError msg={errors.streetAddress} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>City <span className="text-[#CB2030]">*</span></label>
+                      <select value={formData.city} onChange={e => update('city', e.target.value)} className={inputClass}>
+                        <option value="">Select city</option>
+                        {NAMIBIAN_CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <FieldError msg={errors.city} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Region</label>
+                      <input type="text" value={formData.region} onChange={e => update('region', e.target.value)} placeholder="Khomas" className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Postal Code</label>
+                      <input type="text" value={formData.postalCode} onChange={e => update('postalCode', e.target.value)} placeholder="9000" className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Google Maps Link <span className="text-gray-400 font-normal">(optional)</span></label>
+                      <input type="url" value={formData.googleMapsUrl} onChange={e => update('googleMapsUrl', e.target.value)} placeholder="https://maps.google.com/..." className={inputClass} />
+                      <p className="mt-1.5 text-xs text-gray-400">Paste your Google Maps share link to help customers find you</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 flex items-center justify-between">
+                    <button type="button" onClick={() => setCurrentStep(3)} className="h-11 px-5 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg text-sm transition-colors flex items-center gap-2">
+                      <ArrowLeft className="w-4 h-4" /> Back
+                    </button>
+                    <button type="button" onClick={() => setCurrentStep(5)} className="h-11 px-7 bg-[#CB2030] hover:bg-[#b81c2a] text-white font-semibold rounded-lg text-sm transition-colors flex items-center gap-2">
+                      Continue <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Step 5: Security & Submit ── */}
+              {currentStep === 5 && (
+                <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="w-8 h-8 rounded-lg bg-[#CB2030] flex items-center justify-center">
+                        <Lock className="w-4 h-4 text-white" />
+                      </div>
+                      <h2 className="text-lg font-bold text-gray-900">Account Security</h2>
+                    </div>
+                    <p className="text-sm text-gray-500 ml-11">Create a strong password for your account</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+                    <div>
+                      <label className={labelClass}>Password <span className="text-[#CB2030]">*</span></label>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                           type={showPassword ? 'text' : 'password'}
                           value={formData.password}
-                          onChange={(e) => updateFormData('password', e.target.value)}
-                          className="w-full px-3 py-2 pr-10 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={e => update('password', e.target.value)}
                           placeholder="Minimum 8 characters"
+                          className={inputClass + ' pl-10 pr-11'}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                        >
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Toggle password">
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
-                      {errors.password && (
-                        <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-                      )}
+                      <FieldError msg={errors.password} />
                     </div>
-                    
                     <div>
-                      <label className="block text-sm font-medium mb-2">Confirm Password *</label>
+                      <label className={labelClass}>Confirm Password <span className="text-[#CB2030]">*</span></label>
                       <div className="relative">
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
                           value={formData.confirmPassword}
-                          onChange={(e) => updateFormData('confirmPassword', e.target.value)}
-                          className="w-full px-3 py-2 pr-10 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={e => update('confirmPassword', e.target.value)}
                           placeholder="Confirm your password"
+                          className={inputClass + ' pl-10 pr-11'}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                        >
+                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Toggle confirm password">
                           {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
-                      {errors.confirmPassword && (
-                        <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
-                      )}
+                      <FieldError msg={errors.confirmPassword} />
                     </div>
                   </div>
-                </div>
 
-                {/* Terms and Conditions */}
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      id="agreeToTerms"
-                      checked={formData.agreeToTerms}
-                      onChange={(e) => updateFormData('agreeToTerms', e.target.checked)}
-                      className="mt-1 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
-                    />
-                    <label htmlFor="agreeToTerms" className="text-sm text-slate-700">
-                      I agree to the <a href="/terms" className="text-blue-600 hover:underline">Terms and Conditions</a> and <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a> *
-                    </label>
+                  {/* Terms */}
+                  <div className="space-y-4 pt-2 border-t border-gray-100 mt-6">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="agreeToTerms"
+                        checked={formData.agreeToTerms}
+                        onChange={e => update('agreeToTerms', e.target.checked)}
+                        className="mt-0.5 w-4 h-4 accent-[#CB2030] cursor-pointer"
+                      />
+                      <label htmlFor="agreeToTerms" className="text-sm text-gray-600 cursor-pointer leading-relaxed">
+                        I agree to the{' '}
+                        <Link href="/terms" className="text-[#CB2030] hover:underline">Terms & Conditions</Link>
+                        {' '}and{' '}
+                        <Link href="/privacy" className="text-[#CB2030] hover:underline">Privacy Policy</Link>
+                        {' '}<span className="text-[#CB2030]">*</span>
+                      </label>
+                    </div>
+                    <FieldError msg={errors.agreeToTerms} />
+
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="agreeToMarketing"
+                        checked={formData.agreeToMarketing}
+                        onChange={e => update('agreeToMarketing', e.target.checked)}
+                        className="mt-0.5 w-4 h-4 accent-[#CB2030] cursor-pointer"
+                      />
+                      <label htmlFor="agreeToMarketing" className="text-sm text-gray-500 cursor-pointer leading-relaxed">
+                        Send me marketing communications and platform updates
+                      </label>
+                    </div>
                   </div>
-                  {errors.agreeToTerms && (
-                    <p className="text-red-500 text-sm">{errors.agreeToTerms}</p>
-                  )}
-                  
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      id="agreeToMarketing"
-                      checked={formData.agreeToMarketing}
-                      onChange={(e) => updateFormData('agreeToMarketing', e.target.checked)}
-                      className="mt-1 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
-                    />
-                    <label htmlFor="agreeToMarketing" className="text-sm text-slate-700">
-                      I would like to receive marketing communications and updates about Cars.na services
-                    </label>
+
+                  {/* Summary box */}
+                  <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Application Summary</p>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><span className="text-gray-400">Business:</span> <span className="text-gray-800 font-medium">{formData.businessName || '—'}</span></div>
+                      <div><span className="text-gray-400">Type:</span> <span className="text-gray-800 font-medium">{formData.businessType || '—'}</span></div>
+                      <div><span className="text-gray-400">Email:</span> <span className="text-gray-800 font-medium">{formData.email || '—'}</span></div>
+                      <div><span className="text-gray-400">City:</span> <span className="text-gray-800 font-medium">{formData.city || '—'}</span></div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 flex items-center justify-between">
+                    <button type="button" onClick={() => setCurrentStep(4)} className="h-11 px-5 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg text-sm transition-colors flex items-center gap-2">
+                      <ArrowLeft className="w-4 h-4" /> Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="h-11 px-8 bg-[#CB2030] hover:bg-[#b81c2a] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-sm transition-colors flex items-center gap-2"
+                    >
+                      {isSubmitting ? (
+                        <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Submitting...</>
+                      ) : (
+                        <><CheckCircle className="w-4 h-4" /> Submit Application</>
+                      )}
+                    </button>
                   </div>
                 </div>
+              )}
+            </form>
 
-                {/* Submit Button */}
-                <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Creating Account...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Create Dealer Account
-                      </>
-                    )}
-                  </Button>
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => window.location.href = '/auth/login'}
-                    className="flex-1 sm:flex-none"
-                  >
-                    Already have an account? Login
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Support Information */}
-          <div className="mt-12 text-center">
-            <Card className="bg-blue-50 border-blue-200">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <AlertCircle className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold text-blue-900">Need Help?</h3>
-                </div>
-                <p className="text-blue-800 mb-4">
-                  Our team is here to help you get started. Contact us if you have any questions about the registration process.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <a
-                    href="tel:+264814494433"
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    <Phone className="w-4 h-4" />
-                    +264 81 449 4433
-                  </a>
-                  <a
-                    href="mailto:support@cars.na"
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    <Mail className="w-4 h-4" />
-                    support@cars.na
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            {/* Already have account */}
+            <p className="text-center text-sm text-gray-400 mt-6">
+              Already have an account?{' '}
+              <Link href="/dealer/login" className="text-[#CB2030] font-semibold hover:text-[#b81c2a] transition-colors">
+                Sign in here
+              </Link>
+            </p>
+          </main>
         </div>
       </div>
-    </MainLayout>
+    </div>
   );
 }
