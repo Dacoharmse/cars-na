@@ -2,36 +2,62 @@
 
 import React, { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Clock, 
-  Send, 
+import {
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  Send,
   MessageCircle,
   Facebook,
   Instagram,
   Twitter,
-  Linkedin,
   CheckCircle,
   AlertCircle,
   Car,
   Users,
   Shield,
-  Headphones
+  Headphones,
+  ArrowRight
 } from 'lucide-react';
+
+const inputCls = 'w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030] transition-colors';
+const labelCls = 'block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5';
+
+const contactMethods = [
+  {
+    icon: Phone,
+    title: 'Phone',
+    contact: '+264 81 449 4433',
+    action: 'tel:+264814494433',
+    note: 'Mon–Fri, 8am–6pm'
+  },
+  {
+    icon: Mail,
+    title: 'Email',
+    contact: 'support@cars.na',
+    action: 'mailto:support@cars.na',
+    note: 'Reply within 24h'
+  },
+  {
+    icon: MessageCircle,
+    title: 'WhatsApp',
+    contact: '+264 81 449 4433',
+    action: 'https://wa.me/264814494433',
+    note: 'Daily, 8am–8pm'
+  }
+];
+
+const departments = [
+  { icon: Car, title: 'Vehicle Sales', description: 'Buying or selling vehicles', email: 'support@cars.na' },
+  { icon: Users, title: 'Dealer Support', description: 'Support for dealership partners', email: 'support@cars.na' },
+  { icon: Shield, title: 'Trust & Safety', description: 'Report issues or safety concerns', email: 'support@cars.na' },
+  { icon: Headphones, title: 'Technical', description: 'Website and technical assistance', email: 'support@cars.na' }
+];
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    category: '',
-    message: ''
+    name: '', email: '', phone: '', subject: '', category: '', message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -44,31 +70,19 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
       if (response.ok) {
         setSubmitStatus('success');
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          subject: '',
-          category: '',
-          message: ''
-        });
+        setFormData({ name: '', email: '', phone: '', subject: '', category: '', message: '' });
       } else {
         setSubmitStatus('error');
       }
-    } catch (error) {
-      console.error('Contact form submission error:', error);
+    } catch {
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
@@ -76,425 +90,244 @@ export default function ContactPage() {
     }
   };
 
-  const contactMethods = [
-    {
-      icon: Phone,
-      title: 'Phone Support',
-      description: 'Speak with our customer service team',
-      contact: '+264 81 449 4433',
-      action: 'tel:+264814494433',
-      available: '8:00 AM - 6:00 PM, Mon-Fri'
-    },
-    {
-      icon: Mail,
-      title: 'Email Support',
-      description: 'Send us a detailed message',
-      contact: 'support@cars.na',
-      action: 'mailto:support@cars.na',
-      available: 'Response within 24 hours'
-    },
-    {
-      icon: MessageCircle,
-      title: 'WhatsApp',
-      description: 'Quick support via WhatsApp',
-      contact: '+264 81 449 4433',
-      action: 'https://wa.me/264814494433',
-      available: '8:00 AM - 8:00 PM, Daily'
-    }
-  ];
-
-  const departments = [
-    {
-      icon: Car,
-      title: 'Vehicle Sales',
-      description: 'Questions about buying or selling vehicles',
-      email: 'support@cars.na',
-      phone: '+264 81 449 4433'
-    },
-    {
-      icon: Users,
-      title: 'Dealer Support',
-      description: 'Support for dealership partners',
-      email: 'support@cars.na',
-      phone: '+264 81 449 4433'
-    },
-    {
-      icon: Shield,
-      title: 'Trust & Safety',
-      description: 'Report issues or safety concerns',
-      email: 'support@cars.na',
-      phone: '+264 81 127 3332'
-    },
-    {
-      icon: Headphones,
-      title: 'Technical Support',
-      description: 'Website and technical assistance',
-      email: 'support@cars.na',
-      phone: '+264 81 449 4433'
-    }
-  ];
-
   return (
     <MainLayout>
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-r from-[#1F3469] to-[#2A4A7A] text-white py-16">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-5xl font-bold mb-4 tracking-tight">Contact Us</h1>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              We're here to help! Get in touch with our team for any questions about buying, selling, or using Cars.na.
-            </p>
+      {/* Page header */}
+      <div className="border-b border-gray-100 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#CB2030] uppercase tracking-widest mb-3">
+            <span className="w-6 h-px bg-[#CB2030]" />
+            Get in touch
           </div>
+          <h1 className="text-4xl font-extrabold text-gray-900 mb-3">Contact Us</h1>
+          <p className="text-gray-500 max-w-xl">
+            Have a question about buying, selling, or using Cars.na? Our team is ready to help.
+          </p>
         </div>
+      </div>
 
-        <div className="container mx-auto px-4 py-12">
+      <div className="bg-gray-50 min-h-screen">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+
+          {/* Quick contact pills */}
+          <div className="flex flex-wrap gap-3 mb-10">
+            {contactMethods.map(m => {
+              const Icon = m.icon;
+              return (
+                <a
+                  key={m.title}
+                  href={m.action}
+                  target={m.action.startsWith('http') ? '_blank' : undefined}
+                  rel={m.action.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  className="flex items-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-[#CB2030]/40 hover:shadow-sm transition-all group"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-[#CB2030]/8 flex items-center justify-center shrink-0" style={{ backgroundColor: 'rgba(203,32,48,0.08)' }}>
+                    <Icon className="w-4 h-4 text-[#CB2030]" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500">{m.title}</p>
+                    <p className="text-sm font-bold text-gray-900 group-hover:text-[#CB2030] transition-colors">{m.contact}</p>
+                    <p className="text-[11px] text-gray-400">{m.note}</p>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
+
             {/* Contact Form */}
             <div className="lg:col-span-2">
-              <Card className="shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-2">
-                    <Send className="h-6 w-6 text-blue-600" />
-                    Send us a Message
-                  </CardTitle>
-                  <p className="text-gray-600">
-                    Fill out the form below and we'll get back to you as soon as possible.
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  {submitStatus === 'success' && (
-                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="font-medium text-green-800">Message sent successfully!</p>
-                        <p className="text-sm text-green-600">We'll get back to you within 24 hours.</p>
-                      </div>
-                    </div>
-                  )}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Send us a message</h2>
+                <p className="text-sm text-gray-500 mb-6">Fill out the form and we'll get back to you as soon as possible.</p>
 
-                  {submitStatus === 'error' && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-                      <AlertCircle className="h-5 w-5 text-red-600" />
-                      <div>
-                        <p className="font-medium text-red-800">Failed to send message</p>
-                        <p className="text-sm text-red-600">Please try again or contact us directly.</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Full Name *
-                        </label>
-                        <Input
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          placeholder="John Doe"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Email Address *
-                        </label>
-                        <Input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          placeholder="john@example.com"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Phone Number
-                        </label>
-                        <Input
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          placeholder="+264 81 123 4567"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Category
-                        </label>
-                        <select
-                          name="category"
-                          value={formData.category}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          <option value="">Select a category</option>
-                          <option value="general">General Inquiry</option>
-                          <option value="buying">Buying a Vehicle</option>
-                          <option value="selling">Selling a Vehicle</option>
-                          <option value="dealer">Dealer Partnership</option>
-                          <option value="technical">Technical Support</option>
-                          <option value="feedback">Feedback</option>
-                          <option value="other">Other</option>
-                        </select>
-                      </div>
-                    </div>
-
+                {submitStatus === 'success' && (
+                  <div className="mb-6 p-4 bg-green-50 border border-green-100 rounded-xl flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Subject *
-                      </label>
-                      <Input
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleInputChange}
-                        placeholder="Brief description of your inquiry"
-                        required
-                      />
+                      <p className="text-sm font-semibold text-green-800">Message sent!</p>
+                      <p className="text-xs text-green-600 mt-0.5">We'll get back to you within 24 hours.</p>
                     </div>
-
+                  </div>
+                )}
+                {submitStatus === 'error' && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Message *
-                      </label>
-                      <textarea
-                        name="message"
-                        value={formData.message}
-                        onChange={handleInputChange}
-                        rows={6}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Please provide details about your inquiry..."
-                        required
-                      />
+                      <p className="text-sm font-semibold text-red-800">Failed to send</p>
+                      <p className="text-xs text-red-600 mt-0.5">Please try again or contact us directly.</p>
                     </div>
+                  </div>
+                )}
 
-                    <Button
-                      type="submit"
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Sending Message...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="h-4 w-4 mr-2" />
-                          Send Message
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Full Name *</label>
+                      <input name="name" value={formData.name} onChange={handleInputChange}
+                        placeholder="John Doe" required className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Email Address *</label>
+                      <input type="email" name="email" value={formData.email} onChange={handleInputChange}
+                        placeholder="john@example.com" required className={inputCls} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Phone Number</label>
+                      <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange}
+                        placeholder="+264 81 123 4567" className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Category</label>
+                      <select name="category" value={formData.category} onChange={handleInputChange} className={inputCls}>
+                        <option value="">Select a category</option>
+                        <option value="general">General Inquiry</option>
+                        <option value="buying">Buying a Vehicle</option>
+                        <option value="selling">Selling a Vehicle</option>
+                        <option value="dealer">Dealer Partnership</option>
+                        <option value="technical">Technical Support</option>
+                        <option value="feedback">Feedback</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>Subject *</label>
+                    <input name="subject" value={formData.subject} onChange={handleInputChange}
+                      placeholder="Brief description of your inquiry" required className={inputCls} />
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>Message *</label>
+                    <textarea name="message" value={formData.message} onChange={handleInputChange}
+                      rows={6} required placeholder="Please provide details about your inquiry..."
+                      className={inputCls + ' resize-none'} />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full h-11 flex items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                    style={{ background: '#CB2030' }}
+                  >
+                    {isSubmitting ? (
+                      <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending…</>
+                    ) : (
+                      <><Send className="w-4 h-4" /> Send Message</>
+                    )}
+                  </button>
+                </form>
+              </div>
             </div>
 
-            {/* Contact Information Sidebar */}
-            <div className="space-y-6">
-              
-              {/* Quick Contact Methods */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Get in Touch</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {contactMethods.map((method, index) => {
-                    const IconComponent = method.icon;
+            {/* Sidebar */}
+            <div className="space-y-5">
+              {/* Office */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#CB2030]" /> Office
+                </h3>
+                <p className="text-sm text-gray-700 font-semibold mb-1">Cars.na Headquarters</p>
+                <p className="text-sm text-gray-500 leading-relaxed mb-4">
+                  123 Independence Avenue<br />
+                  Windhoek Central, Namibia
+                </p>
+                <div className="flex items-start gap-2 text-xs text-gray-500 mb-4">
+                  <Clock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-gray-400" />
+                  <div className="space-y-0.5">
+                    <p>Mon–Fri: 8:00 AM – 6:00 PM</p>
+                    <p>Sat: 9:00 AM – 4:00 PM</p>
+                    <p>Sun: Closed</p>
+                  </div>
+                </div>
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=123+Independence+Avenue+Windhoek+Namibia"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-[#CB2030] hover:underline"
+                >
+                  View on Google Maps <ArrowRight className="w-3 h-3" />
+                </a>
+              </div>
+
+              {/* Social */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <h3 className="text-sm font-bold text-gray-900 mb-4">Follow Us</h3>
+                <div className="flex gap-2">
+                  {[
+                    { href: 'https://facebook.com/cars.na', icon: Facebook, bg: '#1877F2', label: 'Facebook' },
+                    { href: 'https://instagram.com/cars.na', icon: Instagram, bg: '#E1306C', label: 'Instagram' },
+                    { href: 'https://twitter.com/cars_na', icon: Twitter, bg: '#1DA1F2', label: 'Twitter/X' },
+                  ].map(s => {
+                    const Icon = s.icon;
                     return (
-                      <div key={index} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <IconComponent className="h-5 w-5 text-blue-600" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900">{method.title}</h3>
-                            <p className="text-sm text-gray-600 mb-2">{method.description}</p>
-                            <a
-                              href={method.action}
-                              className="text-blue-600 hover:text-blue-700 font-medium"
-                              target={method.action.startsWith('http') ? '_blank' : undefined}
-                              rel={method.action.startsWith('http') ? 'noopener noreferrer' : undefined}
-                            >
-                              {method.contact}
-                            </a>
-                            <p className="text-xs text-gray-500 mt-1">{method.available}</p>
-                          </div>
-                        </div>
-                      </div>
+                      <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
+                        className="w-10 h-10 rounded-xl text-white flex items-center justify-center hover:opacity-90 transition-opacity"
+                        style={{ background: s.bg }}
+                        aria-label={s.label}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </a>
                     );
                   })}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              {/* Office Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-blue-600" />
-                    Visit Our Office
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Cars.na Headquarters</h3>
-                      <p className="text-gray-600 mt-1">
-                        123 Independence Avenue<br />
-                        Windhoek Central<br />
-                        Windhoek, Namibia
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Clock className="h-4 w-4" />
-                      <div>
-                        <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
-                        <p>Saturday: 9:00 AM - 4:00 PM</p>
-                        <p>Sunday: Closed</p>
-                      </div>
-                    </div>
-
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => window.open('https://www.google.com/maps/search/?api=1&query=123+Independence+Avenue+Windhoek+Namibia', '_blank')}
-                    >
-                      <MapPin className="h-4 w-4 mr-2" />
-                      View on Google Maps
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Social Media */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Follow Us</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-3">
-                    <a
-                      href="https://facebook.com/cars.na"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center hover:bg-blue-700 transition-colors"
-                    >
-                      <Facebook className="h-5 w-5" />
-                    </a>
-                    <a
-                      href="https://instagram.com/cars.na"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg flex items-center justify-center hover:from-purple-600 hover:to-pink-600 transition-colors"
-                    >
-                      <Instagram className="h-5 w-5" />
-                    </a>
-                    <a
-                      href="https://twitter.com/cars_na"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-10 h-10 bg-blue-400 text-white rounded-lg flex items-center justify-center hover:bg-blue-500 transition-colors"
-                    >
-                      <Twitter className="h-5 w-5" />
-                    </a>
-                    <a
-                      href="https://linkedin.com/company/cars-na"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-10 h-10 bg-blue-700 text-white rounded-lg flex items-center justify-center hover:bg-blue-800 transition-colors"
-                    >
-                      <Linkedin className="h-5 w-5" />
-                    </a>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* FAQ teaser */}
+              <div className="bg-gray-900 rounded-2xl p-6 text-white">
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Quick answers</p>
+                <h3 className="text-base font-bold mb-2">Need fast help?</h3>
+                <p className="text-sm text-gray-400 mb-4">Browse our Help Center for instant answers to common questions.</p>
+                <a href="/help" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#CB2030] hover:underline">
+                  Visit Help Center <ArrowRight className="w-3.5 h-3.5" />
+                </a>
+              </div>
             </div>
           </div>
 
-          {/* Department Contact Cards */}
+          {/* Departments */}
           <div className="mt-12">
-            <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
-              Contact by Department
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {departments.map((dept, index) => {
-                const IconComponent = dept.icon;
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact by Department</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {departments.map(dept => {
+                const Icon = dept.icon;
                 return (
-                  <Card key={index} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6 text-center">
-                      <div className="w-16 h-16 bg-blue-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                        <IconComponent className="h-8 w-8 text-blue-600" />
-                      </div>
-                      <h3 className="font-bold text-gray-900 mb-2">{dept.title}</h3>
-                      <p className="text-sm text-gray-600 mb-4">{dept.description}</p>
-                      <div className="space-y-2">
-                        <a
-                          href={`mailto:${dept.email}`}
-                          className="block text-sm text-blue-600 hover:text-blue-700"
-                        >
-                          {dept.email}
-                        </a>
-                        <a
-                          href={`tel:${dept.phone.replace(/\s/g, '')}`}
-                          className="block text-sm text-blue-600 hover:text-blue-700"
-                        >
-                          {dept.phone}
-                        </a>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div key={dept.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'rgba(203,32,48,0.08)' }}>
+                      <Icon className="w-5 h-5 text-[#CB2030]" />
+                    </div>
+                    <h3 className="text-sm font-bold text-gray-900 mb-1">{dept.title}</h3>
+                    <p className="text-xs text-gray-500 mb-3">{dept.description}</p>
+                    <a href={`mailto:${dept.email}`} className="text-xs font-semibold text-[#CB2030] hover:underline">{dept.email}</a>
+                  </div>
                 );
               })}
             </div>
           </div>
 
-          {/* FAQ Section */}
-          <div className="mt-12">
-            <Card>
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl">Frequently Asked Questions</CardTitle>
-                <p className="text-gray-600">
-                  Quick answers to common questions. Can't find what you're looking for? Contact us!
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">How do I list my car for sale?</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Use our "Sell Your Car" wizard to create a listing. It's free and takes just a few minutes.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Is Cars.na free to use?</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Yes! Browsing and basic listings are free. Dealers can upgrade for premium features.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">How do I become a dealer partner?</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Visit our dealer registration page or contact our dealer support team directly.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Do you provide financing?</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      We provide a calculator tool. For actual financing, apply with your preferred dealership or bank.
-                    </p>
-                  </div>
+          {/* Mini FAQ */}
+          <div className="mt-12 bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Common Questions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+              {[
+                { q: 'How do I list my car for sale?', a: 'Use our "Sell Your Car" wizard — it\'s free and takes just a few minutes.' },
+                { q: 'Is Cars.na free to use?', a: 'Yes! Browsing and basic listings are free. Dealers can upgrade for premium features.' },
+                { q: 'How do I become a dealer partner?', a: 'Visit our dealer registration page or contact our dealer support team directly.' },
+                { q: 'Do you provide financing?', a: 'We offer a financing calculator. For actual loans, apply through your preferred bank or dealership.' },
+              ].map(({ q, a }) => (
+                <div key={q}>
+                  <p className="text-sm font-semibold text-gray-900 mb-1">{q}</p>
+                  <p className="text-sm text-gray-500">{a}</p>
                 </div>
-              </CardContent>
-            </Card>
+              ))}
+            </div>
           </div>
+
         </div>
       </div>
     </MainLayout>

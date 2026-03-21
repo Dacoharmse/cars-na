@@ -1,8 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Card } from './Card';
-import { Button } from './Button';
-import { Heart, Star, Gauge, Settings, Fuel, Palette } from 'lucide-react';
+import { Heart, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface VehicleCardProps {
@@ -35,7 +33,7 @@ const VehicleCard = React.forwardRef<HTMLDivElement, VehicleCardProps>(
     model,
     year,
     price,
-    originalPrice = undefined,
+    originalPrice,
     mileage,
     transmission,
     fuelType,
@@ -44,140 +42,98 @@ const VehicleCard = React.forwardRef<HTMLDivElement, VehicleCardProps>(
     dealer,
     location,
     isNew,
-    viewsLast30Days,
-    createdAt,
-    popularityRank,
     featured = false,
     dealerBoost = false,
     className,
     ...props
   }, ref) => {
     const router = useRouter();
-    const formatPrice = (price: number) => {
-      return `N$ ${price.toLocaleString()}`;
-    };
 
-    const formatMileage = (mileage: number) => {
-      return `${mileage.toLocaleString()} km`;
-    };
-
-    const handleViewDetails = () => {
-      router.push(`/vehicles/${id}`);
-    };
+    const formatPrice = (p: number) => `N$ ${p.toLocaleString()}`;
+    const formatMileage = (m: number) => `${m.toLocaleString()} km`;
 
     return (
-      <Card 
-        ref={ref} 
+      <div
+        ref={ref}
+        onClick={() => router.push(`/vehicles/${id}`)}
         className={cn(
-          'overflow-hidden transition-all duration-200 hover:shadow-lg',
-          dealerBoost && 'ring-2 ring-primary-500 shadow-md',
+          'bg-white rounded-lg border border-gray-200 overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md hover:border-gray-300 group',
           className
         )}
+        role="article"
         {...props}
       >
+        {/* Image */}
         <div className="relative">
           <img
             src={image}
-            alt={`${year} ${make} ${model} - ${color} color, ${formatMileage(mileage)}`}
-            className="w-full h-48 object-cover"
+            alt={`${year} ${make} ${model}`}
+            className="w-full h-36 sm:h-44 object-cover group-hover:scale-[1.02] transition-transform duration-300"
             loading="lazy"
           />
-          
-          {/* Featured/Dealer Boost Badge */}
-          {dealerBoost && (
-            <div className="absolute top-2 left-2 bg-primary-600 text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-              <Star className="w-3 h-3 fill-current" aria-hidden="true" />
-              Top Pick
-            </div>
-          )}
-          
-          {featured && !dealerBoost && (
-            <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded-md text-xs font-medium">
-              Featured
-            </div>
-          )}
 
-          {/* Favorite Button */}
-          <button 
-            className="absolute top-2 right-2 p-2 bg-white/80 hover:bg-white rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          {/* Favorite */}
+          <button
+            onClick={(e) => { e.stopPropagation(); }}
+            className="absolute top-2 right-2 p-1.5 bg-white/80 hover:bg-white rounded-full transition-colors"
             aria-label={`Add ${year} ${make} ${model} to favorites`}
           >
-            <Heart className="w-4 h-4 text-neutral-600 hover:text-red-500" aria-hidden="true" />
+            <Heart className="w-3.5 h-3.5 text-gray-500 hover:text-red-500" />
           </button>
+
+          {/* Badges */}
+          {dealerBoost && (
+            <span className="absolute top-2 left-2 bg-[#CB2030] text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+              Top Pick
+            </span>
+          )}
+          {featured && !dealerBoost && (
+            <span className="absolute top-2 left-2 bg-gray-900 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+              Featured
+            </span>
+          )}
+          {isNew && (
+            <span className="absolute bottom-2 left-2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+              New
+            </span>
+          )}
         </div>
 
-        <div className="p-4">
-          {/* Vehicle Title */}
-          <h3 className="font-semibold text-lg text-neutral-900 mb-2">
-            <span className="sr-only">Vehicle:</span>
+        {/* Content */}
+        <div className="p-3 sm:p-4">
+          {/* Title */}
+          <h3 className="font-semibold text-sm sm:text-base text-gray-900 leading-tight mb-1 line-clamp-1">
             {year} {make} {model}
           </h3>
 
+          {/* Specs row */}
+          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-400 mb-2">
+            <span>{formatMileage(mileage)}</span>
+            <span className="text-gray-300">·</span>
+            <span>{transmission}</span>
+            <span className="text-gray-300">·</span>
+            <span>{fuelType}</span>
+          </div>
+
+          {/* Location */}
+          <div className="flex items-center gap-1 text-[11px] sm:text-xs text-gray-400 mb-3">
+            <MapPin className="w-3 h-3 shrink-0" />
+            <span className="truncate">{location}</span>
+          </div>
+
           {/* Price */}
-          <div className="mb-3">
-            <div className="text-2xl font-bold text-primary-600">
-              <span className="sr-only">Current price:</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-base sm:text-lg font-bold text-[#CB2030]">
               {formatPrice(price)}
-            </div>
+            </span>
             {originalPrice && originalPrice > price && (
-              <div className="text-sm text-neutral-500 line-through">
-                <span className="sr-only">Original price:</span>
+              <span className="text-xs text-gray-400 line-through">
                 {formatPrice(originalPrice)}
-              </div>
+              </span>
             )}
           </div>
-
-          {/* Vehicle Details */}
-          <div className="grid grid-cols-2 gap-2 text-sm text-neutral-600 mb-4">
-            <div className="flex items-center gap-2">
-              <Gauge className="w-4 h-4 text-neutral-500" aria-hidden="true" />
-              <span className="sr-only">Mileage:</span>
-              {formatMileage(mileage)}
-            </div>
-            <div className="flex items-center gap-2">
-              <Settings className="w-4 h-4 text-neutral-500" aria-hidden="true" />
-              <span className="sr-only">Transmission:</span>
-              {transmission}
-            </div>
-            <div className="flex items-center gap-2">
-              <Fuel className="w-4 h-4 text-neutral-500" aria-hidden="true" />
-              <span className="sr-only">Fuel type:</span>
-              {fuelType}
-            </div>
-            <div className="flex items-center gap-2">
-              <Palette className="w-4 h-4 text-neutral-500" aria-hidden="true" />
-              <span className="sr-only">Color:</span>
-              {color}
-            </div>
-          </div>
-
-          {/* Dealer Info */}
-          <div className="text-sm text-neutral-500 mb-4">
-            <div className="font-medium">{dealer}</div>
-            <div>{location}</div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={handleViewDetails}
-              aria-label={`View details for ${year} ${make} ${model}`}
-            >
-              View Details
-            </Button>
-            <Button 
-              size="sm" 
-              className="flex-1"
-              aria-label={`Contact dealer about ${year} ${make} ${model}`}
-            >
-              Contact Dealer
-            </Button>
-          </div>
         </div>
-      </Card>
+      </div>
     );
   }
 );

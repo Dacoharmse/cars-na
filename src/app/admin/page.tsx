@@ -3405,6 +3405,7 @@ function AdminDashboardContent() {
     { name: 'Subscriptions', icon: CreditCard, id: 'subscriptions', current: activeTab === 'subscriptions' },
     { name: 'Invoices', icon: FileText, id: 'invoices', current: activeTab === 'invoices' },
     { name: 'Featured Requests', icon: Crown, id: 'featured-requests', current: activeTab === 'featured-requests' },
+    { name: 'Events', icon: Calendar, id: 'events', current: activeTab === 'events' },
     { name: 'Advertisements', icon: Image, id: 'advertisements', current: activeTab === 'advertisements' },
     { name: 'Moderation', icon: Flag, id: 'moderation', current: activeTab === 'moderation' },
     { name: 'Analytics', icon: BarChart3, id: 'analytics', current: activeTab === 'analytics' },
@@ -3857,6 +3858,7 @@ function AdminDashboardContent() {
                     {activeTab === 'dealers' && 'Manage dealership accounts'}
                     {activeTab === 'listings' && 'Manage vehicle listings'}
                     {activeTab === 'sell-your-car' && 'Review and approve user-submitted vehicle listings'}
+                    {activeTab === 'events' && 'Create and manage upcoming events'}
                     {activeTab === 'moderation' && 'Content moderation tools'}
                     {activeTab === 'analytics' && 'Platform analytics and reports'}
                     {activeTab === 'settings' && 'Platform configuration'}
@@ -9046,8 +9048,13 @@ function AdminDashboardContent() {
             </div>
           )}
 
+          {/* Events Tab */}
+          {activeTab === 'events' && (
+            <EventsAdminPanel />
+          )}
+
           {/* Other tabs content */}
-          {activeTab !== 'overview' && activeTab !== 'users' && activeTab !== 'dealers' && activeTab !== 'listings' && activeTab !== 'subscriptions' && activeTab !== 'moderation' && activeTab !== 'analytics' && activeTab !== 'settings' && activeTab !== 'featured-requests' && activeTab !== 'invoices' && activeTab !== 'sell-your-car' && activeTab !== 'advertisements' && activeTab !== 'messages' && (
+          {activeTab !== 'overview' && activeTab !== 'users' && activeTab !== 'dealers' && activeTab !== 'listings' && activeTab !== 'subscriptions' && activeTab !== 'moderation' && activeTab !== 'analytics' && activeTab !== 'settings' && activeTab !== 'featured-requests' && activeTab !== 'invoices' && activeTab !== 'sell-your-car' && activeTab !== 'advertisements' && activeTab !== 'messages' && activeTab !== 'events' && (
             <div className="text-center py-12">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {navigation.find(nav => nav.id === activeTab)?.name} Section
@@ -12420,6 +12427,288 @@ function AdminDashboardContent() {
             >
               Close
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+/* ── Events Admin Panel ────────────────────────────────────────── */
+function EventsAdminPanel() {
+  const EMPTY_FORM = {
+    title: '', description: '', date: '', endDate: '',
+    location: '', venue: '', category: '', imageUrl: '',
+    externalUrl: '', isFeatured: false, isPublished: true,
+  };
+
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+  const [deleting, setDeleting] = useState<any>(null);
+  const [form, setForm] = useState<any>(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+
+  const CATEGORIES = ['Car Show', 'Auction', 'Expo', 'Track Day', 'Other'];
+
+  const fetchEvents = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/events?all=1&limit=100');
+      const data = await res.json();
+      setEvents(Array.isArray(data) ? data : []);
+    } catch { setEvents([]); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchEvents(); }, []);
+
+  const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setShowForm(true); };
+  const openEdit = (ev: any) => {
+    setEditing(ev);
+    setForm({
+      title: ev.title,
+      description: ev.description || '',
+      date: ev.date ? ev.date.slice(0, 16) : '',
+      endDate: ev.endDate ? ev.endDate.slice(0, 16) : '',
+      location: ev.location || '',
+      venue: ev.venue || '',
+      category: ev.category || '',
+      imageUrl: ev.imageUrl || '',
+      externalUrl: ev.externalUrl || '',
+      isFeatured: ev.isFeatured,
+      isPublished: ev.isPublished,
+    });
+    setShowForm(true);
+  };
+  const closeForm = () => { setShowForm(false); setEditing(null); setForm(EMPTY_FORM); };
+
+  const handleSave = async () => {
+    if (!form.title || !form.date) return alert('Title and date are required.');
+    setSaving(true);
+    try {
+      const url = editing ? `/api/events/${editing.id}` : '/api/events';
+      const method = editing ? 'PUT' : 'POST';
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      if (!res.ok) throw new Error('Failed');
+      closeForm();
+      await fetchEvents();
+    } catch { alert('Failed to save event. Please try again.'); }
+    finally { setSaving(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!deleting) return;
+    try {
+      const res = await fetch(`/api/events/${deleting.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed');
+      setDeleting(null);
+      await fetchEvents();
+    } catch { alert('Failed to delete event.'); }
+  };
+
+  const upcomingCount = events.filter(e => new Date(e.date) >= new Date()).length;
+  const publishedCount = events.filter(e => e.isPublished).length;
+  const featuredCount = events.filter(e => e.isFeatured).length;
+
+  const inputCls = 'w-full h-9 px-3 rounded-md border border-gray-300 text-sm text-gray-900 focus:outline-none focus:border-[#CB2030] focus:ring-2 focus:ring-[#CB2030]/10 bg-white';
+  const labelCls = 'block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1';
+
+  return (
+    <div className="space-y-6">
+      {/* Stats row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Events', value: events.length, icon: Calendar },
+          { label: 'Upcoming', value: upcomingCount, icon: Clock },
+          { label: 'Published', value: publishedCount, icon: CheckCircle },
+          { label: 'Featured', value: featuredCount, icon: Star },
+        ].map(({ label, value, icon: Icon }) => (
+          <Card key={label}>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#CB2030' }}>
+                <Icon className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <p className="text-xl font-extrabold text-gray-900">{value}</p>
+                <p className="text-xs text-gray-500">{label}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Table card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-bold">All Events</CardTitle>
+            <Button size="sm" style={{ background: '#CB2030' }} className="text-white hover:opacity-90" onClick={openCreate}>
+              <Plus className="w-4 h-4 mr-1.5" /> New Event
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-8 text-center text-sm text-gray-400">Loading events…</div>
+          ) : events.length === 0 ? (
+            <div className="p-12 text-center">
+              <Calendar className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+              <p className="text-sm font-semibold text-gray-500 mb-1">No events yet</p>
+              <p className="text-xs text-gray-400 mb-4">Create your first event to display it in the nav and events page.</p>
+              <Button size="sm" style={{ background: '#CB2030' }} className="text-white hover:opacity-90" onClick={openCreate}>
+                <Plus className="w-4 h-4 mr-1.5" /> Create Event
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Event</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {events.map(ev => {
+                    const isPast = new Date(ev.date) < new Date();
+                    return (
+                      <tr key={ev.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="font-semibold text-gray-900 truncate max-w-[200px]">{ev.title}</div>
+                          {ev.isFeatured && (
+                            <span className="text-[10px] font-bold text-amber-600 uppercase">Featured</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                          {new Date(ev.date).toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {isPast && <span className="ml-1.5 text-[10px] text-gray-400 font-semibold uppercase">Past</span>}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate">{ev.location || '—'}</td>
+                        <td className="px-4 py-3">
+                          {ev.category ? (
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{ev.category}</span>
+                          ) : '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${ev.isPublished ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                            {ev.isPublished ? 'Published' : 'Draft'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button onClick={() => openEdit(ev)} className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => setDeleting(ev)} className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Create / Edit Dialog */}
+      <Dialog open={showForm} onOpenChange={open => { if (!open) closeForm(); }}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editing ? 'Edit Event' : 'New Event'}</DialogTitle>
+            <DialogDescription>Fill in the details below. Title and date are required.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className={labelCls}>Title *</label>
+              <input className={inputCls} value={form.title} onChange={e => setForm((f: any) => ({ ...f, title: e.target.value }))} placeholder="e.g. Windhoek Classic Car Show 2026" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Start Date & Time *</label>
+                <input type="datetime-local" className={inputCls} value={form.date} onChange={e => setForm((f: any) => ({ ...f, date: e.target.value }))} />
+              </div>
+              <div>
+                <label className={labelCls}>End Date & Time</label>
+                <input type="datetime-local" className={inputCls} value={form.endDate} onChange={e => setForm((f: any) => ({ ...f, endDate: e.target.value }))} />
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Category</label>
+              <select className={inputCls} value={form.category} onChange={e => setForm((f: any) => ({ ...f, category: e.target.value }))}>
+                <option value="">— Select category —</option>
+                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Venue / Venue Name</label>
+                <input className={inputCls} value={form.venue} onChange={e => setForm((f: any) => ({ ...f, venue: e.target.value }))} placeholder="e.g. NWR Showgrounds" />
+              </div>
+              <div>
+                <label className={labelCls}>City / Location</label>
+                <input className={inputCls} value={form.location} onChange={e => setForm((f: any) => ({ ...f, location: e.target.value }))} placeholder="e.g. Windhoek" />
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Description</label>
+              <textarea
+                rows={3}
+                className={`${inputCls} h-auto py-2 resize-none`}
+                value={form.description}
+                onChange={e => setForm((f: any) => ({ ...f, description: e.target.value }))}
+                placeholder="Short description shown on the events page…"
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Image URL</label>
+              <input className={inputCls} value={form.imageUrl} onChange={e => setForm((f: any) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://..." />
+            </div>
+            <div>
+              <label className={labelCls}>External URL (tickets / more info)</label>
+              <input className={inputCls} value={form.externalUrl} onChange={e => setForm((f: any) => ({ ...f, externalUrl: e.target.value }))} placeholder="https://..." />
+            </div>
+            <div className="flex items-center gap-6 pt-1">
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+                <input type="checkbox" checked={form.isPublished} onChange={e => setForm((f: any) => ({ ...f, isPublished: e.target.checked }))} className="accent-[#CB2030] w-4 h-4" />
+                Published (visible on site)
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+                <input type="checkbox" checked={form.isFeatured} onChange={e => setForm((f: any) => ({ ...f, isFeatured: e.target.checked }))} className="accent-[#CB2030] w-4 h-4" />
+                Featured (highlighted)
+              </label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeForm} disabled={saving}>Cancel</Button>
+            <Button onClick={handleSave} disabled={saving} style={{ background: '#CB2030' }} className="text-white hover:opacity-90">
+              {saving ? 'Saving…' : editing ? 'Save Changes' : 'Create Event'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <Dialog open={!!deleting} onOpenChange={open => { if (!open) setDeleting(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Event</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <strong>{deleting?.title}</strong>? This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleting(null)}>Cancel</Button>
+            <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

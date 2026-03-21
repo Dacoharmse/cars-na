@@ -220,3 +220,12 @@
 .animate-glow-pulse {
   animation: glow-pulse 4s ease-in-out infinite;
 }
+
+/* Vertical line reveal — rugged accent */
+@keyframes line-reveal-vertical {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+.animate-line-reveal-vertical {
+  animation: line-reveal-vertical 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}

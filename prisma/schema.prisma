@@ -979,3 +979,24 @@ model Invoice {
   @@index([status])
   @@index([dueDate])
 }
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  date        DateTime
+  endDate     DateTime?
+  location    String?
+  venue       String?
+  category    String?   // "Car Show", "Auction", "Expo", "Track Day", "Other"
+  imageUrl    String?
+  externalUrl String?
+  isFeatured  Boolean   @default(false)
+  isPublished Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+  @@index([isPublished])
+}
