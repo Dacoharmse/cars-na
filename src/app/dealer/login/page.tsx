@@ -59,7 +59,7 @@ export default function DealerLogin() {
   const isFormValid = formData.email.trim() && formData.password.trim();
 
   return (
-    <div className="min-h-screen flex" style={{ marginTop: '-86px' }}>
+    <div className="flex" style={{ minHeight: '100dvh', marginTop: '-86px' }}>
       {/* ── LEFT PANEL: Brand ── */}
       <div className="hidden lg:flex lg:w-[45%] xl:w-[40%] bg-gray-900 flex-col relative overflow-hidden">
         {/* Subtle red accent top border */}
