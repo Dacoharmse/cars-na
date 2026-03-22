@@ -1,0 +1,1043 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User model for authentication and role-based access
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(USER)
+
+  // User status and admin fields
+  status        UserStatus @default(ACTIVE)
+  isActive      Boolean    @default(true)
+  isSuspended   Boolean    @default(false)
+  suspendReason String?
+  suspendedAt   DateTime?
+  suspendedBy   String?
+  lastLoginAt   DateTime?
+  loginCount    Int        @default(0)
+
+  // Profile fields
+  phone       String?
+  dateOfBirth DateTime?
+  address     String?
+  city        String?
+  region      String?
+  postalCode  String?
+
+  // Sales profile fields
+  jobTitle        String? // e.g., "Senior Sales Executive", "Sales Manager"
+  bio             String? // Short bio for public profile
+  whatsappNumber  String? // Personal WhatsApp for sales
+  specialties     String? // Comma-separated: "Luxury Cars,SUVs,Commercial Vehicles"
+  yearsExperience Int?    // Years in automotive sales
+  languages       String? // Comma-separated: "English,Afrikaans,German"
+  profileImage    String? // Profile photo URL
+  isPublicProfile Boolean @default(true) // Show in dealer sales team
+  displayOrder    Int?    // Order in sales team display
+
+  // Email verification fields
+  verificationToken   String?
+  verificationExpires DateTime?
+
+  // Password reset fields
+  resetToken   String?
+  resetExpires DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  dealership   Dealership? @relation(fields: [dealershipId], references: [id])
+  dealershipId String?
+
+  // Auth relations
+  accounts Account[]
+  sessions Session[]
+
+  // Audit trail
+  auditLogs UserAuditLog[]
+
+  // Vehicle listing relations
+  vehicleListings    UserVehicleListing[]
+  dealerInterests    DealerInterest[]
+  notifications      Notification[]
+  markedPaidInvoices Invoice[]           @relation("InvoicePaidBy")
+  listingActivities  ListingActivity[]   @relation("ListingActivities")
+}
+
+// Dealership model for car dealerships
+model Dealership {
+  id                 String           @id @default(cuid())
+  name               String
+  slug               String?          @unique // Unique URL slug for public profile
+  businessType       String?
+  registrationNumber String?
+  taxNumber          String?
+  contactPerson      String?
+  phone              String?
+  alternatePhone     String?
+  streetAddress      String?
+  city               String?
+  region             String?
+  postalCode         String?
+  googleMapsUrl      String?
+  website            String?
+  logo               String?
+  coverImage         String? // Banner/cover image for profile
+  description        String?
+  email              String? // Public contact email
+  whatsappNumber     String? // WhatsApp contact number
+  facebookUrl        String? // Social media links
+  instagramUrl       String?
+  twitterUrl         String?
+  linkedinUrl        String?
+  openingHours       String? // Business hours
+  specializations    String? // Comma-separated specializations
+  status             DealershipStatus @default(PENDING)
+  isVerified         Boolean          @default(false)
+  isFeatured         Boolean          @default(false) // Featured dealership on homepage
+  profileViews       Int              @default(0) // Total profile views
+  responseTime       String?          @default("< 1 hour") // Average response time
+
+  // Special offer/highlight section
+  highlightTitle       String? // Title for special offer/highlight (e.g., "Special Offer")
+  highlightDescription String? // Short description for the highlight
+  highlightActive      Boolean          @default(false) // Whether to show the highlight
+
+  // Invoice / access control
+  accessRestrictedAt DateTime? // Set when invoice is 7+ days overdue
+
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  // Relations
+  users                   User[]
+  vehicles                Vehicle[]
+  leads                   Lead[]
+  subscription            DealershipSubscription?
+  featuredListings        FeaturedListing[]
+  notifications           SubscriptionNotification[]
+  featuredRequests        FeaturedDealershipRequest[]
+  featuredListingRequests FeaturedListingRequest[]
+  dealerInterests         DealerInterest[]
+  inquiries               DealershipInquiry[]
+  invoices                Invoice[]
+  listingActivities       ListingActivity[]
+}
+
+// Vehicle model for car listings
+model Vehicle {
+  id            String          @id @default(cuid())
+  category      VehicleCategory @default(CARS) // Vehicle category
+  make          String // Manufacturer/Brand
+  model         String
+  year          Int
+  price         Float
+  originalPrice Float? // For discounted vehicles
+  mileage       Int? // Optional for some categories like new equipment
+  color         String?
+  vin           String?         @unique
+  internalRef   String? // Internal reference for dealership use
+  description   String?
+  transmission  String?
+  fuelType      String?
+  bodyType      String?
+
+  // Category-specific fields
+  engineCapacity    String? // For cars, motorcycles
+  horsepower        Int? // For cars, trucks, motorcycles
+  loadCapacity      Float? // For trucks (in tons)
+  passengerCapacity Int? // For buses
+  length            Float? // For boats (in meters)
+  weight            Float? // For industrial machinery (in kg)
+
+  // Features
+  comfortFeatures String[] @default([]) // Array of comfort feature names
+  safetyFeatures  String[] @default([]) // Array of safety feature names
+
+  isPrivate  Boolean       @default(false)
+  status     VehicleStatus @default(AVAILABLE)
+  isNew      Boolean       @default(false) // Whether the vehicle is brand new or used
+  dealerPick Boolean       @default(false) // Whether this is a dealer-selected premium vehicle
+  featured   Boolean       @default(false) // Whether this is a featured vehicle
+  viewCount  Int           @default(0) // Number of times the vehicle listing was viewed
+
+  // Deal/Promotion fields
+  dealActive  Boolean   @default(false) // Whether this vehicle has an active deal
+  dealTitle   String? // Deal title (e.g., "Summer Sale", "Clearance")
+  dealEndDate DateTime? // When the deal expires
+  dealBadge   String? // Badge text (e.g., "HOT DEAL", "LIMITED TIME")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  dealership              Dealership               @relation(fields: [dealershipId], references: [id])
+  dealershipId            String
+  images                  VehicleImage[]
+  leads                   Lead[]
+  featuredListings        FeaturedListing[]
+  featuredListingRequests FeaturedListingRequest[]
+
+  // Indexes for better query performance
+  @@index([status])
+  @@index([featured, status])
+  @@index([dealerPick, status])
+  @@index([isNew, status])
+  @@index([viewCount])
+  @@index([createdAt])
+  @@index([dealershipId])
+  @@index([status, createdAt])
+}
+
+// VehicleImage model for car images
+model VehicleImage {
+  id           String   @id @default(cuid())
+  url          String   @db.Text // Use Text type to support large base64 strings
+  isPrimary    Boolean  @default(false)
+  displayOrder Int      @default(0) // Order for displaying images
+  createdAt    DateTime @default(now())
+
+  // Relations
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId String
+}
+
+// Lead model for customer inquiries
+model Lead {
+  id            String     @id @default(cuid())
+  customerName  String
+  customerEmail String
+  customerPhone String?
+  message       String?
+  source        LeadSource @default(CONTACT_FORM)
+  status        LeadStatus @default(NEW)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations (vehicleId is optional for general inquiries)
+  vehicle      Vehicle?   @relation(fields: [vehicleId], references: [id])
+  vehicleId    String?
+  dealership   Dealership @relation(fields: [dealershipId], references: [id])
+  dealershipId String
+  messages     LeadMessage[]
+}
+
+// Lead Message model for conversation threads
+model LeadMessage {
+  id        String          @id @default(cuid())
+  leadId    String
+  lead      Lead            @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  // Message content
+  content   String
+
+  // Sender information
+  senderType LeadMessageSenderType
+  senderName String
+  senderId   String?         // User ID if sent by dealership staff
+
+  // Email tracking
+  emailSent   Boolean   @default(false)
+  emailSentAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+enum LeadMessageSenderType {
+  CUSTOMER
+  DEALERSHIP
+}
+
+// NextAuth.js models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// User audit log model for tracking admin actions
+model UserAuditLog {
+  id          String          @id @default(cuid())
+  userId      String
+  action      UserAuditAction
+  details     String?
+  performedBy String
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime        @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  DEALER_PRINCIPAL
+  SALES_EXECUTIVE
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+  INACTIVE
+}
+
+enum UserAuditAction {
+  CREATED
+  UPDATED
+  DELETED
+  SUSPENDED
+  ACTIVATED
+  PASSWORD_RESET
+  EMAIL_VERIFIED
+  LOGIN
+  LOGOUT
+  ROLE_CHANGED
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  SOLD
+  PENDING
+  RESERVED
+}
+
+enum LeadSource {
+  CONTACT_FORM
+  WHATSAPP
+  PHONE_CALL
+  EMAIL
+  WALK_IN
+  WEBSITE
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  INTERESTED
+  QUALIFIED
+  CONVERTED
+  CLOSED
+}
+
+enum DealershipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+// Subscription Plans model
+model SubscriptionPlan {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  price       Float
+  currency    String   @default("NAD")
+  duration    Int // Duration in months
+  features    Json // JSON array of features
+  maxListings Int      @default(0) // 0 = unlimited
+  maxPhotos   Int      @default(5)
+  priority    Int      @default(0) // Higher number = higher priority
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  subscriptions DealershipSubscription[]
+}
+
+// Dealership Subscriptions
+model DealershipSubscription {
+  id           String             @id @default(cuid())
+  dealershipId String
+  planId       String
+  status       SubscriptionStatus @default(ACTIVE)
+  startDate    DateTime           @default(now())
+  endDate      DateTime
+  autoRenew    Boolean            @default(true)
+
+  // Payment tracking
+  paystackCustomerId     String?
+  paystackSubscriptionId String?
+  lastPaymentDate        DateTime?
+  nextPaymentDate        DateTime?
+
+  // Usage tracking
+  currentListings      Int @default(0)
+  listingsUsed         Int @default(0)
+  featuredListingsUsed Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  dealership     Dealership       @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+  plan           SubscriptionPlan @relation(fields: [planId], references: [id])
+  payments       Payment[]
+  usageAnalytics UsageAnalytics[]
+
+  @@unique([dealershipId])
+}
+
+// Payment history
+model Payment {
+  id             String        @id @default(cuid())
+  subscriptionId String
+  amount         Float
+  currency       String        @default("NAD")
+  status         PaymentStatus @default(PENDING)
+  paymentMethod  PaymentMethod @default(PAYSTACK)
+
+  // Paystack integration
+  paystackPaymentId String?
+  paystackReference String?
+
+  // Payment details
+  description String?
+  metadata    Json?
+
+  paidAt       DateTime?
+  failedAt     DateTime?
+  refundedAt   DateTime?
+  refundAmount Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  subscription DealershipSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+// Usage Analytics for subscriptions
+model UsageAnalytics {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  date           DateTime @default(now())
+
+  // Metrics
+  listingsViewed      Int @default(0)
+  leadGenerated       Int @default(0)
+  inquiriesReceived   Int @default(0)
+  phoneCallsReceived  Int @default(0)
+  featuredImpressions Int @default(0)
+  heroImpressions     Int @default(0)
+
+  // Performance metrics
+  conversionRate  Float?
+  averageViewTime Int? // In seconds
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  subscription DealershipSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, date])
+}
+
+// Featured Listings for subscription benefits
+model FeaturedListing {
+  id           String       @id @default(cuid())
+  vehicleId    String
+  dealershipId String
+  type         FeaturedType @default(STANDARD)
+  startDate    DateTime     @default(now())
+  endDate      DateTime
+  isActive     Boolean      @default(true)
+  priority     Int          @default(0)
+
+  // Placement tracking
+  impressions Int @default(0)
+  clicks      Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  vehicle    Vehicle    @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  dealership Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+}
+
+// Subscription notification system
+model SubscriptionNotification {
+  id           String           @id @default(cuid())
+  dealershipId String
+  type         NotificationType
+  title        String
+  message      String
+  isRead       Boolean          @default(false)
+  actionUrl    String?
+
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  // Relations
+  dealership Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+}
+
+// Enums for subscription system
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  SUSPENDED
+  PENDING_PAYMENT
+  PAST_DUE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  PAYSTACK
+  BANK_TRANSFER
+  CASH
+  CHEQUE
+}
+
+enum FeaturedType {
+  STANDARD
+  HERO
+  CAROUSEL
+  TOP_SEARCH
+  NEWSLETTER
+}
+
+enum NotificationType {
+  PAYMENT_DUE
+  PAYMENT_FAILED
+  SUBSCRIPTION_EXPIRING
+  PLAN_UPGRADED
+  PLAN_DOWNGRADED
+  FEATURE_LIMIT_REACHED
+  USAGE_SUMMARY
+  NEW_LISTING
+  LISTING_APPROVED
+  LISTING_REJECTED
+  DEALER_INTEREST
+  OFFER_RECEIVED
+  MESSAGE_RECEIVED
+  LISTING_SOLD
+  INVOICE_GENERATED
+  INVOICE_OVERDUE
+  INVOICE_PAID
+  ACCESS_RESTRICTED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// Banner model for homepage advertising
+model Banner {
+  id          String         @id @default(cuid())
+  title       String
+  subtitle    String?
+  description String?
+  imageUrl    String?
+  linkUrl     String?
+  buttonText  String?
+  isActive    Boolean        @default(true)
+  position    BannerPosition @default(MAIN)
+  priority    Int            @default(0) // Higher number = higher priority
+  startDate   DateTime?
+  endDate     DateTime?
+
+  // Styling options
+  backgroundColor String?
+  textColor       String?
+  overlayOpacity  Float?  @default(0.5)
+
+  // Tracking
+  impressions Int @default(0)
+  clicks      Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  createdBy String // User ID who created the banner
+}
+
+enum BannerPosition {
+  MAIN // Main banner area (where "Partner with Cars.na" is)
+  HERO // Hero section
+  SIDEBAR // Sidebar banners
+  FOOTER // Footer banners
+  BETWEEN // Between sections
+}
+
+enum VehicleCategory {
+  CARS // Passenger vehicles, sedans, hatchbacks, SUVs
+  TRUCKS // Pickup trucks, delivery vehicles, commercial trucks
+  MOTORCYCLES // Motorcycles, scooters, bicycles, ATVs
+  BUSES // Passenger buses, minibuses, coaches
+  INDUSTRIAL_MACHINERY // Construction equipment, industrial machines
+  TRACTORS // Agricultural tractors, farm machinery
+  BOATS // Boats, jet-skis, marine equipment
+  ACCESSORIES // Vehicle parts, accessories, equipment
+}
+
+// Promo Code model for discount codes
+model PromoCode {
+  id              String            @id @default(cuid())
+  code            String            @unique
+  discountType    PromoDiscountType @default(PERCENTAGE)
+  discountValue   Float // Percentage (0-100) or fixed amount in cents
+  startDate       DateTime?
+  endDate         DateTime?
+  usageLimit      Int? // Null = unlimited
+  usageCount      Int               @default(0)
+  isActive        Boolean           @default(true)
+  applicablePlans String[] // Array of plan IDs this promo applies to
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String // User ID who created the promo code
+}
+
+enum PromoDiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+// Platform Settings model for storing admin configuration
+model PlatformSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique // Unique identifier for the setting (e.g., "general", "security", "payment")
+  value     Json // JSON object containing all settings for this section
+  updatedAt DateTime @updatedAt
+  updatedBy String? // User ID who last updated this setting
+}
+
+// Featured Dealership Request model
+model FeaturedDealershipRequest {
+  id              String                @id @default(cuid())
+  dealershipId    String
+  duration        Int // Duration in days (7, 14, 30, etc.)
+  amount          Float // Cost for featured placement
+  status          FeaturedRequestStatus @default(PENDING)
+  requestedAt     DateTime              @default(now())
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  startDate       DateTime? // When featured period starts
+  endDate         DateTime? // When featured period ends
+  approvedBy      String? // Admin user ID who approved
+  rejectedBy      String? // Admin user ID who rejected
+  rejectionReason String? // Reason for rejection
+  notes           String? // Additional notes from dealer
+
+  // Payment tracking
+  paymentId     String? // Reference to Payment record
+  paymentStatus PaymentStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  dealership Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+}
+
+enum FeaturedRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+// Featured Listing Request - for individual vehicle listings
+model FeaturedListingRequest {
+  id              String                @id @default(cuid())
+  vehicleId       String
+  dealershipId    String
+  duration        Int // Duration in days (7, 14, 30, etc.)
+  amount          Float // Cost for featured listing
+  status          FeaturedRequestStatus @default(PENDING)
+  requestedAt     DateTime              @default(now())
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  startDate       DateTime? // When featured period starts
+  endDate         DateTime? // When featured period ends
+  approvedBy      String? // Admin user ID who approved
+  rejectedBy      String? // Admin user ID who rejected
+  rejectionReason String? // Reason for rejection
+  notes           String? // Additional notes from dealer
+
+  // Payment tracking
+  paymentId     String? // Reference to Payment record
+  paymentStatus PaymentStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  vehicle    Vehicle    @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  dealership Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+}
+
+
+// User Vehicle Listing - When regular users want to sell their vehicles to dealerships
+model UserVehicleListing {
+  id String @id @default(cuid())
+
+  // User information
+  userId    String?
+  user      User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName  String
+  userEmail String
+  userPhone String
+
+  // Vehicle details
+  category        VehicleCategory
+  make            String
+  model           String
+  year            Int
+  mileage         Int?
+  condition       String
+  price           Float
+  negotiable      Boolean          @default(true)
+  color           String?
+  transmission    String?
+  fuelType        String?
+  vin             String?
+  registrationNo  String?
+
+  // Location
+  city   String?
+  region String?
+
+  // Description and images
+  description String
+  images      String[]
+
+  // Additional details
+  hasAccident      Boolean @default(false)
+  serviceHistory   Boolean @default(false)
+  numberOfOwners   Int?
+  reason           String?
+  availableForTest Boolean @default(true)
+
+  // Status tracking
+  status          ListingStatus @default(PENDING)
+  viewCount       Int           @default(0)
+  interestedCount Int           @default(0)
+
+  // Interest from dealerships
+  interests  DealerInterest[]
+  activities ListingActivity[]
+
+  // Admin moderation
+  moderatedBy     String?
+  moderatedAt     DateTime?
+  rejectionReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([category])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Dealer interest in user vehicle listings
+model DealerInterest {
+  id String @id @default(cuid())
+
+  // Relations
+  listingId    String
+  listing      UserVehicleListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  dealershipId String
+  dealership   Dealership         @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Interest details
+  offerPrice Float?
+  message    String?
+  status     InterestStatus @default(PENDING)
+
+  // Contact tracking
+  contacted   Boolean   @default(false)
+  contactedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([listingId, dealershipId])
+  @@index([dealershipId])
+  @@index([status])
+}
+
+// Activity log for vehicle listings — tracks dealer views, contacts, interest
+model ListingActivity {
+  id String @id @default(cuid())
+
+  // Which listing
+  listingId String
+  listing   UserVehicleListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  // Which dealership performed the action
+  dealershipId String
+  dealership   Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+
+  // Which user (optional, for granularity)
+  userId String?
+  user   User?  @relation("ListingActivities", fields: [userId], references: [id], onDelete: SetNull)
+
+  // Action type
+  action ListingActionType
+
+  // Optional metadata (e.g., contact method, offer amount)
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([listingId, createdAt])
+  @@index([dealershipId])
+  @@index([listingId, dealershipId])
+}
+
+enum ListingActionType {
+  VIEWED           // Dealership opened the listing details
+  EXPRESSED_INTEREST // Dealership submitted interest form
+  CALLED_SELLER    // Dealership clicked call button
+  EMAILED_SELLER   // Dealership clicked email button
+  WHATSAPP_SELLER  // Dealership clicked WhatsApp button
+  STATUS_CHANGED   // Listing status changed (sold, etc.)
+}
+
+// Notification system
+model Notification {
+  id String @id @default(cuid())
+
+  // Recipient
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Notification details
+  type    NotificationType
+  title   String
+  message String
+  link    String?
+
+  // Metadata
+  metadata Json?
+
+  // Status
+  read   Boolean   @default(false)
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+// Enums for the new models
+enum ListingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SOLD
+  EXPIRED
+  DELETED
+}
+
+enum InterestStatus {
+  PENDING
+  CONTACTED
+  NEGOTIATING
+  ACCEPTED
+  DECLINED
+  CLOSED
+}
+
+// Dealership Inquiry - Messages sent to dealerships from contact forms
+model DealershipInquiry {
+  id String @id @default(cuid())
+
+  // Sender information
+  senderName  String
+  senderEmail String
+  senderPhone String?
+
+  // Message details
+  subject   String?
+  message   String
+  vehicleId String? // Optional - if inquiry is about a specific vehicle
+
+  // Dealership relation
+  dealershipId String
+  dealership   Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+
+  // Status tracking
+  status    InquiryStatus @default(NEW)
+  isRead    Boolean       @default(false)
+  readAt    DateTime?
+  readBy    String? // User ID who read it
+
+  // Response tracking
+  responded   Boolean   @default(false)
+  respondedAt DateTime?
+  respondedBy String?
+  response    String?
+
+  // Email notification tracking
+  emailSentToDealership Boolean @default(false)
+  emailSentAt           DateTime?
+
+  // Metadata
+  source    String? // e.g., "dealership_page", "vehicle_listing", "search_results"
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dealershipId])
+  @@index([status])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+enum InquiryStatus {
+  NEW
+  READ
+  RESPONDED
+  CLOSED
+  SPAM
+}
+
+// Invoice model for monthly dealership billing
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique // e.g. INV-2026-03-0001
+
+  dealershipId  String
+  billingMonth  Int           // 1–12
+  billingYear   Int
+
+  // Amounts (all in NAD)
+  subscriptionAmount Float    // Monthly plan price
+  stockValue         Float    // Sum of AVAILABLE vehicle prices at time of generation
+  stockFeeAmount     Float    // stockValue × 0.001 (0.1%)
+  totalAmount        Float    // subscriptionAmount + stockFeeAmount
+  currency           String   @default("NAD")
+
+  // Snapshot at generation time
+  planName     String
+  vehicleCount Int            // Number of AVAILABLE vehicles included in stock value
+
+  // Status
+  status   InvoiceStatus @default(PENDING)
+  dueDate  DateTime      // generatedAt + 7 days
+  paidAt   DateTime?
+  paidById String?       // Admin user who marked as paid
+
+  // PDF
+  pdfPath  String?       // Relative path e.g. /invoices/INV-2026-03-0001.pdf
+
+  // Reminders
+  sentAt         DateTime?  // When the invoice email was first sent
+  lastReminderAt DateTime?  // When the last overdue reminder was sent
+  reminderCount  Int        @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  dealership Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+  paidBy     User?      @relation("InvoicePaidBy", fields: [paidById], references: [id])
+
+  @@unique([dealershipId, billingMonth, billingYear]) // prevent duplicate monthly invoices
+  @@index([dealershipId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  date        DateTime
+  endDate     DateTime?
+  location    String?
+  venue       String?
+  category    String?   // "Car Show", "Auction", "Expo", "Track Day", "Other"
+  imageUrl    String?
+  externalUrl String?
+  isFeatured  Boolean   @default(false)
+  isPublished Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+  @@index([isPublished])
+}
