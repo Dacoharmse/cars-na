@@ -2191,119 +2191,222 @@ function DealerDashboardContent() {
             
             {/* Overview Tab */}
             {activeTab === 'overview' && (
-              <div className={`space-y-6 transition-all duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
-                {/* Key Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Vehicles</p>
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(203,32,48,0.08)' }}>
-                        <Car className="h-5 w-5 text-[#CB2030]" />
-                      </div>
-                    </div>
-                    <div className="text-3xl font-extrabold text-gray-900">{totalVehicles}</div>
-                    <p className="text-xs text-gray-400 mt-1">{availableVehicles} available, {soldVehicles} sold</p>
-                  </div>
+              <div className={`space-y-5 transition-all duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
 
-                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Views</p>
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.08)' }}>
-                        <Eye className="h-5 w-5 text-emerald-600" />
-                      </div>
+                {/* Welcome Banner */}
+                <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #CB2030 0%, #8B0000 100%)' }}>
+                  <div className="px-6 py-5 flex items-center justify-between">
+                    <div>
+                      <p className="text-red-200 text-xs font-semibold uppercase tracking-widest mb-1">Dealer Portal</p>
+                      <h2 className="text-white text-xl font-bold">{dealership?.name || 'Your Dealership'}</h2>
+                      <p className="text-red-100 text-sm mt-0.5">
+                        {newLeads > 0 ? `${newLeads} new lead${newLeads > 1 ? 's' : ''} waiting for your attention` : 'All leads up to date — great work!'}
+                      </p>
                     </div>
-                    <div className="text-3xl font-extrabold text-gray-900">{totalViews.toLocaleString()}</div>
-                    <p className="text-xs text-gray-400 mt-1">+12% from last month</p>
-                  </div>
-
-                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Inquiries</p>
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(245,158,11,0.08)' }}>
-                        <MessageCircle className="h-5 w-5 text-amber-500" />
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleTabSwitch('inventory')}
+                        className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Add Vehicle
+                      </button>
+                      <button
+                        onClick={() => handleTabSwitch('leads')}
+                        className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
+                      >
+                        <Users className="h-3.5 w-3.5" />
+                        View Leads
+                      </button>
                     </div>
-                    <div className="text-3xl font-extrabold text-gray-900">{totalInquiries}</div>
-                    <p className="text-xs text-gray-400 mt-1">{newLeads} new leads</p>
-                  </div>
-
-                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Conversion Rate</p>
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(99,102,241,0.08)' }}>
-                        <TrendingUp className="h-5 w-5 text-indigo-500" />
-                      </div>
-                    </div>
-                    <div className="text-3xl font-extrabold text-gray-900">8.5%</div>
-                    <p className="text-xs text-gray-400 mt-1">+2.1% from last month</p>
                   </div>
                 </div>
 
-                {/* Recent Activity */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Recent Leads</CardTitle>
-                      <CardDescription>Latest customer inquiries</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {leads.slice(0, 3).map((lead) => (
-                        <div key={lead.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex-1">
-                            <p className="font-medium">{lead.customerName}</p>
-                            <p className="text-sm text-gray-600">
-                              {lead.vehicle ? `${lead.vehicle.year} ${lead.vehicle.make || lead.vehicle.manufacturer} ${lead.vehicle.model}` : 'Vehicle Info'}
-                            </p>
-                            <p className="text-xs text-gray-500">{lead.source}</p>
+                {/* KPI Cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Vehicles */}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
+                    <div className="h-1 w-full" style={{ background: '#CB2030' }} />
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(203,32,48,0.08)' }}>
+                          <Car className="h-4.5 w-4.5" style={{ color: '#CB2030', width: '18px', height: '18px' }} />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">{availableVehicles} active</span>
+                      </div>
+                      <div className="text-4xl font-black text-gray-900 tabular-nums">{totalVehicles}</div>
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Total Vehicles</p>
+                      <p className="text-xs text-gray-400 mt-2">{soldVehicles} sold this period</p>
+                    </div>
+                  </div>
+
+                  {/* Views */}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
+                    <div className="h-1 w-full bg-emerald-500" />
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50">
+                          <Eye className="h-4.5 w-4.5 text-emerald-600" style={{ width: '18px', height: '18px' }} />
+                        </div>
+                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                          <TrendingUp style={{ width: '10px', height: '10px' }} /> +12%
+                        </span>
+                      </div>
+                      <div className="text-4xl font-black text-gray-900 tabular-nums">{totalViews.toLocaleString()}</div>
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Total Views</p>
+                      <p className="text-xs text-gray-400 mt-2">vs last month</p>
+                    </div>
+                  </div>
+
+                  {/* Inquiries */}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
+                    <div className="h-1 w-full bg-amber-400" />
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-amber-50">
+                          <MessageCircle className="h-4.5 w-4.5 text-amber-500" style={{ width: '18px', height: '18px' }} />
+                        </div>
+                        {newLeads > 0 && (
+                          <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">{newLeads} new</span>
+                        )}
+                      </div>
+                      <div className="text-4xl font-black text-gray-900 tabular-nums">{totalInquiries}</div>
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Inquiries</p>
+                      <p className="text-xs text-gray-400 mt-2">{newLeads} require response</p>
+                    </div>
+                  </div>
+
+                  {/* Conversion */}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
+                    <div className="h-1 w-full bg-indigo-500" />
+                    <div className="p-5">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-indigo-50">
+                          <TrendingUp className="h-4.5 w-4.5 text-indigo-500" style={{ width: '18px', height: '18px' }} />
+                        </div>
+                        <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                          <TrendingUp style={{ width: '10px', height: '10px' }} /> +2.1%
+                        </span>
+                      </div>
+                      <div className="text-4xl font-black text-gray-900 tabular-nums">8.5%</div>
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Conversion Rate</p>
+                      <p className="text-xs text-gray-400 mt-2">inquiry → sale</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Activity Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+                  {/* Recent Leads — wider */}
+                  <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900">Recent Leads</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">Latest customer inquiries</p>
+                      </div>
+                      <button
+                        onClick={() => handleTabSwitch('leads')}
+                        className="text-xs font-semibold hover:underline"
+                        style={{ color: '#CB2030' }}
+                      >
+                        View all →
+                      </button>
+                    </div>
+                    <div className="divide-y divide-gray-50">
+                      {leads.slice(0, 4).map((lead) => (
+                        <div key={lead.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50/50 transition-colors">
+                          {/* Avatar */}
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                            style={{ background: '#CB2030' }}
+                          >
+                            {lead.customerName?.charAt(0)?.toUpperCase() || '?'}
                           </div>
-                          <Badge className={getLeadStatusColor(lead.status)}>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">{lead.customerName}</p>
+                            <p className="text-xs text-gray-400 truncate">
+                              {lead.vehicle
+                                ? `${lead.vehicle.year} ${lead.vehicle.make || lead.vehicle.manufacturer} ${lead.vehicle.model}`
+                                : lead.source?.replace(/_/g, ' ')}
+                            </p>
+                          </div>
+                          <Badge className={`${getLeadStatusColor(lead.status)} text-[10px] font-bold uppercase tracking-wide shrink-0`}>
                             {lead.status}
                           </Badge>
                         </div>
                       ))}
                       {leads.length === 0 && (
-                        <div className="text-center py-4 text-gray-500">
-                          No recent leads
+                        <div className="flex flex-col items-center justify-center py-10 text-center">
+                          <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-2">
+                            <Inbox className="h-5 w-5 text-gray-300" />
+                          </div>
+                          <p className="text-sm font-medium text-gray-400">No leads yet</p>
+                          <p className="text-xs text-gray-300 mt-0.5">Leads will appear here when customers enquire</p>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Top Performing Vehicles</CardTitle>
-                      <CardDescription>Most viewed and inquired vehicles</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {vehicles
+                  {/* Top Vehicles — narrower */}
+                  <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900">Top Vehicles</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">Most viewed</p>
+                      </div>
+                      <button
+                        onClick={() => handleTabSwitch('inventory')}
+                        className="text-xs font-semibold hover:underline"
+                        style={{ color: '#CB2030' }}
+                      >
+                        Manage →
+                      </button>
+                    </div>
+                    <div className="divide-y divide-gray-50">
+                      {[...vehicles]
                         .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
-                        .slice(0, 3)
-                        .map((vehicle) => (
-                        <div key={vehicle.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex items-center gap-3">
+                        .slice(0, 4)
+                        .map((vehicle, idx) => (
+                        <div key={vehicle.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/50 transition-colors">
+                          <span className="text-xs font-black text-gray-200 w-4 shrink-0">#{idx + 1}</span>
+                          <div className="w-9 h-9 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                             <img
-                              src={vehicle.images?.[0]?.url || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext fill="%236b7280" font-family="sans-serif" font-size="12" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E'}
-                              alt={`${vehicle.year} ${vehicle.make || vehicle.manufacturer} ${vehicle.model}`}
-                              className="w-12 h-12 rounded-lg object-cover bg-gray-200"
+                              src={vehicle.images?.[0]?.url || ''}
+                              alt=""
+                              className="w-full h-full object-cover"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                             />
-                            <div>
-                              <p className="font-medium">{vehicle.year} {vehicle.make || vehicle.manufacturer} {vehicle.model}</p>
-                              <p className="text-sm text-gray-600">{formatPrice(vehicle.price)}</p>
-                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium">{vehicle.viewCount || 0} views</p>
-                            <p className="text-xs text-gray-500">Vehicle details</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-gray-900 truncate">
+                              {vehicle.year} {vehicle.make || vehicle.manufacturer} {vehicle.model}
+                            </p>
+                            <p className="text-xs text-gray-400">{formatPrice(vehicle.price)}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-xs font-bold text-gray-700">{vehicle.viewCount || 0}</p>
+                            <p className="text-[10px] text-gray-400">views</p>
                           </div>
                         </div>
                       ))}
                       {vehicles.length === 0 && (
-                        <div className="text-center py-4 text-gray-500">
-                          No vehicles in inventory
+                        <div className="flex flex-col items-center justify-center py-10 text-center px-4">
+                          <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-2">
+                            <Car className="h-5 w-5 text-gray-300" />
+                          </div>
+                          <p className="text-sm font-medium text-gray-400">No inventory yet</p>
+                          <button
+                            onClick={() => handleTabSwitch('inventory')}
+                            className="text-xs font-semibold mt-2 hover:underline"
+                            style={{ color: '#CB2030' }}
+                          >
+                            + Add your first vehicle
+                          </button>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
