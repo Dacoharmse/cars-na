@@ -63,8 +63,6 @@ import {
   History,
   PhoneCall,
   MessageSquare,
-  ArrowRight,
-  ChevronRight,
   Handshake,
   Activity
 } from 'lucide-react';
@@ -1178,6 +1176,7 @@ function VehicleListingsTab() {
     </div>
   );
 }
+
 
 function DealerDashboardContent() {
   const { data: session, status } = useSession();
