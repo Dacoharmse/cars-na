@@ -64,7 +64,10 @@ import {
   PhoneCall,
   MessageSquare,
   Handshake,
-  Activity
+  Activity,
+  ArrowUpDown,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -1009,12 +1012,12 @@ function VehicleListingsTab() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
                       { label: 'Year', value: selectedListing.year, icon: <Calendar className="w-4 h-4" /> },
-                      listing.mileage ? { label: 'Mileage', value: `${selectedListing.mileage.toLocaleString()} km`, icon: <Gauge className="w-4 h-4" /> } : null,
-                      listing.transmission ? { label: 'Transmission', value: selectedListing.transmission, icon: <Settings className="w-4 h-4" /> } : null,
-                      listing.fuelType ? { label: 'Fuel Type', value: selectedListing.fuelType, icon: <Fuel className="w-4 h-4" /> } : null,
-                      listing.color ? { label: 'Color', value: selectedListing.color } : null,
-                      listing.vin ? { label: 'VIN', value: selectedListing.vin } : null,
-                      listing.registrationNo ? { label: 'Reg. No', value: selectedListing.registrationNo } : null,
+                      selectedListing.mileage ? { label: 'Mileage', value: `${selectedListing.mileage.toLocaleString()} km`, icon: <Gauge className="w-4 h-4" /> } : null,
+                      selectedListing.transmission ? { label: 'Transmission', value: selectedListing.transmission, icon: <Settings className="w-4 h-4" /> } : null,
+                      selectedListing.fuelType ? { label: 'Fuel Type', value: selectedListing.fuelType, icon: <Fuel className="w-4 h-4" /> } : null,
+                      selectedListing.color ? { label: 'Color', value: selectedListing.color } : null,
+                      selectedListing.vin ? { label: 'VIN', value: selectedListing.vin } : null,
+                      selectedListing.registrationNo ? { label: 'Reg. No', value: selectedListing.registrationNo } : null,
                     ].filter(Boolean).map((spec: any, i) => (
                       <div key={i} className="bg-gray-50 rounded-lg px-4 py-3">
                         <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-0.5">{spec.label}</p>
@@ -1195,6 +1198,8 @@ function DealerDashboardContent() {
   const [minYear, setMinYear] = useState('');
   const [maxYear, setMaxYear] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [inventorySortBy, setInventorySortBy] = useState<'newest' | 'oldest' | 'price-high' | 'price-low' | 'most-views'>('newest');
+  const [inventoryView, setInventoryView] = useState<'grid' | 'list'>('grid');
   const [isLoading, setIsLoading] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -1868,6 +1873,15 @@ function DealerDashboardContent() {
 
     return matchesSearch && matchesStatus && matchesCategory && matchesManufacturer &&
            matchesTransmission && matchesFuelType && matchesPriceRange && matchesYearRange;
+  }).sort((a, b) => {
+    switch (inventorySortBy) {
+      case 'newest': return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      case 'oldest': return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+      case 'price-high': return (b.price || 0) - (a.price || 0);
+      case 'price-low': return (a.price || 0) - (b.price || 0);
+      case 'most-views': return (b.views || 0) - (a.views || 0);
+      default: return 0;
+    }
   });
 
   // Enhanced tab switching with loading states
@@ -2490,32 +2504,84 @@ function DealerDashboardContent() {
             
             {/* Overview Tab */}
             {activeTab === 'overview' && (
-              <div className={`space-y-5 transition-all duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
+              <div className="space-y-5">
+
+                {/* Overdue Invoice Alert */}
+                {overdueInvoices.length > 0 && (
+                  <div className="rounded-xl bg-red-50 border border-red-200 px-5 py-3.5 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <AlertTriangle className="h-4 w-4 text-red-600 shrink-0" />
+                      <div>
+                        <p className="text-sm font-semibold text-red-800">
+                          {overdueInvoices.length === 1
+                            ? `Invoice ${overdueInvoices[0].invoiceNumber} is ${daysOverdue(overdueInvoices[0].dueDate)} days overdue`
+                            : `${overdueInvoices.length} invoices are overdue — total ${formatNAD(overdueInvoices.reduce((s, i) => s + i.totalAmount, 0))}`}
+                        </p>
+                        <p className="text-xs text-red-600 mt-0.5">Overdue invoices may restrict your account. Pay now to restore full access.</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleTabSwitch('billing')}
+                      className="shrink-0 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors cursor-pointer"
+                    >
+                      View Invoices
+                    </button>
+                  </div>
+                )}
 
                 {/* Welcome Banner */}
-                <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #CB2030 0%, #8B0000 100%)' }}>
-                  <div className="px-6 py-5 flex items-center justify-between">
-                    <div>
-                      <p className="text-red-200 text-xs font-semibold uppercase tracking-widest mb-1">Dealer Portal</p>
-                      <h2 className="text-white text-xl font-bold">{dealership?.name || 'Your Dealership'}</h2>
-                      <p className="text-red-100 text-sm mt-0.5">
-                        {newLeads > 0 ? `${newLeads} new lead${newLeads > 1 ? 's' : ''} waiting for your attention` : 'All leads up to date — great work!'}
-                      </p>
+                <div className="rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm">
+                  <div className="h-0.5 w-full" style={{ background: '#CB2030' }} />
+                  <div className="px-6 py-5">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-1">Dealer Portal</p>
+                        <h2 className="text-gray-900 text-xl font-bold truncate">{dealership?.name || 'Your Dealership'}</h2>
+                        <p className="text-gray-500 text-sm mt-0.5">
+                          {newLeads > 0 ? `${newLeads} new lead${newLeads > 1 ? 's' : ''} waiting for your attention` : 'All leads up to date — great work!'}
+                        </p>
+                      </div>
+                      {/* Subscription badge */}
+                      <div className="shrink-0 text-right hidden sm:block">
+                        <div className="inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-full mb-2">
+                          <Crown className="h-3 w-3" style={{ color: '#CB2030' }} />
+                          {dealership?.subscription?.plan?.name || 'Free Plan'}
+                        </div>
+                        {dealership?.subscription?.plan?.maxListings && (
+                          <div>
+                            <p className="text-gray-400 text-xs">{availableVehicles} of {dealership.subscription.plan.maxListings} listings used</p>
+                            <div className="w-32 bg-gray-100 rounded-full h-1 mt-1">
+                              <div
+                                className="h-1 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (availableVehicles / dealership.subscription.plan.maxListings) * 100)}%`, background: '#CB2030' }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    {/* Quick actions */}
+                    <div className="flex items-center gap-2 mt-4">
                       <button
                         onClick={() => handleTabSwitch('inventory')}
-                        className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
+                        className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-2 rounded-lg transition-colors cursor-pointer border border-gray-200"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         Add Vehicle
                       </button>
                       <button
                         onClick={() => handleTabSwitch('leads')}
-                        className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
+                        className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-2 rounded-lg transition-colors cursor-pointer border border-gray-200"
                       >
                         <Users className="h-3.5 w-3.5" />
                         View Leads
+                      </button>
+                      <button
+                        onClick={() => handleTabSwitch('analytics')}
+                        className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-2 rounded-lg transition-colors cursor-pointer border border-gray-200"
+                      >
+                        <BarChart3 className="h-3.5 w-3.5" />
+                        Analytics
                       </button>
                     </div>
                   </div>
@@ -2523,74 +2589,249 @@ function DealerDashboardContent() {
 
                 {/* KPI Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* Vehicles */}
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
-                    <div className="h-1 w-full" style={{ background: '#CB2030' }} />
-                    <div className="p-5">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(203,32,48,0.08)' }}>
-                          <Car className="h-4.5 w-4.5" style={{ color: '#CB2030', width: '18px', height: '18px' }} />
+                  {/* Total Vehicles */}
+                  {vehiclesLoading ? (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                      <div className="h-1 w-full bg-gray-100" />
+                      <div className="p-5 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="w-9 h-9 rounded-xl bg-gray-100 animate-pulse" />
+                          <div className="w-14 h-5 bg-gray-100 rounded-full animate-pulse" />
                         </div>
-                        <span className="text-xs font-semibold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">{availableVehicles} active</span>
+                        <div className="w-16 h-9 bg-gray-100 rounded-lg animate-pulse" />
+                        <div className="w-24 h-3 bg-gray-100 rounded-full animate-pulse" />
+                        <div className="w-20 h-3 bg-gray-100 rounded-full animate-pulse" />
                       </div>
-                      <div className="text-4xl font-black text-gray-900 tabular-nums">{totalVehicles}</div>
-                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Total Vehicles</p>
-                      <p className="text-xs text-gray-400 mt-2">{soldVehicles} sold this period</p>
                     </div>
-                  </div>
+                  ) : (
+                    <div
+                      className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => handleTabSwitch('inventory')}
+                    >
+                      <div className="p-5">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(203,32,48,0.08)' }}>
+                            <Car style={{ color: '#CB2030', width: '18px', height: '18px' }} />
+                          </div>
+                          <span className="text-xs font-semibold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">{availableVehicles} active</span>
+                        </div>
+                        <div className="text-4xl font-black text-gray-900 tabular-nums">{totalVehicles}</div>
+                        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Total Vehicles</p>
+                        <p className="text-xs text-gray-400 mt-2">{soldVehicles} sold · {vehicles.filter(v => v.status === 'PENDING').length} pending</p>
+                      </div>
+                    </div>
+                  )}
 
-                  {/* Views */}
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
-                    <div className="h-1 w-full bg-emerald-500" />
-                    <div className="p-5">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50">
-                          <Eye className="h-4.5 w-4.5 text-emerald-600" style={{ width: '18px', height: '18px' }} />
+                  {/* Total Views */}
+                  {vehiclesLoading ? (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                      <div className="h-1 w-full bg-gray-100" />
+                      <div className="p-5 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="w-9 h-9 rounded-xl bg-gray-100 animate-pulse" />
+                          <div className="w-12 h-5 bg-gray-100 rounded-full animate-pulse" />
                         </div>
-                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                          <TrendingUp style={{ width: '10px', height: '10px' }} /> +12%
-                        </span>
+                        <div className="w-20 h-9 bg-gray-100 rounded-lg animate-pulse" />
+                        <div className="w-24 h-3 bg-gray-100 rounded-full animate-pulse" />
+                        <div className="w-28 h-3 bg-gray-100 rounded-full animate-pulse" />
                       </div>
-                      <div className="text-4xl font-black text-gray-900 tabular-nums">{totalViews.toLocaleString()}</div>
-                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Total Views</p>
-                      <p className="text-xs text-gray-400 mt-2">vs last month</p>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="p-5">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50">
+                            <Eye className="text-emerald-600" style={{ width: '18px', height: '18px' }} />
+                          </div>
+                          <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Live</span>
+                        </div>
+                        <div className="text-4xl font-black text-gray-900 tabular-nums">{totalViews.toLocaleString()}</div>
+                        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Total Views</p>
+                        <p className="text-xs text-gray-400 mt-2">{totalVehicles > 0 ? Math.round(totalViews / totalVehicles) : 0} avg per listing</p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Inquiries */}
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
-                    <div className="h-1 w-full bg-amber-400" />
-                    <div className="p-5">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-amber-50">
-                          <MessageCircle className="h-4.5 w-4.5 text-amber-500" style={{ width: '18px', height: '18px' }} />
+                  {leadsLoading || statsLoading ? (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                      <div className="h-1 w-full bg-gray-100" />
+                      <div className="p-5 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="w-9 h-9 rounded-xl bg-gray-100 animate-pulse" />
+                          <div className="w-12 h-5 bg-gray-100 rounded-full animate-pulse" />
                         </div>
-                        {newLeads > 0 && (
-                          <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">{newLeads} new</span>
-                        )}
+                        <div className="w-12 h-9 bg-gray-100 rounded-lg animate-pulse" />
+                        <div className="w-20 h-3 bg-gray-100 rounded-full animate-pulse" />
+                        <div className="w-28 h-3 bg-gray-100 rounded-full animate-pulse" />
                       </div>
-                      <div className="text-4xl font-black text-gray-900 tabular-nums">{totalInquiries}</div>
-                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Inquiries</p>
-                      <p className="text-xs text-gray-400 mt-2">{newLeads} require response</p>
                     </div>
+                  ) : (
+                    <div
+                      className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => handleTabSwitch('leads')}
+                    >
+                      <div className="p-5">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-amber-50">
+                            <MessageCircle className="text-amber-500" style={{ width: '18px', height: '18px' }} />
+                          </div>
+                          {newLeads > 0 && (
+                            <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">{newLeads} new</span>
+                          )}
+                        </div>
+                        <div className="text-4xl font-black text-gray-900 tabular-nums">{totalInquiries}</div>
+                        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Inquiries</p>
+                        <p className="text-xs text-gray-400 mt-2">{leadStats?.converted || 0} converted to sales</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Stock Value */}
+                  {vehiclesLoading ? (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                      <div className="h-1 w-full bg-gray-100" />
+                      <div className="p-5 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="w-9 h-9 rounded-xl bg-gray-100 animate-pulse" />
+                          <div className="w-14 h-5 bg-gray-100 rounded-full animate-pulse" />
+                        </div>
+                        <div className="w-24 h-7 bg-gray-100 rounded-lg animate-pulse" />
+                        <div className="w-20 h-3 bg-gray-100 rounded-full animate-pulse" />
+                        <div className="w-24 h-3 bg-gray-100 rounded-full animate-pulse" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="p-5">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-indigo-50">
+                            <CreditCard className="text-indigo-500" style={{ width: '18px', height: '18px' }} />
+                          </div>
+                          <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                            {availableVehicles} listing{availableVehicles !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <div className="text-2xl font-black text-gray-900 tabular-nums leading-tight">
+                          {formatPrice(vehicles.filter(v => v.status === 'AVAILABLE').reduce((s, v) => s + (v.price || 0), 0))}
+                        </div>
+                        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Stock Value</p>
+                        <p className="text-xs text-gray-400 mt-2">active inventory</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Lead Pipeline + Inventory Breakdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Lead Pipeline */}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900">Lead Pipeline</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">Conversion funnel</p>
+                      </div>
+                      <button
+                        onClick={() => handleTabSwitch('leads')}
+                        className="text-xs font-semibold hover:underline cursor-pointer"
+                        style={{ color: '#CB2030' }}
+                      >
+                        Manage →
+                      </button>
+                    </div>
+                    {leadsLoading || statsLoading ? (
+                      <div className="space-y-3">
+                        {[...Array(4)].map((_, i) => (
+                          <div key={i} className="flex items-center gap-3">
+                            <div className="w-20 h-2.5 bg-gray-100 rounded-full animate-pulse" />
+                            <div className="flex-1 h-2 bg-gray-100 rounded-full animate-pulse" />
+                            <div className="w-5 h-2.5 bg-gray-100 rounded-full animate-pulse" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {[
+                          { label: 'New', count: leadStats?.new || 0, color: 'bg-[#CB2030]' },
+                          { label: 'Contacted', count: leadStats?.contacted || 0, color: 'bg-amber-400' },
+                          { label: 'Qualified', count: leads.filter((l: any) => l.status === 'QUALIFIED').length, color: 'bg-emerald-400' },
+                          { label: 'Converted', count: leadStats?.converted || 0, color: 'bg-indigo-500' },
+                        ].map(({ label, count, color }) => (
+                          <div key={label} className="flex items-center gap-3">
+                            <span className="text-xs text-gray-500 w-20 shrink-0">{label}</span>
+                            <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${color} transition-all duration-700`}
+                                style={{ width: totalInquiries > 0 ? `${Math.min(100, (count / totalInquiries) * 100)}%` : '0%' }}
+                              />
+                            </div>
+                            <span className="text-xs font-bold text-gray-700 tabular-nums w-5 text-right">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {!leadsLoading && !statsLoading && totalInquiries > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
+                        <span className="text-xs text-gray-400">Conversion rate</span>
+                        <span className="text-xs font-bold text-gray-700 tabular-nums">{leadStats?.conversionRate ?? 0}%</span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Conversion */}
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
-                    <div className="h-1 w-full bg-indigo-500" />
-                    <div className="p-5">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-indigo-50">
-                          <TrendingUp className="h-4.5 w-4.5 text-indigo-500" style={{ width: '18px', height: '18px' }} />
-                        </div>
-                        <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                          <TrendingUp style={{ width: '10px', height: '10px' }} /> +2.1%
+                  {/* Inventory Breakdown */}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900">Inventory</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">Stock status breakdown</p>
+                      </div>
+                      <button
+                        onClick={() => handleTabSwitch('inventory')}
+                        className="text-xs font-semibold hover:underline cursor-pointer"
+                        style={{ color: '#CB2030' }}
+                      >
+                        Manage →
+                      </button>
+                    </div>
+                    {vehiclesLoading ? (
+                      <div className="space-y-3">
+                        {[...Array(4)].map((_, i) => (
+                          <div key={i} className="flex items-center gap-3">
+                            <div className="w-20 h-2.5 bg-gray-100 rounded-full animate-pulse" />
+                            <div className="flex-1 h-2 bg-gray-100 rounded-full animate-pulse" />
+                            <div className="w-5 h-2.5 bg-gray-100 rounded-full animate-pulse" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {[
+                          { label: 'Available', count: availableVehicles, color: 'bg-emerald-400' },
+                          { label: 'Sold', count: soldVehicles, color: 'bg-gray-400' },
+                          { label: 'Pending', count: vehicles.filter(v => v.status === 'PENDING').length, color: 'bg-amber-400' },
+                          { label: 'Reserved', count: vehicles.filter(v => v.status === 'RESERVED').length, color: 'bg-indigo-400' },
+                        ].map(({ label, count, color }) => (
+                          <div key={label} className="flex items-center gap-3">
+                            <span className="text-xs text-gray-500 w-20 shrink-0">{label}</span>
+                            <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${color} transition-all duration-700`}
+                                style={{ width: totalVehicles > 0 ? `${Math.min(100, (count / totalVehicles) * 100)}%` : '0%' }}
+                              />
+                            </div>
+                            <span className="text-xs font-bold text-gray-700 tabular-nums w-5 text-right">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {!vehiclesLoading && totalVehicles > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
+                        <span className="text-xs text-gray-400">Sell-through rate</span>
+                        <span className="text-xs font-bold text-gray-700 tabular-nums">
+                          {Math.round((soldVehicles / totalVehicles) * 100)}%
                         </span>
                       </div>
-                      <div className="text-4xl font-black text-gray-900 tabular-nums">8.5%</div>
-                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Conversion Rate</p>
-                      <p className="text-xs text-gray-400 mt-2">inquiry → sale</p>
-                    </div>
+                    )}
                   </div>
                 </div>
 
@@ -2606,36 +2847,51 @@ function DealerDashboardContent() {
                       </div>
                       <button
                         onClick={() => handleTabSwitch('leads')}
-                        className="text-xs font-semibold hover:underline"
+                        className="text-xs font-semibold hover:underline cursor-pointer"
                         style={{ color: '#CB2030' }}
                       >
                         View all →
                       </button>
                     </div>
                     <div className="divide-y divide-gray-50">
-                      {leads.slice(0, 4).map((lead) => (
-                        <div key={lead.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50/50 transition-colors">
-                          {/* Avatar */}
+                      {leadsLoading ? (
+                        [...Array(4)].map((_, i) => (
+                          <div key={i} className="flex items-center gap-3 px-5 py-3.5">
+                            <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse shrink-0" />
+                            <div className="flex-1 space-y-1.5">
+                              <div className="h-3 bg-gray-100 rounded-full animate-pulse w-32" />
+                              <div className="h-2.5 bg-gray-100 rounded-full animate-pulse w-48" />
+                            </div>
+                            <div className="w-14 h-5 bg-gray-100 rounded-full animate-pulse shrink-0" />
+                          </div>
+                        ))
+                      ) : leads.slice(0, 4).length > 0 ? (
+                        leads.slice(0, 4).map((lead: any) => (
                           <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                            style={{ background: '#CB2030' }}
+                            key={lead.id}
+                            className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50/50 transition-colors cursor-pointer"
+                            onClick={() => handleTabSwitch('leads')}
                           >
-                            {lead.customerName?.charAt(0)?.toUpperCase() || '?'}
+                            <div
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                              style={{ background: '#CB2030' }}
+                            >
+                              {lead.customerName?.charAt(0)?.toUpperCase() || '?'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-gray-900 truncate">{lead.customerName}</p>
+                              <p className="text-xs text-gray-400 truncate">
+                                {lead.vehicle
+                                  ? `${lead.vehicle.year} ${lead.vehicle.make || lead.vehicle.manufacturer} ${lead.vehicle.model}`
+                                  : lead.source?.replace(/_/g, ' ')}
+                              </p>
+                            </div>
+                            <Badge className={`${getLeadStatusColor(lead.status)} text-[10px] font-bold uppercase tracking-wide shrink-0`}>
+                              {lead.status}
+                            </Badge>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">{lead.customerName}</p>
-                            <p className="text-xs text-gray-400 truncate">
-                              {lead.vehicle
-                                ? `${lead.vehicle.year} ${lead.vehicle.make || lead.vehicle.manufacturer} ${lead.vehicle.model}`
-                                : lead.source?.replace(/_/g, ' ')}
-                            </p>
-                          </div>
-                          <Badge className={`${getLeadStatusColor(lead.status)} text-[10px] font-bold uppercase tracking-wide shrink-0`}>
-                            {lead.status}
-                          </Badge>
-                        </div>
-                      ))}
-                      {leads.length === 0 && (
+                        ))
+                      ) : (
                         <div className="flex flex-col items-center justify-center py-10 text-center">
                           <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-2">
                             <Inbox className="h-5 w-5 text-gray-300" />
@@ -2656,40 +2912,53 @@ function DealerDashboardContent() {
                       </div>
                       <button
                         onClick={() => handleTabSwitch('inventory')}
-                        className="text-xs font-semibold hover:underline"
+                        className="text-xs font-semibold hover:underline cursor-pointer"
                         style={{ color: '#CB2030' }}
                       >
                         Manage →
                       </button>
                     </div>
                     <div className="divide-y divide-gray-50">
-                      {[...vehicles]
-                        .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
-                        .slice(0, 4)
-                        .map((vehicle, idx) => (
-                        <div key={vehicle.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/50 transition-colors">
-                          <span className="text-xs font-black text-gray-200 w-4 shrink-0">#{idx + 1}</span>
-                          <div className="w-9 h-9 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                            <img
-                              src={vehicle.images?.[0]?.url || ''}
-                              alt=""
-                              className="w-full h-full object-cover"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                            />
+                      {vehiclesLoading ? (
+                        [...Array(4)].map((_, i) => (
+                          <div key={i} className="flex items-center gap-3 px-5 py-3">
+                            <div className="w-4 h-3 bg-gray-100 rounded animate-pulse shrink-0" />
+                            <div className="w-9 h-9 bg-gray-100 rounded-lg animate-pulse shrink-0" />
+                            <div className="flex-1 space-y-1.5">
+                              <div className="h-3 bg-gray-100 rounded-full animate-pulse w-28" />
+                              <div className="h-2.5 bg-gray-100 rounded-full animate-pulse w-20" />
+                            </div>
+                            <div className="w-8 h-5 bg-gray-100 rounded animate-pulse shrink-0" />
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-gray-900 truncate">
-                              {vehicle.year} {vehicle.make || vehicle.manufacturer} {vehicle.model}
-                            </p>
-                            <p className="text-xs text-gray-400">{formatPrice(vehicle.price)}</p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-xs font-bold text-gray-700">{vehicle.viewCount || 0}</p>
-                            <p className="text-[10px] text-gray-400">views</p>
-                          </div>
-                        </div>
-                      ))}
-                      {vehicles.length === 0 && (
+                        ))
+                      ) : [...vehicles].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)).slice(0, 4).length > 0 ? (
+                        [...vehicles]
+                          .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+                          .slice(0, 4)
+                          .map((vehicle, idx) => (
+                            <div key={vehicle.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/50 transition-colors">
+                              <span className="text-xs font-black text-gray-200 w-4 shrink-0">#{idx + 1}</span>
+                              <div className="w-9 h-9 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                                <img
+                                  src={vehicle.images?.[0]?.url || ''}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold text-gray-900 truncate">
+                                  {vehicle.year} {vehicle.make || vehicle.manufacturer} {vehicle.model}
+                                </p>
+                                <p className="text-xs text-gray-400">{formatPrice(vehicle.price)}</p>
+                              </div>
+                              <div className="text-right shrink-0">
+                                <p className="text-xs font-bold text-gray-700">{vehicle.viewCount || 0}</p>
+                                <p className="text-[10px] text-gray-400">views</p>
+                              </div>
+                            </div>
+                          ))
+                      ) : (
                         <div className="flex flex-col items-center justify-center py-10 text-center px-4">
                           <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-2">
                             <Car className="h-5 w-5 text-gray-300" />
@@ -2697,7 +2966,7 @@ function DealerDashboardContent() {
                           <p className="text-sm font-medium text-gray-400">No inventory yet</p>
                           <button
                             onClick={() => handleTabSwitch('inventory')}
-                            className="text-xs font-semibold mt-2 hover:underline"
+                            className="text-xs font-semibold mt-2 hover:underline cursor-pointer"
                             style={{ color: '#CB2030' }}
                           >
                             + Add your first vehicle
@@ -2712,53 +2981,70 @@ function DealerDashboardContent() {
 
             {/* Inventory Tab */}
             {activeTab === 'inventory' && (
-              <div className="space-y-6">
+              <div className="space-y-5">
+                {/* Inventory Summary Bar */}
+                {vehicles.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Total Stock', value: vehicles.length, color: 'text-gray-900' },
+                      { label: 'Available', value: vehicles.filter(v => v.status === 'AVAILABLE').length, color: 'text-emerald-600' },
+                      { label: 'Reserved', value: vehicles.filter(v => v.status === 'RESERVED' || v.status === 'PENDING').length, color: 'text-amber-600' },
+                      { label: 'Sold', value: vehicles.filter(v => v.status === 'SOLD').length, color: 'text-gray-500' },
+                    ].map((stat) => (
+                      <div key={stat.label} className="bg-white rounded-xl border border-gray-100 px-4 py-3">
+                        <p className="text-xs text-gray-500 mb-0.5">{stat.label}</p>
+                        <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Search and Filter Controls */}
-                <div className="space-y-4">
-                  {/* Top Row - Search and Quick Filters */}
-                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                    <div className="flex gap-4 items-center flex-wrap">
-                      <div className="relative">
+                <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+                  {/* Top Row */}
+                  <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between">
+                    <div className="flex gap-2 items-center flex-wrap flex-1">
+                      <div className="relative flex-1 min-w-[200px] max-w-xs">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <Input
-                          placeholder="Search vehicles..."
+                          placeholder="Search make, model, year..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pl-10 w-64"
+                          className="pl-10 h-9 text-sm border-gray-200"
                         />
                       </div>
                       <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                        className="h-9 px-3 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030]"
                       >
-                        <option key="ALL" value="ALL">All Status</option>
-                        <option key="AVAILABLE" value="AVAILABLE">Available</option>
-                        <option key="SOLD" value="SOLD">Sold</option>
-                        <option key="PENDING" value="PENDING">Pending</option>
-                        <option key="RESERVED" value="RESERVED">Reserved</option>
+                        <option value="ALL">All Status</option>
+                        <option value="AVAILABLE">Available</option>
+                        <option value="SOLD">Sold</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="RESERVED">Reserved</option>
                       </select>
                       <select
                         value={categoryFilter}
                         onChange={(e) => setCategoryFilter(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                        className="h-9 px-3 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030]"
                       >
-                        <option key="ALL" value="ALL">All Categories</option>
-                        <option key="CARS" value="CARS">Cars</option>
-                        <option key="TRUCKS" value="TRUCKS">Trucks</option>
-                        <option key="MOTORCYCLES" value="MOTORCYCLES">Motorcycles</option>
-                        <option key="BUSES" value="BUSES">Buses</option>
-                        <option key="INDUSTRIAL_MACHINERY" value="INDUSTRIAL_MACHINERY">Industrial Machinery</option>
-                        <option key="TRACTORS" value="TRACTORS">Tractors</option>
-                        <option key="BOATS" value="BOATS">Boats</option>
-                        <option key="ACCESSORIES" value="ACCESSORIES">Accessories</option>
+                        <option value="ALL">All Categories</option>
+                        <option value="CARS">Cars</option>
+                        <option value="TRUCKS">Trucks</option>
+                        <option value="MOTORCYCLES">Motorcycles</option>
+                        <option value="BUSES">Buses</option>
+                        <option value="INDUSTRIAL_MACHINERY">Industrial</option>
+                        <option value="TRACTORS">Tractors</option>
+                        <option value="BOATS">Boats</option>
+                        <option value="ACCESSORIES">Accessories</option>
                       </select>
                       <select
                         value={manufacturerFilter}
                         onChange={(e) => setManufacturerFilter(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                        className="h-9 px-3 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030]"
                       >
-                        <option key="ALL" value="ALL">All Manufacturers</option>
+                        <option value="ALL">All Makes</option>
                         {availableManufacturers.map((manufacturer, index) => (
                           <option key={`manufacturer-${manufacturer}-${index}`} value={manufacturer}>
                             {manufacturer}
@@ -2766,330 +3052,303 @@ function DealerDashboardContent() {
                         ))}
                       </select>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setShowFilters(!showFilters)}
-                        className="flex items-center gap-2"
+                        className="h-9 flex items-center gap-1.5 text-xs"
                       >
-                        <Filter className="h-4 w-4" />
-                        {showFilters ? 'Hide' : 'More'} Filters
-                        {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        {hasActiveFilters() && !showFilters && (
-                          <span className="ml-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" style={{ background: '#CB2030' }}>
+                        <Filter className="h-3.5 w-3.5" />
+                        Filters
+                        {hasActiveFilters() && (
+                          <span className="ml-0.5 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center" style={{ background: '#CB2030' }}>
                             {[searchTerm, statusFilter !== 'ALL', categoryFilter !== 'ALL', manufacturerFilter !== 'ALL', transmissionFilter !== 'ALL', fuelTypeFilter !== 'ALL', minPrice, maxPrice, minYear, maxYear].filter(Boolean).length}
                           </span>
                         )}
                       </Button>
                       {hasActiveFilters() && (
-                        <Button
-                          variant="outline"
-                          size="sm"
+                        <button
                           onClick={clearFilters}
-                          className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:border-red-300"
+                          className="h-9 px-2.5 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1"
                         >
-                          <X className="h-4 w-4" />
-                          Clear All
-                        </Button>
+                          <X className="h-3.5 w-3.5" />
+                          Clear
+                        </button>
                       )}
+                      <div className="w-px h-6 bg-gray-200 mx-1" />
+                      <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
+                        <button
+                          onClick={() => setInventoryView('grid')}
+                          className={`p-1.5 rounded-md transition-colors ${inventoryView === 'grid' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                          <LayoutGrid className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => setInventoryView('list')}
+                          className={`p-1.5 rounded-md transition-colors ${inventoryView === 'list' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                          <List className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   {/* Advanced Filters Panel */}
                   {showFilters && (
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
-                      <h3 className="text-sm font-semibold text-gray-700 mb-3">Advanced Filters</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {/* Transmission Filter */}
+                    <div className="border-t border-gray-100 pt-3 space-y-3">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Transmission</label>
+                          <label className="block text-[11px] font-medium text-gray-500 mb-1">Transmission</label>
                           <select
                             value={transmissionFilter}
                             onChange={(e) => setTransmissionFilter(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                            className="w-full h-9 px-2.5 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030]"
                           >
-                            <option key="ALL" value="ALL">All Transmissions</option>
-                            <option key="Manual" value="Manual">Manual</option>
-                            <option key="Automatic" value="Automatic">Automatic</option>
-                            <option key="CVT" value="CVT">CVT</option>
-                            <option key="Semi-Automatic" value="Semi-Automatic">Semi-Automatic</option>
+                            <option value="ALL">All</option>
+                            <option value="Manual">Manual</option>
+                            <option value="Automatic">Automatic</option>
+                            <option value="CVT">CVT</option>
+                            <option value="Semi-Automatic">Semi-Auto</option>
                           </select>
                         </div>
-
-                        {/* Fuel Type Filter */}
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Fuel Type</label>
+                          <label className="block text-[11px] font-medium text-gray-500 mb-1">Fuel Type</label>
                           <select
                             value={fuelTypeFilter}
                             onChange={(e) => setFuelTypeFilter(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                            className="w-full h-9 px-2.5 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030]"
                           >
-                            <option key="ALL" value="ALL">All Fuel Types</option>
-                            <option key="Petrol" value="Petrol">Petrol</option>
-                            <option key="Diesel" value="Diesel">Diesel</option>
-                            <option key="Electric" value="Electric">Electric</option>
-                            <option key="Hybrid" value="Hybrid">Hybrid</option>
-                            <option key="Plug-in Hybrid" value="Plug-in Hybrid">Plug-in Hybrid</option>
+                            <option value="ALL">All</option>
+                            <option value="Petrol">Petrol</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Electric">Electric</option>
+                            <option value="Hybrid">Hybrid</option>
                           </select>
                         </div>
-
-                        {/* Price Range */}
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Min Price (N$)</label>
-                          <Input
-                            type="number"
-                            placeholder="0"
-                            value={minPrice}
-                            onChange={(e) => setMinPrice(e.target.value)}
-                            className="text-sm"
-                          />
+                          <label className="block text-[11px] font-medium text-gray-500 mb-1">Min Price</label>
+                          <Input type="number" placeholder="N$ 0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} className="h-9 text-sm border-gray-200" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Max Price (N$)</label>
-                          <Input
-                            type="number"
-                            placeholder="No limit"
-                            value={maxPrice}
-                            onChange={(e) => setMaxPrice(e.target.value)}
-                            className="text-sm"
-                          />
-                        </div>
-
-                        {/* Year Range */}
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Min Year</label>
-                          <Input
-                            type="number"
-                            placeholder="1900"
-                            value={minYear}
-                            onChange={(e) => setMinYear(e.target.value)}
-                            className="text-sm"
-                          />
+                          <label className="block text-[11px] font-medium text-gray-500 mb-1">Max Price</label>
+                          <Input type="number" placeholder="No limit" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className="h-9 text-sm border-gray-200" />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">Max Year</label>
-                          <Input
-                            type="number"
-                            placeholder={new Date().getFullYear().toString()}
-                            value={maxYear}
-                            onChange={(e) => setMaxYear(e.target.value)}
-                            className="text-sm"
-                          />
+                          <label className="block text-[11px] font-medium text-gray-500 mb-1">From Year</label>
+                          <Input type="number" placeholder="1900" value={minYear} onChange={(e) => setMinYear(e.target.value)} className="h-9 text-sm border-gray-200" />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-medium text-gray-500 mb-1">To Year</label>
+                          <Input type="number" placeholder={new Date().getFullYear().toString()} value={maxYear} onChange={(e) => setMaxYear(e.target.value)} className="h-9 text-sm border-gray-200" />
                         </div>
                       </div>
                     </div>
                   )}
+                </div>
 
-                  {/* Results Summary */}
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>
-                      Showing <strong>{filteredVehicles.length}</strong> of <strong>{vehicles.length}</strong> vehicles
-                      {hasActiveFilters() && <span className="ml-2" style={{ color: '#CB2030' }}>(filtered)</span>}
-                    </span>
+                {/* Results bar with sort */}
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-500">
+                    <span className="font-medium text-gray-900">{filteredVehicles.length}</span> of {vehicles.length} vehicles
+                    {hasActiveFilters() && <span className="text-[#CB2030] ml-1">(filtered)</span>}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="h-3.5 w-3.5 text-gray-400" />
+                    <select
+                      value={inventorySortBy}
+                      onChange={(e) => setInventorySortBy(e.target.value as typeof inventorySortBy)}
+                      className="text-sm text-gray-600 bg-transparent border-none focus:outline-none cursor-pointer pr-6"
+                    >
+                      <option value="newest">Newest first</option>
+                      <option value="oldest">Oldest first</option>
+                      <option value="price-high">Price: High to Low</option>
+                      <option value="price-low">Price: Low to High</option>
+                      <option value="most-views">Most views</option>
+                    </select>
                   </div>
                 </div>
 
-                {/* Empty State - Show when no vehicles exist */}
+                {/* Empty State */}
                 {vehicles.length === 0 ? (
-                  <Card className="col-span-full">
-                    <CardContent className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                      <div className="mb-6 relative">
-                        <div className="w-24 h-24 rounded-full flex items-center justify-center mb-4 mx-auto" style={{ background: 'rgba(203,32,48,0.08)' }}>
-                          <Car className="w-12 h-12 text-[#CB2030]" />
-                        </div>
-                        <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-br from-yellow-100 to-yellow-50 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                          <Plus className="w-6 h-6 text-yellow-600" />
-                        </div>
-                      </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                        Welcome to Your Stock Manager!
-                      </h3>
-                      <p className="text-gray-600 mb-2 max-w-md">
-                        You haven't added any vehicles to your inventory yet.
-                      </p>
-                      <p className="text-sm text-gray-500 mb-8 max-w-lg">
-                        Start building your vehicle catalog by adding your first listing. You can add cars, trucks, motorcycles, and more to reach potential buyers across Namibia.
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-4 items-center">
-                        <Button
-                          onClick={handleAddVehicle}
-                          size="lg"
-                          className="text-white font-semibold px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 hover:opacity-90"
-                          style={{ background: '#CB2030' }}
-                        >
-                          <Plus className="w-5 h-5 mr-2" />
-                          Add Your First Vehicle
-                        </Button>
-                        <button
-                          onClick={() => { setTutorialStep(0); setShowTutorialModal(true); }}
-                          className="text-sm font-medium flex items-center gap-1 hover:underline" style={{ color: '#CB2030' }}
-                        >
-                          <Eye className="w-4 h-4" />
-                          View Demo Tutorial
-                        </button>
-                      </div>
-                      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl">
-                        <div className="text-center">
-                          <div className="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(203,32,48,0.08)' }}>
-                            <Upload className="w-6 h-6 text-[#CB2030]" />
-                          </div>
-                          <h4 className="font-semibold text-sm text-gray-900 mb-1">Quick & Easy</h4>
-                          <p className="text-xs text-gray-500">Add vehicles in minutes with our simple form</p>
-                        </div>
-                        <div className="text-center">
-                          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <Camera className="w-6 h-6 text-green-600" />
-                          </div>
-                          <h4 className="font-semibold text-sm text-gray-900 mb-1">Multiple Photos</h4>
-                          <p className="text-xs text-gray-500">Upload multiple images to showcase your vehicles</p>
-                        </div>
-                        <div className="text-center">
-                          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                            <Eye className="w-6 h-6 text-purple-600" />
-                          </div>
-                          <h4 className="font-semibold text-sm text-gray-900 mb-1">Track Performance</h4>
-                          <p className="text-xs text-gray-500">Monitor views, inquiries, and engagement</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <>
-                    {/* Vehicle Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredVehicles.length > 0 ? (
-                        filteredVehicles.map((vehicle) => (
-                          <Card key={vehicle.id} className="overflow-hidden">
-                            <div className="relative">
-                              <img
-                                src={vehicle.images?.[0]?.url || '/api/placeholder/800/600'}
-                                alt={`${vehicle.year} ${vehicle.make || vehicle.manufacturer} ${vehicle.model}`}
-                                className="w-full h-48 object-cover bg-gray-200"
-                                onError={(e) => {
-                                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600"%3E%3Crect fill="%23e5e7eb" width="800" height="600"/%3E%3Ctext fill="%236b7280" font-family="sans-serif" font-size="24" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
-                                }}
-                              />
-                              <Badge className={`absolute top-2 right-2 ${getVehicleStatusColor(vehicle.status)}`}>
-                                {vehicle.status}
-                              </Badge>
-                            </div>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-semibold text-lg">
-                            {vehicle.year} {vehicle.make || vehicle.manufacturer} {vehicle.model}
-                          </h3>
+                  <div className="bg-white rounded-xl border border-gray-100 py-20 px-4 text-center">
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: 'rgba(203,32,48,0.06)' }}>
+                      <Car className="w-8 h-8 text-[#CB2030]" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      No vehicles yet
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
+                      Add your first vehicle to start building your online inventory.
+                    </p>
+                    <Button
+                      onClick={handleAddVehicle}
+                      className="text-white hover:opacity-90"
+                      style={{ background: '#CB2030' }}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add First Vehicle
+                    </Button>
+                  </div>
+                ) : filteredVehicles.length === 0 ? (
+                  <div className="bg-white rounded-xl border border-gray-100 py-16 px-4 text-center">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Filter className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <h3 className="text-base font-semibold text-gray-900 mb-1">No matches</h3>
+                    <p className="text-sm text-gray-500 mb-4">Try adjusting your filters.</p>
+                    <Button variant="outline" size="sm" onClick={clearFilters} className="text-xs">
+                      <X className="w-3.5 h-3.5 mr-1" /> Clear Filters
+                    </Button>
+                  </div>
+                ) : inventoryView === 'grid' ? (
+                  /* Grid View */
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredVehicles.map((vehicle) => (
+                      <div key={vehicle.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden group hover:shadow-md transition-shadow">
+                        <div className="relative">
+                          <img
+                            src={vehicle.images?.[0]?.url || '/api/placeholder/800/600'}
+                            alt={`${vehicle.year} ${vehicle.make || vehicle.manufacturer} ${vehicle.model}`}
+                            className="w-full h-44 object-cover bg-gray-100"
+                            onError={(e) => {
+                              e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600"%3E%3Crect fill="%23f3f4f6" width="800" height="600"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="20" dy="10.5" font-weight="500" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+                            }}
+                          />
+                          <span className={`absolute top-2.5 left-2.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${getVehicleStatusColor(vehicle.status)}`}>
+                            {vehicle.status}
+                          </span>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
+                              <button className="absolute top-2.5 right-2.5 p-1.5 bg-white/90 hover:bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreVertical className="h-3.5 w-3.5 text-gray-600" />
+                              </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent>
+                            <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => router.push(`/dealer/vehicles/${vehicle.id}/edit`)}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
+                                <Edit className="h-4 w-4 mr-2" /> Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => window.open(`/vehicles/${vehicle.id}`, '_blank')}>
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                View Public
+                                <ExternalLink className="h-4 w-4 mr-2" /> View Public
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                setSelectedVehicleForFeatured(vehicle);
-                                setShowFeaturedListingModal(true);
-                              }}>
-                                <Crown className="h-4 w-4 mr-2 text-yellow-600" />
-                                Request Featured
+                              <DropdownMenuItem onClick={() => { setSelectedVehicleForFeatured(vehicle); setShowFeaturedListingModal(true); }}>
+                                <Crown className="h-4 w-4 mr-2 text-amber-500" /> Request Featured
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                setSelectedVehicleForDeal(vehicle);
-                                setShowDealModal(true);
-                              }}>
-                                <Tag className="h-4 w-4 mr-2 text-green-600" />
-                                {vehicle.dealActive ? 'Edit Deal' : 'Create Deal'}
+                              <DropdownMenuItem onClick={() => { setSelectedVehicleForDeal(vehicle); setShowDealModal(true); }}>
+                                <Tag className="h-4 w-4 mr-2 text-emerald-600" /> {vehicle.dealActive ? 'Edit Deal' : 'Create Deal'}
                               </DropdownMenuItem>
                               <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteVehicle(vehicle.id)}>
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
+                                <Trash2 className="h-4 w-4 mr-2" /> Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
-                        <p className="text-2xl font-bold mb-3" style={{ color: '#CB2030' }}>
-                          {formatPrice(vehicle.price)}
-                        </p>
-                        <div className="space-y-2 text-sm text-gray-600">
-                          <div className="flex justify-between">
-                            <span>Mileage:</span>
+                        <div className="p-3.5">
+                          <h3 className="font-semibold text-sm text-gray-900 mb-0.5 line-clamp-1">
+                            {vehicle.year} {vehicle.make || vehicle.manufacturer} {vehicle.model}
+                          </h3>
+                          <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mb-2.5">
                             <span>{formatMileage(vehicle.mileage)} km</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Transmission:</span>
+                            <span>·</span>
                             <span>{vehicle.transmission}</span>
+                            <span>·</span>
+                            <span>{vehicle.fuelType}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span>Fuel Type:</span>
+                          <p className="text-base font-bold mb-3" style={{ color: '#CB2030' }}>
+                            {formatPrice(vehicle.price)}
+                          </p>
+                          <div className="flex items-center justify-between pt-2.5 border-t border-gray-100">
+                            <div className="flex gap-3 text-xs text-gray-400">
+                              <span className="flex items-center gap-1">
+                                <Eye className="h-3.5 w-3.5" /> {vehicle.views || 0}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <MessageCircle className="h-3.5 w-3.5" /> {vehicle.inquiries || 0}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Heart className="h-3.5 w-3.5" /> {vehicle.favorites || 0}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* List View */
+                  <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-50">
+                    {filteredVehicles.map((vehicle) => (
+                      <div key={vehicle.id} className="flex items-center gap-4 p-3 hover:bg-gray-50/50 transition-colors group">
+                        <img
+                          src={vehicle.images?.[0]?.url || '/api/placeholder/800/600'}
+                          alt={`${vehicle.year} ${vehicle.make || vehicle.manufacturer} ${vehicle.model}`}
+                          className="w-20 h-14 object-cover rounded-lg bg-gray-100 shrink-0"
+                          onError={(e) => {
+                            e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="112"%3E%3Crect fill="%23f3f4f6" width="160" height="112"/%3E%3C/svg%3E';
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-sm text-gray-900 truncate">
+                              {vehicle.year} {vehicle.make || vehicle.manufacturer} {vehicle.model}
+                            </h3>
+                            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${getVehicleStatusColor(vehicle.status)}`}>
+                              {vehicle.status}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
+                            <span>{formatMileage(vehicle.mileage)} km</span>
+                            <span>{vehicle.transmission}</span>
                             <span>{vehicle.fuelType}</span>
                           </div>
                         </div>
-                        <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                          <div className="flex gap-4 text-sm text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <Eye className="h-4 w-4" />
-                              {vehicle.views}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MessageCircle className="h-4 w-4" />
-                              {vehicle.inquiries}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Heart className="h-4 w-4" />
-                              {vehicle.favorites}
-                            </span>
+                        <div className="flex items-center gap-5 shrink-0">
+                          <div className="flex gap-3 text-xs text-gray-400">
+                            <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {vehicle.views || 0}</span>
+                            <span className="flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" /> {vehicle.inquiries || 0}</span>
                           </div>
+                          <p className="text-sm font-bold whitespace-nowrap" style={{ color: '#CB2030' }}>
+                            {formatPrice(vehicle.price)}
+                          </p>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="p-1.5 rounded-lg hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreVertical className="h-4 w-4 text-gray-500" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => router.push(`/dealer/vehicles/${vehicle.id}/edit`)}>
+                                <Edit className="h-4 w-4 mr-2" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => window.open(`/vehicles/${vehicle.id}`, '_blank')}>
+                                <ExternalLink className="h-4 w-4 mr-2" /> View Public
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSelectedVehicleForFeatured(vehicle); setShowFeaturedListingModal(true); }}>
+                                <Crown className="h-4 w-4 mr-2 text-amber-500" /> Request Featured
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSelectedVehicleForDeal(vehicle); setShowDealModal(true); }}>
+                                <Tag className="h-4 w-4 mr-2 text-emerald-600" /> {vehicle.dealActive ? 'Edit Deal' : 'Create Deal'}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteVehicle(vehicle.id)}>
+                                <Trash2 className="h-4 w-4 mr-2" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                      </CardContent>
-                    </Card>
-                        ))
-                      ) : (
-                        // No filtered results empty state
-                        <div className="col-span-full">
-                          <Card>
-                            <CardContent className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                                <Filter className="w-8 h-8 text-gray-400" />
-                              </div>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                No vehicles match your filters
-                              </h3>
-                              <p className="text-sm text-gray-500 mb-4 max-w-md">
-                                Try adjusting your search criteria or clearing some filters to see more results.
-                              </p>
-                              <Button
-                                variant="outline"
-                                onClick={clearFilters}
-                                className="flex items-center gap-2"
-                              >
-                                <X className="w-4 h-4" />
-                                Clear All Filters
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </div>
-                      )}
-                    </div>
-                  </>
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 {/* Floating Add Stock Button */}
                 <button
                   onClick={handleAddVehicle}
-                  className="fixed bottom-8 right-8 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 hover:opacity-90 z-50 flex items-center gap-2 group"
+                  className="fixed bottom-8 right-8 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 z-50 flex items-center gap-2 group"
                   style={{ background: '#CB2030' }}
                   title="Add New Vehicle"
                 >
-                  <Plus className="h-6 w-6" />
-                  <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap">
+                  <Plus className="h-5 w-5" />
+                  <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap text-sm font-medium">
                     Add Stock
                   </span>
                 </button>

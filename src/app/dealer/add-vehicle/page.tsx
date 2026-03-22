@@ -263,21 +263,12 @@ function DealerAddVehicleWizard() {
     }
   }, [searchParams]);
 
-  // Cleanup on component unmount (data URLs don't need to be revoked)
+  // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      console.log('Component unmounting, clearing image previews');
       setImagePreviews([]);
     };
   }, []);
-
-  // Debug: Log imagePreviews state changes
-  useEffect(() => {
-    console.log('=== imagePreviews state changed ===');
-    console.log('Current imagePreviews:', imagePreviews);
-    console.log('Number of previews:', imagePreviews.length);
-    console.log('vehicleData.images.length:', vehicleData.images.length);
-  }, [imagePreviews, vehicleData.images]);
 
   const updateVehicleData = (field: keyof VehicleData, value: any) => {
     setVehicleData(prev => ({ ...prev, [field]: value }));
@@ -303,8 +294,6 @@ function DealerAddVehicleWizard() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
-      console.log('Files selected:', selectedFiles.length);
-
       try {
         // Compression options - very aggressive compression for database storage
         const options = {
@@ -318,8 +307,6 @@ function DealerAddVehicleWizard() {
         const newPreviewPromises = selectedFiles.map(async (file) => {
           // Compress the image
           const compressedFile = await imageCompression(file, options);
-          console.log(`Compressed ${file.name}: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
-
           // Convert to base64
           return new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
@@ -333,7 +320,6 @@ function DealerAddVehicleWizard() {
         });
 
         const newPreviews = await Promise.all(newPreviewPromises);
-        console.log('All compressed images ready:', newPreviews.length);
 
         // Store data URLs in vehicleData
         setVehicleData(prev => ({
@@ -342,11 +328,7 @@ function DealerAddVehicleWizard() {
           newImages: [...prev.newImages, ...newPreviews].slice(0, 12 - prev.existingImages.length)
         }));
 
-        setImagePreviews(prev => {
-          const updated = [...prev, ...newPreviews].slice(0, 12);
-          console.log('Updated imagePreviews state:', updated.length);
-          return updated;
-        });
+        setImagePreviews(prev => [...prev, ...newPreviews].slice(0, 12));
       } catch (error) {
         console.error('Error processing images:', error);
         setErrorModal({ show: true, message: 'Error processing images. Please try again.' });
@@ -355,8 +337,6 @@ function DealerAddVehicleWizard() {
   };
 
   const removeImage = (index: number) => {
-    console.log('Removing image at index:', index);
-
     setVehicleData(prev => {
       const imageToRemove = prev.images[index];
       const isExisting = prev.existingImages.includes(imageToRemove);
@@ -401,8 +381,6 @@ function DealerAddVehicleWizard() {
       const result = await response.json();
 
       if (response.ok) {
-        console.log(`Vehicle successfully ${isEditMode ? 'updated' : 'added'}:`, result);
-
         if (isEditMode) {
           // Redirect to dashboard on successful edit
           router.push('/dealer/dashboard?tab=inventory');
@@ -410,87 +388,79 @@ function DealerAddVehicleWizard() {
           setCurrentStep(7); // Go to success step for new vehicles
         }
       } else {
-        console.error(`Error ${isEditMode ? 'updating' : 'adding'} vehicle:`, result.error);
         setErrorModal({ show: true, message: result.error || `Failed to ${isEditMode ? 'update' : 'add'} vehicle` });
       }
-    } catch (error) {
-      console.error('Network error:', error);
+    } catch {
       setErrorModal({ show: true, message: 'Network error. Please try again.' });
     }
   };
 
+  const completedSteps = currentStep - 1;
+  const progressPercent = Math.round((completedSteps / 6) * 100);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4">
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => window.location.href = '/dealer/dashboard'}
-                className="flex items-center"
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => router.push('/dealer/dashboard?tab=inventory')}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
+                <ArrowLeft className="h-5 w-5 text-gray-600" />
+              </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {isEditMode ? 'Edit Vehicle' : 'Add Vehicle to Inventory'}
+                <h1 className="text-lg font-semibold text-gray-900">
+                  {isEditMode ? 'Edit Vehicle' : 'Add New Vehicle'}
                 </h1>
-                <p className="text-gray-600">
-                  {isEditMode ? 'Update vehicle information' : 'Professional vehicle listing wizard'}
+                <p className="text-sm text-gray-500">
+                  Step {Math.min(currentStep, 6)} of 6
                 </p>
               </div>
             </div>
-            <div className="text-sm text-gray-500">
-              Step {currentStep} of 6
-            </div>
+            <span className="text-sm font-medium text-gray-500">{progressPercent}%</span>
           </div>
+        </div>
+        {/* Slim progress bar */}
+        <div className="h-0.5 bg-gray-100">
+          <div
+            className="h-full transition-all duration-500 ease-out"
+            style={{ width: `${progressPercent}%`, background: '#CB2030' }}
+          />
         </div>
       </div>
 
-      {/* Progress Steps */}
-      <div className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            {STEPS.map((step, index) => {
-              const Icon = step.icon;
+      {/* Step indicator — compact pills */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-4 py-3">
+          <div className="flex items-center gap-2 overflow-x-auto">
+            {STEPS.filter(s => s.id <= 6).map((step) => {
               const isActive = currentStep === step.id;
               const isCompleted = currentStep > step.id;
-              
               return (
-                <div key={step.id} className="flex items-center">
-                  <div className="flex flex-col items-center">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${
-                      isCompleted 
-                        ? 'bg-green-500 border-green-500 text-white' 
-                        : isActive 
-                          ? 'bg-blue-600 border-blue-600 text-white'
-                          : 'bg-gray-100 border-gray-300 text-gray-400'
+                <div
+                  key={step.id}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                    isCompleted
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : isActive
+                        ? 'text-white'
+                        : 'bg-gray-50 text-gray-400'
+                  }`}
+                  style={isActive ? { background: '#CB2030' } : undefined}
+                >
+                  {isCompleted ? (
+                    <CheckCircle className="h-3.5 w-3.5" />
+                  ) : (
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      isActive ? 'bg-white/20' : 'bg-gray-200 text-gray-500'
                     }`}>
-                      {isCompleted ? (
-                        <CheckCircle className="h-6 w-6" />
-                      ) : (
-                        <Icon className="h-6 w-6" />
-                      )}
-                    </div>
-                    <div className="mt-2 text-center">
-                      <div className={`text-sm font-medium ${
-                        isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'
-                      }`}>
-                        {step.title}
-                      </div>
-                      <div className="text-xs text-gray-400 hidden sm:block">
-                        {step.description}
-                      </div>
-                    </div>
-                  </div>
-                  {index < STEPS.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-4 ${
-                      isCompleted ? 'bg-green-500' : 'bg-gray-200'
-                    }`} />
+                      {step.id}
+                    </span>
                   )}
+                  <span className="hidden sm:inline">{step.title}</span>
                 </div>
               );
             })}
@@ -514,7 +484,7 @@ function DealerAddVehicleWizard() {
 
                 {isLoadingUsers ? (
                   <div className="flex flex-col items-center justify-center py-12">
-                    <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                    <div className="w-12 h-12 border-4 border-gray-200 border-t-[#CB2030] rounded-full animate-spin mb-4"></div>
                     <p className="text-gray-600">Loading team members...</p>
                   </div>
                 ) : dealershipUsers.length === 0 ? (
@@ -532,8 +502,8 @@ function DealerAddVehicleWizard() {
                         key={person.id}
                         className={`cursor-pointer transition-all border-2 ${
                           isSelected
-                            ? 'ring-4 ring-blue-300 bg-blue-50 border-blue-500'
-                            : 'border-gray-200 hover:shadow-lg hover:border-blue-300'
+                            ? 'ring-2 ring-[#CB2030]/20 bg-red-50/50 border-[#CB2030]'
+                            : 'border-gray-200 hover:shadow-md hover:border-gray-300'
                         }`}
                         onClick={() => {
                           setVehicleData(prev => ({
@@ -547,15 +517,13 @@ function DealerAddVehicleWizard() {
                       >
                         <CardContent className="p-4">
                           <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                               <User className={`w-6 h-6 ${
-                                isSelected ? 'text-blue-700' : 'text-blue-600'
+                                isSelected ? 'text-[#CB2030]' : 'text-gray-600'
                               }`} />
                             </div>
                             <div className="flex-1">
-                              <h3 className={`font-semibold ${
-                                isSelected ? 'text-blue-900' : 'text-gray-900'
-                              }`}>
+                              <h3 className="font-semibold text-gray-900">
                                 {person.name}
                               </h3>
                               <p className="text-sm text-gray-600">{person.email}</p>
@@ -565,8 +533,8 @@ function DealerAddVehicleWizard() {
                             </div>
                             {isSelected && (
                               <div className="text-center">
-                                <CheckCircle className="w-6 h-6 text-blue-600 mx-auto" />
-                                <span className="text-xs text-blue-600 font-medium">Selected</span>
+                                <CheckCircle className="w-6 h-6 text-[#CB2030] mx-auto" />
+                                <span className="text-xs text-[#CB2030] font-medium">Selected</span>
                               </div>
                             )}
                           </div>
@@ -579,10 +547,10 @@ function DealerAddVehicleWizard() {
 
                 {vehicleData.salespersonId && session?.user?.email &&
                  vehicleData.salespersonEmail === session.user.email && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center">
-                      <User className="w-5 h-5 text-blue-600 mr-2" />
-                      <span className="text-sm text-blue-800 font-medium">
+                      <User className="w-5 h-5 text-gray-500 mr-2" />
+                      <span className="text-sm text-gray-700 font-medium">
                         You are the selected salesperson for this vehicle
                       </span>
                     </div>
@@ -612,8 +580,8 @@ function DealerAddVehicleWizard() {
                         key={categoryKey}
                         className={`cursor-pointer transition-all border-2 ${
                           isSelected
-                            ? 'ring-4 ring-blue-300 bg-blue-50 border-blue-500'
-                            : 'border-gray-200 hover:shadow-lg hover:border-blue-300'
+                            ? 'ring-2 ring-[#CB2030]/20 bg-red-50/50 border-[#CB2030]'
+                            : 'border-gray-200 hover:shadow-md hover:border-gray-300'
                         }`}
                         onClick={() => {
                           updateVehicleData('category', categoryKey);
@@ -623,16 +591,14 @@ function DealerAddVehicleWizard() {
                         <CardContent className="p-6">
                           <div className="flex flex-col items-center text-center space-y-3">
                             <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                              isSelected ? 'bg-blue-600' : 'bg-gray-100'
+                              isSelected ? 'bg-[#CB2030]' : 'bg-gray-100'
                             }`}>
                               <Icon className={`w-8 h-8 ${
                                 isSelected ? 'text-white' : 'text-gray-600'
                               }`} />
                             </div>
                             <div>
-                              <h3 className={`font-semibold text-lg ${
-                                isSelected ? 'text-blue-900' : 'text-gray-900'
-                              }`}>
+                              <h3 className="font-semibold text-lg text-gray-900">
                                 {category.label}
                               </h3>
                               <p className="text-sm text-gray-600 mt-1">
@@ -640,7 +606,7 @@ function DealerAddVehicleWizard() {
                               </p>
                             </div>
                             {isSelected && (
-                              <CheckCircle className="w-6 h-6 text-blue-600" />
+                              <CheckCircle className="w-6 h-6 text-[#CB2030]" />
                             )}
                           </div>
                         </CardContent>
@@ -649,14 +615,14 @@ function DealerAddVehicleWizard() {
                   })}
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                   <div className="flex items-start">
-                    <Building2 className="w-5 h-5 text-blue-600 mr-2 mt-0.5" />
+                    <Building2 className="w-5 h-5 text-gray-500 mr-2 mt-0.5" />
                     <div>
-                      <span className="text-sm text-blue-800 font-medium block mb-1">
+                      <span className="text-sm text-gray-900 font-medium block mb-0.5">
                         Selected: {VEHICLE_CATEGORIES[vehicleData.category].label}
                       </span>
-                      <span className="text-sm text-blue-700">
+                      <span className="text-sm text-gray-500">
                         {VEHICLE_CATEGORIES[vehicleData.category].description}
                       </span>
                     </div>
@@ -684,7 +650,7 @@ function DealerAddVehicleWizard() {
                       required
                       value={vehicleData.manufacturer}
                       onChange={(e) => updateVehicleData('manufacturer', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-md"
+                      className="w-full h-10 px-3 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030] transition-colors"
                     >
                       <option value="">Select Manufacturer</option>
                       {getManufacturers(vehicleData.category).map(make => (
@@ -714,7 +680,7 @@ function DealerAddVehicleWizard() {
                       required
                       value={vehicleData.year}
                       onChange={(e) => updateVehicleData('year', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-md"
+                      className="w-full h-10 px-3 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030] transition-colors"
                     >
                       <option value="">Select Year</option>
                       {Array.from({ length: 25 }, (_, i) => 2025 - i).map(year => (
@@ -731,7 +697,7 @@ function DealerAddVehicleWizard() {
                       required
                       value={vehicleData.condition}
                       onChange={(e) => updateVehicleData('condition', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-md"
+                      className="w-full h-10 px-3 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030] transition-colors"
                     >
                       <option key="Excellent" value="Excellent">Excellent</option>
                       <option key="Very Good" value="Very Good">Very Good</option>
@@ -770,7 +736,7 @@ function DealerAddVehicleWizard() {
                       <select
                         value={vehicleData.bodyType}
                         onChange={(e) => updateVehicleData('bodyType', e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md"
+                        className="w-full h-10 px-3 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030] transition-colors"
                       >
                         <option value="">Select Body Type</option>
                         {CAR_BODY_TYPES.map(type => (
@@ -935,7 +901,7 @@ function DealerAddVehicleWizard() {
                       <select
                         value={vehicleData.fuelType}
                         onChange={(e) => updateVehicleData('fuelType', e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md"
+                        className="w-full h-10 px-3 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030] transition-colors"
                       >
                         <option value="">Select Fuel Type</option>
                         {FUEL_TYPES.map(type => (
@@ -952,7 +918,7 @@ function DealerAddVehicleWizard() {
                       <select
                         value={vehicleData.transmission}
                         onChange={(e) => updateVehicleData('transmission', e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md"
+                        className="w-full h-10 px-3 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030] transition-colors"
                       >
                         <option value="">Select Transmission</option>
                         {TRANSMISSION_TYPES.map(type => (
@@ -966,7 +932,7 @@ function DealerAddVehicleWizard() {
                 {/* Features */}
                 <div className="space-y-6">
                   <div>
-                    <h4 className="font-medium text-blue-600 mb-3">Comfort Features</h4>
+                    <h4 className="font-medium text-gray-900 mb-3">Comfort Features</h4>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {COMFORT_FEATURES.map(feature => (
                         <label key={feature} className="flex items-center space-x-2 text-sm">
@@ -983,7 +949,7 @@ function DealerAddVehicleWizard() {
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-blue-600 mb-3">Safety Features</h4>
+                    <h4 className="font-medium text-gray-900 mb-3">Safety Features</h4>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {SAFETY_FEATURES.map(feature => (
                         <label key={feature} className="flex items-center space-x-2 text-sm">
@@ -1005,7 +971,7 @@ function DealerAddVehicleWizard() {
                   <textarea
                     value={vehicleData.description}
                     onChange={(e) => updateVehicleData('description', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md h-24 resize-none"
+                    className="w-full p-3 border border-gray-200 rounded-lg h-24 resize-none text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030] transition-colors"
                     placeholder="Additional details about the vehicle..."
                   />
                 </div>
@@ -1022,11 +988,14 @@ function DealerAddVehicleWizard() {
                   </CardDescription>
                 </div>
 
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <div className="border-2 border-dashed border-gray-200 rounded-xl p-10 text-center bg-gray-50/50 hover:border-gray-300 transition-colors">
+                  <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                    <Upload className="h-6 w-6 text-gray-400" />
+                  </div>
                   <Button
                     type="button"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="hover:opacity-90 text-white"
+                    style={{ background: '#CB2030' }}
                     onClick={() => document.getElementById('file-upload')?.click()}
                   >
                     Choose Pictures
@@ -1047,28 +1016,22 @@ function DealerAddVehicleWizard() {
                 {vehicleData.images.length > 0 && (
                   <div>
                     <h3 className="font-medium mb-4">Uploaded Pictures ({vehicleData.images.length}/12)</h3>
-                    <p className="text-xs text-gray-500 mb-2">Debug: imagePreviews.length = {imagePreviews.length}</p>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {imagePreviews.length === 0 && (
-                        <p className="text-red-500 col-span-full">No previews available (imagePreviews is empty)</p>
-                      )}
-                      {imagePreviews.map((preview, index) => {
-                        console.log(`Rendering image ${index}:`, preview);
-                        return (
+                      {imagePreviews.map((preview, index) => (
                           <div key={index} className="relative group">
-                            <div className="text-xs text-gray-500 mb-1">Preview {index + 1}</div>
                             <img
                               src={preview}
                               alt={`Vehicle ${index + 1}`}
-                              className="w-full h-32 object-cover rounded-lg border-2 border-blue-300"
+                              className="w-full h-32 object-cover rounded-lg border border-gray-200"
                               onError={(e) => {
-                                console.error('❌ Image failed to load:', preview);
                                 e.currentTarget.style.display = 'none';
                               }}
-                              onLoad={() => {
-                                console.log('✅ Image loaded successfully:', preview);
-                              }}
                             />
+                            {index === 0 && (
+                              <span className="absolute bottom-1.5 left-1.5 bg-gray-900/70 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+                                Primary
+                              </span>
+                            )}
                             <button
                               type="button"
                               onClick={() => removeImage(index)}
@@ -1077,8 +1040,7 @@ function DealerAddVehicleWizard() {
                               <X className="h-3 w-3" />
                             </button>
                           </div>
-                        );
-                      })}
+                        ))}
                     </div>
                   </div>
                 )}
@@ -1102,8 +1064,8 @@ function DealerAddVehicleWizard() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="w-5 h-5 text-blue-600" />
+                      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                        <User className="w-5 h-5 text-gray-600" />
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900">{vehicleData.salespersonName}</p>
@@ -1125,7 +1087,7 @@ function DealerAddVehicleWizard() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <span className="text-sm font-medium text-gray-500">Price:</span>
-                        <p className="font-medium text-green-600">N$ {vehicleData.price ? Number(vehicleData.price).toLocaleString() : '0'}</p>
+                        <p className="font-semibold" style={{ color: '#CB2030' }}>N$ {vehicleData.price ? Number(vehicleData.price).toLocaleString() : '0'}</p>
                       </div>
                       <div>
                         <span className="text-sm font-medium text-gray-500">Mileage:</span>
@@ -1163,31 +1125,24 @@ function DealerAddVehicleWizard() {
                       <CardTitle className="text-lg">Images ({vehicleData.images.length})</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-xs text-gray-500 mb-2">Debug: imagePreviews.length = {imagePreviews.length}</p>
-                      {imagePreviews.length === 0 && (
-                        <p className="text-red-500">No previews available (imagePreviews is empty)</p>
-                      )}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {imagePreviews.map((preview, index) => {
-                          console.log(`Step 6 - Rendering preview ${index}:`, preview);
-                          return (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {imagePreviews.map((preview, index) => (
                             <div key={index} className="relative">
-                              <div className="text-xs text-gray-500 mb-1">Preview {index + 1}</div>
                               <img
                                 src={preview}
                                 alt={`Vehicle ${index + 1}`}
-                                className="w-full h-32 object-cover rounded-lg border-2 border-blue-300"
+                                className="w-full h-32 object-cover rounded-lg border border-gray-200"
                                 onError={(e) => {
-                                  console.error('❌ Step 6 - Image failed to load:', preview);
                                   e.currentTarget.style.display = 'none';
                                 }}
-                                onLoad={() => {
-                                  console.log('✅ Step 6 - Image loaded successfully:', preview);
-                                }}
                               />
+                              {index === 0 && (
+                                <span className="absolute bottom-1.5 left-1.5 bg-gray-900/70 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+                                  Primary
+                                </span>
+                              )}
                             </div>
-                          );
-                        })}
+                          ))}
                       </div>
                     </CardContent>
                   </Card>
@@ -1198,8 +1153,8 @@ function DealerAddVehicleWizard() {
             {/* Step 7: Success */}
             {currentStep === 7 && (
               <div className="space-y-6 text-center">
-                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
+                <div className="mx-auto w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-8 w-8 text-emerald-600" />
                 </div>
                 
                 <div>
@@ -1210,9 +1165,10 @@ function DealerAddVehicleWizard() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button 
+                  <Button
                     onClick={() => window.location.href = '/dealer/dashboard'}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="hover:opacity-90 text-white"
+                    style={{ background: '#CB2030' }}
                   >
                     Back to Dashboard
                   </Button>
@@ -1257,6 +1213,8 @@ function DealerAddVehicleWizard() {
                         safety: [],
                         description: '',
                         images: [],
+                        existingImages: [],
+                        newImages: [],
                         internalRef: '',
                         financing: true,
                         isNew: false
@@ -1283,7 +1241,8 @@ function DealerAddVehicleWizard() {
 
               <Button
                 onClick={currentStep === 7 ? () => window.location.href = '/dealer/dashboard?tab=inventory' : currentStep === 6 ? handleSubmit : nextStep}
-                className="flex items-center bg-blue-600 hover:bg-blue-700"
+                className="flex items-center hover:opacity-90 text-white"
+                style={{ background: '#CB2030' }}
               >
                 {currentStep === 7 ? 'Finish' : currentStep === 6 ? (isEditMode ? 'Update Vehicle' : 'Add to Inventory') : 'Next Step'}
                 {currentStep < 6 && <ArrowRight className="h-4 w-4 ml-2" />}
@@ -1311,7 +1270,8 @@ function DealerAddVehicleWizard() {
               <div className="flex justify-end">
                 <Button
                   onClick={() => setErrorModal({ show: false, message: '' })}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="hover:opacity-90 text-white"
+                  style={{ background: '#CB2030' }}
                 >
                   OK
                 </Button>
@@ -1329,7 +1289,7 @@ export default function DealerAddVehicleWizardPage() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CB2030] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
