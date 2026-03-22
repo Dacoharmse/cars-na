@@ -78,6 +78,7 @@ model User {
   dealerInterests    DealerInterest[]
   notifications      Notification[]
   markedPaidInvoices Invoice[]           @relation("InvoicePaidBy")
+  listingActivities  ListingActivity[]   @relation("ListingActivities")
 }
 
 // Dealership model for car dealerships
@@ -137,6 +138,7 @@ model Dealership {
   dealerInterests         DealerInterest[]
   inquiries               DealershipInquiry[]
   invoices                Invoice[]
+  listingActivities       ListingActivity[]
 }
 
 // Vehicle model for car listings
@@ -784,7 +786,8 @@ model UserVehicleListing {
   interestedCount Int           @default(0)
 
   // Interest from dealerships
-  interests DealerInterest[]
+  interests  DealerInterest[]
+  activities ListingActivity[]
 
   // Admin moderation
   moderatedBy     String?
@@ -829,6 +832,44 @@ model DealerInterest {
   @@unique([listingId, dealershipId])
   @@index([dealershipId])
   @@index([status])
+}
+
+// Activity log for vehicle listings — tracks dealer views, contacts, interest
+model ListingActivity {
+  id String @id @default(cuid())
+
+  // Which listing
+  listingId String
+  listing   UserVehicleListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  // Which dealership performed the action
+  dealershipId String
+  dealership   Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+
+  // Which user (optional, for granularity)
+  userId String?
+  user   User?  @relation("ListingActivities", fields: [userId], references: [id], onDelete: SetNull)
+
+  // Action type
+  action ListingActionType
+
+  // Optional metadata (e.g., contact method, offer amount)
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([listingId, createdAt])
+  @@index([dealershipId])
+  @@index([listingId, dealershipId])
+}
+
+enum ListingActionType {
+  VIEWED           // Dealership opened the listing details
+  EXPRESSED_INTEREST // Dealership submitted interest form
+  CALLED_SELLER    // Dealership clicked call button
+  EMAILED_SELLER   // Dealership clicked email button
+  WHATSAPP_SELLER  // Dealership clicked WhatsApp button
+  STATUS_CHANGED   // Listing status changed (sold, etc.)
 }
 
 // Notification system

@@ -91,9 +91,22 @@ export async function GET(req: NextRequest) {
             createdAt: true,
           },
         },
+        activities: {
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          include: {
+            dealership: {
+              select: { id: true, name: true, logo: true, city: true },
+            },
+            user: {
+              select: { id: true, name: true },
+            },
+          },
+        },
         _count: {
           select: {
             interests: true,
+            activities: true,
           },
         },
       },
@@ -108,6 +121,7 @@ export async function GET(req: NextRequest) {
         hasExpressedInterest: listing.interests.length > 0,
         dealerInterest: listing.interests[0] || null,
         totalInterests: listing._count.interests,
+        totalActivities: listing._count.activities,
       })),
     });
   } catch (error) {

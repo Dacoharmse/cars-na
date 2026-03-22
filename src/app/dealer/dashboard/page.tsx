@@ -57,7 +57,16 @@ import {
   Inbox,
   FileText,
   Download,
-  AlertCircle
+  AlertCircle,
+  Fuel,
+  Gauge,
+  History,
+  PhoneCall,
+  MessageSquare,
+  ArrowRight,
+  ChevronRight,
+  Handshake,
+  Activity
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -411,6 +420,11 @@ function VehicleListingsTab() {
   const [offerPrice, setOfferPrice] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [expandedActivity, setExpandedActivity] = useState<string | null>(null);
+  const [activityData, setActivityData] = useState<Record<string, any[]>>({});
+  const [loadingActivity, setLoadingActivity] = useState<string | null>(null);
+  const [detailActivities, setDetailActivities] = useState<any[]>([]);
+  const [loadingDetailActivities, setLoadingDetailActivities] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -424,17 +438,65 @@ function VehicleListingsTab() {
       if (data.success) {
         setListings(data.listings);
       }
-    } catch (error) {
-      console.error('Error fetching listings:', error);
+    } catch {
       showToast({ title: 'Error', description: 'Failed to load vehicle listings', variant: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
+  // Log activity (view, call, email, etc.)
+  const logActivity = async (listingId: string, action: string, metadata?: any) => {
+    try {
+      await fetch('/api/dealer/listing-activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listingId, action, metadata }),
+      });
+    } catch {
+      // silent — activity logging shouldn't block UX
+    }
+  };
+
+  // Fetch activity log for a listing
+  const fetchActivity = async (listingId: string) => {
+    if (activityData[listingId]) {
+      setExpandedActivity(expandedActivity === listingId ? null : listingId);
+      return;
+    }
+    setLoadingActivity(listingId);
+    setExpandedActivity(listingId);
+    try {
+      const res = await fetch(`/api/dealer/listing-activity?listingId=${listingId}`);
+      const data = await res.json();
+      if (data.success) {
+        setActivityData(prev => ({ ...prev, [listingId]: data.activities }));
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoadingActivity(null);
+    }
+  };
+
+  // Fetch activity for detail modal
+  const fetchDetailActivities = async (listingId: string) => {
+    setLoadingDetailActivities(true);
+    try {
+      const res = await fetch(`/api/dealer/listing-activity?listingId=${listingId}`);
+      const data = await res.json();
+      if (data.success) {
+        setDetailActivities(data.activities);
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoadingDetailActivities(false);
+    }
+  };
+
   const handleExpressInterest = async () => {
     if (!selectedListing) return;
-
     setSubmitting(true);
     try {
       const response = await fetch('/api/dealer/interest', {
@@ -446,268 +508,495 @@ function VehicleListingsTab() {
           message,
         }),
       });
-
       const data = await response.json();
       if (data.success) {
+        logActivity(selectedListing.id, 'EXPRESSED_INTEREST', { offerPrice: offerPrice || null });
         showToast({ title: 'Success', description: 'Interest expressed successfully!', variant: 'success' });
         setShowInterestModal(false);
         setOfferPrice('');
         setMessage('');
-        fetchListings(); // Refresh listings
+        fetchListings();
       } else {
         showToast({ title: 'Error', description: data.error || 'Failed to express interest', variant: 'error' });
       }
-    } catch (error) {
+    } catch {
       showToast({ title: 'Error', description: 'An error occurred', variant: 'error' });
     } finally {
       setSubmitting(false);
     }
   };
 
+  // View details handler — logs VIEWED activity
+  const handleViewDetails = (listing: any) => {
+    setSelectedListing(listing);
+    setShowDetailsModal(true);
+    logActivity(listing.id, 'VIEWED');
+    fetchDetailActivities(listing.id);
+  };
+
+  // Contact action handlers — log activity then perform action
+  const handleCall = (listing: any) => {
+    logActivity(listing.id, 'CALLED_SELLER');
+    window.location.href = `tel:${listing.userPhone}`;
+  };
+
+  const handleEmail = (listing: any) => {
+    logActivity(listing.id, 'EMAILED_SELLER');
+    window.location.href = `mailto:${listing.userEmail}?subject=Inquiry about ${listing.year} ${listing.make} ${listing.model}`;
+  };
+
+  const handleWhatsApp = (listing: any) => {
+    logActivity(listing.id, 'WHATSAPP_SELLER');
+    const phone = listing.userPhone?.replace(/[^0-9]/g, '');
+    const text = encodeURIComponent(`Hi, I'm interested in your ${listing.year} ${listing.make} ${listing.model} listed on Cars.na`);
+    window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+  };
+
+  // Activity icon helper
+  const getActivityIcon = (action: string) => {
+    switch (action) {
+      case 'VIEWED': return <Eye className="w-3.5 h-3.5" />;
+      case 'EXPRESSED_INTEREST': return <Heart className="w-3.5 h-3.5" />;
+      case 'CALLED_SELLER': return <PhoneCall className="w-3.5 h-3.5" />;
+      case 'EMAILED_SELLER': return <Mail className="w-3.5 h-3.5" />;
+      case 'WHATSAPP_SELLER': return <MessageSquare className="w-3.5 h-3.5" />;
+      case 'STATUS_CHANGED': return <Activity className="w-3.5 h-3.5" />;
+      default: return <Clock className="w-3.5 h-3.5" />;
+    }
+  };
+
+  const getActivityColor = (action: string) => {
+    switch (action) {
+      case 'VIEWED': return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'EXPRESSED_INTEREST': return 'text-rose-600 bg-rose-50 border-rose-200';
+      case 'CALLED_SELLER': return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+      case 'EMAILED_SELLER': return 'text-amber-600 bg-amber-50 border-amber-200';
+      case 'WHATSAPP_SELLER': return 'text-green-600 bg-green-50 border-green-200';
+      case 'STATUS_CHANGED': return 'text-purple-600 bg-purple-50 border-purple-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  const getActivityLabel = (action: string) => {
+    switch (action) {
+      case 'VIEWED': return 'Viewed listing';
+      case 'EXPRESSED_INTEREST': return 'Expressed interest';
+      case 'CALLED_SELLER': return 'Called seller';
+      case 'EMAILED_SELLER': return 'Emailed seller';
+      case 'WHATSAPP_SELLER': return 'WhatsApp\'d seller';
+      case 'STATUS_CHANGED': return 'Status changed';
+      default: return action;
+    }
+  };
+
+  const formatActivityDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return d.toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-NA', { hour: '2-digit', minute: '2-digit' });
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CB2030]"></div>
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <div className="w-10 h-10 border-[3px] border-gray-200 border-t-[#CB2030] rounded-full animate-spin" />
+        <p className="text-sm text-gray-400 font-medium">Loading listings...</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Vehicle Listings</CardTitle>
-          <CardDescription>Browse vehicles for sale from users in your region</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {listings.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <Car className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium mb-2">No listings available</h3>
-              <p className="text-sm">User vehicle listings will appear here</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {listings.map((listing) => (
-                <div key={listing.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                  {/* Image Section */}
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Vehicle Listings</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Browse vehicles for sale from private sellers in your region</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
+            <Car className="w-4 h-4 text-gray-500" />
+            <span className="text-sm font-semibold text-gray-700">{listings.length}</span>
+            <span className="text-xs text-gray-500">available</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Empty State */}
+      {listings.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-100 p-16 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
+            <Car className="w-8 h-8 text-gray-300" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">No listings available</h3>
+          <p className="text-sm text-gray-500 max-w-sm mx-auto">Private seller vehicle listings in your region will appear here when they become available.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {listings.map((listing) => (
+            <div key={listing.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-gray-200 transition-all duration-200 hover:shadow-sm">
+              <div className="flex flex-col md:flex-row">
+                {/* Image — horizontal card layout */}
+                <button
+                  onClick={() => handleViewDetails(listing)}
+                  className="md:w-72 flex-shrink-0 relative group cursor-pointer"
+                >
                   {listing.images && listing.images.length > 0 ? (
-                    <div className="relative h-48 bg-gray-100">
+                    <div className="relative h-52 md:h-full min-h-[200px] bg-gray-100">
                       <img
                         src={listing.images[0]}
                         alt={`${listing.year} ${listing.make} ${listing.model}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                       {listing.images.length > 1 && (
-                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                          +{listing.images.length - 1} more
+                        <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-md">
+                          <Camera className="w-3 h-3" />
+                          {listing.images.length} photos
+                        </div>
+                      )}
+                      {listing.hasExpressedInterest && (
+                        <div className="absolute top-3 left-3 flex items-center gap-1 bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1 rounded-md">
+                          <CheckCircle className="w-3 h-3" />
+                          Interest Sent
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="h-48 bg-gray-200 flex items-center justify-center">
-                      <Car className="h-16 w-16 text-gray-400" />
+                    <div className="h-52 md:h-full min-h-[200px] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+                      <Car className="w-12 h-12 text-gray-300" />
                     </div>
                   )}
+                </button>
 
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">
-                          {listing.year} {listing.make} {listing.model}
-                        </h3>
-                        <p className="text-sm text-gray-600">{listing.category}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xl font-bold" style={{ color: '#CB2030' }}>
-                          NAD {listing.price.toLocaleString()}
-                        </p>
-                        {listing.negotiable && (
-                          <Badge variant="outline" className="text-xs">Negotiable</Badge>
+                {/* Content */}
+                <div className="flex-1 p-5 flex flex-col">
+                  {/* Top row: Title + Price */}
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                      <button
+                        onClick={() => handleViewDetails(listing)}
+                        className="text-lg font-bold text-gray-900 hover:text-[#CB2030] transition-colors text-left"
+                      >
+                        {listing.year} {listing.make} {listing.model}
+                      </button>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{listing.category}</span>
+                        {listing.condition && (
+                          <>
+                            <span className="w-1 h-1 rounded-full bg-gray-300" />
+                            <span className="text-xs text-gray-500">{listing.condition}</span>
+                          </>
                         )}
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
-                      {listing.mileage && (
-                        <div className="flex items-center gap-1 text-gray-600">
-                          <TrendingUp className="h-4 w-4" />
-                          {listing.mileage.toLocaleString()} km
-                        </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-xl font-black tabular-nums" style={{ color: '#CB2030' }}>
+                        NAD {listing.price.toLocaleString()}
+                      </p>
+                      {listing.negotiable && (
+                        <span className="text-[11px] font-medium text-gray-500">Negotiable</span>
                       )}
-                      {listing.transmission && (
-                        <div className="text-gray-600">{listing.transmission}</div>
-                      )}
-                      {listing.fuelType && (
-                        <div className="text-gray-600">{listing.fuelType}</div>
-                      )}
-                      {listing.condition && (
-                        <div className="text-gray-600">{listing.condition}</div>
-                      )}
-                    </div>
-
-                    {listing.description && (
-                      <p className="text-sm text-gray-700 mb-3 line-clamp-2">{listing.description}</p>
-                    )}
-
-                    <div className="flex items-center gap-2 mb-3 text-xs text-gray-500">
-                      <MapPin className="h-3 w-3" />
-                      {listing.city && listing.region ? `${listing.city}, ${listing.region}` : listing.city || listing.region || 'Location not specified'}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-3 border-t">
-                      <div className="text-xs text-gray-500">
-                        <p>Posted: {new Date(listing.createdAt).toLocaleDateString()}</p>
-                        {listing.totalInterests > 0 && (
-                          <p style={{ color: '#CB2030' }}>{listing.totalInterests} dealer(s) interested</p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedListing(listing);
-                            setShowDetailsModal(true);
-                          }}
-                        >
-                          View Details
-                        </Button>
-                        {listing.hasExpressedInterest ? (
-                          <Badge className="bg-green-100 text-green-800">
-                            Interest Expressed
-                          </Badge>
-                        ) : (
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setSelectedListing(listing);
-                              setShowInterestModal(true);
-                            }}
-                          >
-                            <Heart className="h-4 w-4 mr-1" />
-                            Express Interest
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.location.href = `mailto:${listing.userEmail}?subject=Inquiry about ${listing.year} ${listing.make} ${listing.model}`}
-                        >
-                          <Mail className="h-4 w-4 mr-1" />
-                          Email
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.location.href = `tel:${listing.userPhone}`}
-                        >
-                          <Phone className="h-4 w-4 mr-1" />
-                          Call
-                        </Button>
-                      </div>
                     </div>
                   </div>
+
+                  {/* Spec pills */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {listing.mileage && (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 rounded-lg text-xs text-gray-600">
+                        <Gauge className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="font-medium">{listing.mileage.toLocaleString()} km</span>
+                      </div>
+                    )}
+                    {listing.transmission && (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 rounded-lg text-xs text-gray-600">
+                        <Settings className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="font-medium">{listing.transmission}</span>
+                      </div>
+                    )}
+                    {listing.fuelType && (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 rounded-lg text-xs text-gray-600">
+                        <Fuel className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="font-medium">{listing.fuelType}</span>
+                      </div>
+                    )}
+                    {listing.color && (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 rounded-lg text-xs text-gray-600">
+                        <span className="w-2.5 h-2.5 rounded-full border border-gray-300" style={{ backgroundColor: listing.color.toLowerCase() }} />
+                        <span className="font-medium">{listing.color}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  {listing.description && (
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-3 leading-relaxed">{listing.description}</p>
+                  )}
+
+                  {/* Location + date */}
+                  <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {listing.city && listing.region ? `${listing.city}, ${listing.region}` : listing.city || listing.region || 'Unknown'}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {new Date(listing.createdAt).toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
+                    {listing.totalInterests > 0 && (
+                      <div className="flex items-center gap-1 text-[#CB2030] font-medium">
+                        <Handshake className="w-3 h-3" />
+                        {listing.totalInterests} dealer{listing.totalInterests > 1 ? 's' : ''} interested
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action bar */}
+                  <div className="flex items-center gap-2 pt-3 border-t border-gray-100 mt-auto">
+                    <button
+                      onClick={() => handleViewDetails(listing)}
+                      className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white rounded-lg transition-colors hover:opacity-90"
+                      style={{ backgroundColor: '#CB2030' }}
+                    >
+                      <Eye className="w-4 h-4" />
+                      View Details
+                    </button>
+
+                    {!listing.hasExpressedInterest && (
+                      <button
+                        onClick={() => { setSelectedListing(listing); setShowInterestModal(true); }}
+                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[#CB2030] bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                      >
+                        <Heart className="w-4 h-4" />
+                        Interest
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => handleCall(listing)}
+                      className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                      aria-label="Call seller"
+                    >
+                      <Phone className="w-4 h-4" />
+                      Call
+                    </button>
+
+                    <button
+                      onClick={() => handleEmail(listing)}
+                      className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                      aria-label="Email seller"
+                    >
+                      <Mail className="w-4 h-4" />
+                      Email
+                    </button>
+
+                    <button
+                      onClick={() => handleWhatsApp(listing)}
+                      className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                      aria-label="WhatsApp seller"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      WhatsApp
+                    </button>
+
+                    {/* Activity log toggle */}
+                    <button
+                      onClick={() => fetchActivity(listing.id)}
+                      className={`ml-auto flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        expandedActivity === listing.id
+                          ? 'text-indigo-700 bg-indigo-50'
+                          : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      <History className="w-4 h-4" />
+                      Activity
+                      {(listing.totalActivities || 0) > 0 && (
+                        <span className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full font-bold">
+                          {listing.totalActivities}
+                        </span>
+                      )}
+                    </button>
+                  </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Activity Log — expandable below card */}
+              {expandedActivity === listing.id && (
+                <div className="border-t border-gray-100 bg-gray-50/50 px-5 py-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Activity className="w-4 h-4 text-indigo-500" />
+                    <h4 className="text-sm font-semibold text-gray-700">Dealer Activity Log</h4>
+                  </div>
+
+                  {loadingActivity === listing.id ? (
+                    <div className="flex items-center gap-2 py-4 text-sm text-gray-400">
+                      <div className="w-4 h-4 border-2 border-gray-200 border-t-indigo-500 rounded-full animate-spin" />
+                      Loading activity...
+                    </div>
+                  ) : (activityData[listing.id] || []).length === 0 ? (
+                    <p className="text-sm text-gray-400 py-3">No activity recorded yet for this listing.</p>
+                  ) : (
+                    <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                      {(activityData[listing.id] || []).map((act: any) => (
+                        <div key={act.id} className="flex items-center gap-3 py-2 px-3 bg-white rounded-lg border border-gray-100">
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border ${getActivityColor(act.action)}`}>
+                            {getActivityIcon(act.action)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-800 truncate">{act.dealership?.name || 'Unknown Dealer'}</span>
+                              {act.dealership?.city && (
+                                <span className="text-[10px] text-gray-400">{act.dealership.city}</span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500">{getActivityLabel(act.action)}</p>
+                          </div>
+                          <span className="text-[11px] text-gray-400 flex-shrink-0 tabular-nums">{formatActivityDate(act.createdAt)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          ))}
+        </div>
+      )}
 
       {/* Express Interest Modal */}
       {showInterestModal && selectedListing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-xl font-bold mb-4">
-              Express Interest in {selectedListing.year} {selectedListing.make} {selectedListing.model}
-            </h3>
+        <div className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl overflow-hidden">
+            {/* Modal header */}
+            <div className="px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-900">Express Interest</h3>
+                <button
+                  onClick={() => { setShowInterestModal(false); setOfferPrice(''); setMessage(''); }}
+                  className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                {selectedListing.year} {selectedListing.make} {selectedListing.model}
+              </p>
+            </div>
 
-            <div className="space-y-4">
+            <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                   Your Offer Price (Optional)
                 </label>
                 <Input
                   type="number"
                   value={offerPrice}
                   onChange={(e) => setOfferPrice(e.target.value)}
-                  placeholder={`Asking price: NAD ${selectedListing.price.toLocaleString()}`}
+                  placeholder={`Asking: NAD ${selectedListing.price.toLocaleString()}`}
+                  className="h-11"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                   Message to Seller (Optional)
                 </label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300"
-                  placeholder="Introduce yourself and express your interest..."
+                  rows={3}
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030] text-sm transition-all resize-none"
+                  placeholder="Introduce yourself and your dealership..."
                 />
               </div>
 
-              <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-700">
-                <p className="font-medium mb-1">Contact Information:</p>
-                <p>Name: {selectedListing.userName}</p>
-                <p>Email: {selectedListing.userEmail}</p>
-                <p>Phone: {selectedListing.userPhone}</p>
+              <div className="bg-gray-50 p-3 rounded-lg text-sm">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Seller Contact</p>
+                <div className="space-y-1 text-gray-700">
+                  <p className="font-medium">{selectedListing.userName}</p>
+                  <p className="text-gray-500">{selectedListing.userEmail}</p>
+                  <p className="text-gray-500">{selectedListing.userPhone}</p>
+                </div>
               </div>
 
-              <div className="flex gap-3">
-                <Button
+              <div className="flex gap-3 pt-2">
+                <button
                   onClick={handleExpressInterest}
                   disabled={submitting}
-                  className="flex-1"
+                  className="flex-1 h-11 flex items-center justify-center gap-2 text-sm font-semibold text-white rounded-lg transition-all disabled:opacity-50"
+                  style={{ backgroundColor: '#CB2030' }}
                 >
-                  {submitting ? 'Submitting...' : 'Express Interest'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowInterestModal(false);
-                    setOfferPrice('');
-                    setMessage('');
-                  }}
+                  {submitting ? (
+                    <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending...</>
+                  ) : (
+                    <><Heart className="w-4 h-4" /> Express Interest</>
+                  )}
+                </button>
+                <button
+                  onClick={() => { setShowInterestModal(false); setOfferPrice(''); setMessage(''); }}
                   disabled={submitting}
+                  className="px-4 h-11 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                 >
                   Cancel
-                </Button>
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Vehicle Details Modal */}
+      {/* Vehicle Details Modal — full redesign */}
       {showDetailsModal && selectedListing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10 rounded-t-lg">
-              <h3 className="text-2xl font-bold text-gray-900">
-                {selectedListing.year} {selectedListing.make} {selectedListing.model}
-              </h3>
-              <button
-                onClick={() => setShowDetailsModal(false)}
-                className="text-gray-500 hover:text-gray-700 p-1"
-              >
-                <span className="text-2xl">&times;</span>
-              </button>
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-5xl w-full max-h-[92vh] overflow-hidden flex flex-col shadow-2xl">
+            {/* Sticky header */}
+            <div className="flex-shrink-0 border-b border-gray-100 bg-white px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#CB2030' }}>
+                  <Car className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {selectedListing.year} {selectedListing.make} {selectedListing.model}
+                  </h3>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <span className="uppercase tracking-wide font-medium">{selectedListing.category}</span>
+                    <span className="w-1 h-1 rounded-full bg-gray-300" />
+                    <span>{selectedListing.condition || 'Used'}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="text-right mr-2">
+                  <p className="text-2xl font-black tabular-nums" style={{ color: '#CB2030' }}>NAD {selectedListing.price.toLocaleString()}</p>
+                  {selectedListing.negotiable && <span className="text-xs text-gray-500">Negotiable</span>}
+                </div>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
             </div>
 
-            <div className="p-6">
-              {/* Images Gallery */}
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Image gallery */}
               {selectedListing.images && selectedListing.images.length > 0 && (
-                <div className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-950 p-4">
+                  <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
                     {selectedListing.images.map((image: string, index: number) => (
-                      <div key={index} className="rounded-lg overflow-hidden">
+                      <div key={index} className="flex-shrink-0 rounded-lg overflow-hidden" style={{ width: selectedListing.images.length === 1 ? '100%' : '360px' }}>
                         <img
                           src={image}
-                          alt={`${selectedListing.make} ${selectedListing.model} - Image ${index + 1}`}
-                          className="w-full h-64 object-cover"
+                          alt={`${selectedListing.make} ${selectedListing.model} - ${index + 1}`}
+                          className="w-full h-56 object-cover"
                         />
                       </div>
                     ))}
@@ -715,162 +1004,173 @@ function VehicleListingsTab() {
                 </div>
               )}
 
-              {/* Price and Key Info */}
-              <div className="bg-gray-50 p-6 rounded-lg mb-6">
-                <div className="flex justify-between items-center">
+              <div className="p-6 space-y-6">
+                {/* Specs grid */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Specifications</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Year', value: selectedListing.year, icon: <Calendar className="w-4 h-4" /> },
+                      listing.mileage ? { label: 'Mileage', value: `${selectedListing.mileage.toLocaleString()} km`, icon: <Gauge className="w-4 h-4" /> } : null,
+                      listing.transmission ? { label: 'Transmission', value: selectedListing.transmission, icon: <Settings className="w-4 h-4" /> } : null,
+                      listing.fuelType ? { label: 'Fuel Type', value: selectedListing.fuelType, icon: <Fuel className="w-4 h-4" /> } : null,
+                      listing.color ? { label: 'Color', value: selectedListing.color } : null,
+                      listing.vin ? { label: 'VIN', value: selectedListing.vin } : null,
+                      listing.registrationNo ? { label: 'Reg. No', value: selectedListing.registrationNo } : null,
+                    ].filter(Boolean).map((spec: any, i) => (
+                      <div key={i} className="bg-gray-50 rounded-lg px-4 py-3">
+                        <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-0.5">{spec.label}</p>
+                        <p className="text-sm font-semibold text-gray-900">{spec.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Description */}
+                {selectedListing.description && (
                   <div>
-                    <p className="text-3xl font-bold" style={{ color: '#CB2030' }}>
-                      NAD {selectedListing.price.toLocaleString()}
-                    </p>
-                    {selectedListing.negotiable && (
-                      <p className="text-sm text-gray-600 mt-1">Price is negotiable</p>
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Description</h4>
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedListing.description}</p>
+                  </div>
+                )}
+
+                {/* Additional Info */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Vehicle History</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {selectedListing.hasAccident !== null && (
+                      <div className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border ${selectedListing.hasAccident ? 'border-amber-200 bg-amber-50' : 'border-emerald-200 bg-emerald-50'}`}>
+                        {selectedListing.hasAccident ? <AlertTriangle className="w-4 h-4 text-amber-500" /> : <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                        <div>
+                          <p className="text-[10px] text-gray-500 uppercase">Accident</p>
+                          <p className="text-sm font-semibold text-gray-800">{selectedListing.hasAccident ? 'Yes' : 'None'}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedListing.serviceHistory !== null && (
+                      <div className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border ${selectedListing.serviceHistory ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-gray-50'}`}>
+                        <FileText className="w-4 h-4 text-gray-500" />
+                        <div>
+                          <p className="text-[10px] text-gray-500 uppercase">Service History</p>
+                          <p className="text-sm font-semibold text-gray-800">{selectedListing.serviceHistory ? 'Available' : 'None'}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedListing.numberOfOwners && (
+                      <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50">
+                        <Users className="w-4 h-4 text-gray-500" />
+                        <div>
+                          <p className="text-[10px] text-gray-500 uppercase">Owners</p>
+                          <p className="text-sm font-semibold text-gray-800">{selectedListing.numberOfOwners}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedListing.availableForTest !== null && (
+                      <div className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border ${selectedListing.availableForTest ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
+                        <Car className="w-4 h-4 text-blue-500" />
+                        <div>
+                          <p className="text-[10px] text-gray-500 uppercase">Test Drive</p>
+                          <p className="text-sm font-semibold text-gray-800">{selectedListing.availableForTest ? 'Available' : 'No'}</p>
+                        </div>
+                      </div>
                     )}
                   </div>
-                  <div className="text-right">
-                    <Badge className="text-lg px-4 py-2">{selectedListing.category}</Badge>
+                </div>
+
+                {/* Location & Seller — side by side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Location</h4>
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm font-medium">{selectedListing.city && selectedListing.region ? `${selectedListing.city}, ${selectedListing.region}` : selectedListing.city || selectedListing.region || 'Not specified'}</span>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Seller</h4>
+                    <p className="text-sm font-semibold text-gray-900">{selectedListing.userName}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{selectedListing.userEmail}</p>
+                    <p className="text-xs text-gray-500">{selectedListing.userPhone}</p>
                   </div>
                 </div>
-              </div>
 
-              {/* Vehicle Specifications */}
-              <div className="mb-6">
-                <h4 className="text-lg font-semibold mb-4">Vehicle Specifications</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="border p-3 rounded">
-                    <p className="text-sm text-gray-500">Year</p>
-                    <p className="font-semibold">{selectedListing.year}</p>
-                  </div>
-                  {selectedListing.mileage && (
-                    <div className="border p-3 rounded">
-                      <p className="text-sm text-gray-500">Mileage</p>
-                      <p className="font-semibold">{selectedListing.mileage.toLocaleString()} km</p>
+                {/* Activity log in detail modal */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Dealer Activity Log</h4>
+                  {loadingDetailActivities ? (
+                    <div className="flex items-center gap-2 py-4 text-sm text-gray-400">
+                      <div className="w-4 h-4 border-2 border-gray-200 border-t-indigo-500 rounded-full animate-spin" />
+                      Loading activity...
                     </div>
-                  )}
-                  {selectedListing.condition && (
-                    <div className="border p-3 rounded">
-                      <p className="text-sm text-gray-500">Condition</p>
-                      <p className="font-semibold">{selectedListing.condition}</p>
+                  ) : detailActivities.length === 0 ? (
+                    <div className="bg-gray-50 rounded-lg p-6 text-center">
+                      <History className="w-6 h-6 text-gray-300 mx-auto mb-2" />
+                      <p className="text-sm text-gray-400">No dealer activity recorded yet</p>
                     </div>
-                  )}
-                  {selectedListing.transmission && (
-                    <div className="border p-3 rounded">
-                      <p className="text-sm text-gray-500">Transmission</p>
-                      <p className="font-semibold">{selectedListing.transmission}</p>
-                    </div>
-                  )}
-                  {selectedListing.fuelType && (
-                    <div className="border p-3 rounded">
-                      <p className="text-sm text-gray-500">Fuel Type</p>
-                      <p className="font-semibold">{selectedListing.fuelType}</p>
-                    </div>
-                  )}
-                  {selectedListing.color && (
-                    <div className="border p-3 rounded">
-                      <p className="text-sm text-gray-500">Color</p>
-                      <p className="font-semibold">{selectedListing.color}</p>
+                  ) : (
+                    <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                      {detailActivities.map((act: any) => (
+                        <div key={act.id} className="flex items-center gap-3 py-2.5 px-3 bg-gray-50 rounded-lg">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${getActivityColor(act.action)}`}>
+                            {getActivityIcon(act.action)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-gray-800 truncate">{act.dealership?.name || 'Unknown'}</span>
+                              {act.dealership?.city && (
+                                <span className="text-[10px] text-gray-400 flex-shrink-0">{act.dealership.city}</span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500">{getActivityLabel(act.action)}{act.user?.name ? ` by ${act.user.name}` : ''}</p>
+                          </div>
+                          <span className="text-[11px] text-gray-400 flex-shrink-0 tabular-nums">{formatActivityDate(act.createdAt)}</span>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
               </div>
+            </div>
 
-              {/* Description */}
-              {selectedListing.description && (
-                <div className="mb-6">
-                  <h4 className="text-lg font-semibold mb-2">Description</h4>
-                  <p className="text-gray-700 whitespace-pre-wrap">{selectedListing.description}</p>
-                </div>
+            {/* Sticky footer actions */}
+            <div className="flex-shrink-0 border-t border-gray-100 bg-white px-6 py-4 flex items-center gap-3">
+              {!selectedListing.hasExpressedInterest && (
+                <button
+                  onClick={() => { setShowDetailsModal(false); setShowInterestModal(true); }}
+                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#CB2030' }}
+                >
+                  <Heart className="w-4 h-4" />
+                  Express Interest
+                </button>
               )}
-
-              {/* Additional Information */}
-              <div className="mb-6">
-                <h4 className="text-lg font-semibold mb-4">Additional Information</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {selectedListing.hasAccident !== null && (
-                    <div className="border p-3 rounded">
-                      <p className="text-sm text-gray-500">Accident History</p>
-                      <p className="font-semibold">{selectedListing.hasAccident ? 'Yes' : 'No'}</p>
-                    </div>
-                  )}
-                  {selectedListing.serviceHistory !== null && (
-                    <div className="border p-3 rounded">
-                      <p className="text-sm text-gray-500">Service History</p>
-                      <p className="font-semibold">{selectedListing.serviceHistory ? 'Available' : 'Not Available'}</p>
-                    </div>
-                  )}
-                  {selectedListing.numberOfOwners && (
-                    <div className="border p-3 rounded">
-                      <p className="text-sm text-gray-500">Previous Owners</p>
-                      <p className="font-semibold">{selectedListing.numberOfOwners}</p>
-                    </div>
-                  )}
-                  {selectedListing.availableForTest !== null && (
-                    <div className="border p-3 rounded">
-                      <p className="text-sm text-gray-500">Test Drive</p>
-                      <p className="font-semibold">{selectedListing.availableForTest ? 'Available' : 'Not Available'}</p>
-                    </div>
-                  )}
-                  {selectedListing.vin && (
-                    <div className="border p-3 rounded">
-                      <p className="text-sm text-gray-500">VIN</p>
-                      <p className="font-semibold text-xs">{selectedListing.vin}</p>
-                    </div>
-                  )}
-                  {selectedListing.registrationNo && (
-                    <div className="border p-3 rounded">
-                      <p className="text-sm text-gray-500">Registration No</p>
-                      <p className="font-semibold">{selectedListing.registrationNo}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Location */}
-              <div className="mb-6">
-                <h4 className="text-lg font-semibold mb-2">Location</h4>
-                <div className="flex items-center gap-2 text-gray-700">
-                  <MapPin className="h-5 w-5" />
-                  <span>{selectedListing.city && selectedListing.region ? `${selectedListing.city}, ${selectedListing.region}` : selectedListing.city || selectedListing.region || 'Location not specified'}</span>
-                </div>
-              </div>
-
-              {/* Seller Contact */}
-              <div className="bg-gray-50 p-6 rounded-lg mb-6">
-                <h4 className="text-lg font-semibold mb-4">Seller Contact Information</h4>
-                <div className="space-y-2">
-                  <p><span className="font-medium">Name:</span> {selectedListing.userName}</p>
-                  <p><span className="font-medium">Email:</span> {selectedListing.userEmail}</p>
-                  <p><span className="font-medium">Phone:</span> {selectedListing.userPhone}</p>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                {!selectedListing.hasExpressedInterest && (
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      setShowDetailsModal(false);
-                      setShowInterestModal(true);
-                    }}
-                  >
-                    <Heart className="h-4 w-4 mr-2" />
-                    Express Interest
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.href = `tel:${selectedListing.userPhone}`}
-                >
-                  <Phone className="h-4 w-4 mr-2" />
-                  Call Seller
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowDetailsModal(false)}
-                >
-                  Close
-                </Button>
-              </div>
+              <button
+                onClick={() => handleCall(selectedListing)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <Phone className="w-4 h-4" />
+                Call
+              </button>
+              <button
+                onClick={() => handleEmail(selectedListing)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                Email
+              </button>
+              <button
+                onClick={() => handleWhatsApp(selectedListing)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+              >
+                <MessageSquare className="w-4 h-4" />
+                WhatsApp
+              </button>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="ml-auto px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
@@ -2960,8 +3260,8 @@ function DealerDashboardContent() {
 
                 {/* Lead Detail Modal */}
                 {showLeadDetail && selectedLead && (
-                  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                  <div className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                       {/* Modal Header */}
                       <div className="p-6 text-white" style={{ background: '#CB2030' }}>
                         <div className="flex items-center justify-between">
@@ -3040,7 +3340,7 @@ function DealerDashboardContent() {
                               ({(leadMessages.some((m: any) => m.senderType === 'CUSTOMER') ? leadMessages.length : leadMessages.length + 1)} message{(leadMessages.some((m: any) => m.senderType === 'CUSTOMER') ? leadMessages.length : leadMessages.length + 1) !== 1 ? 's' : ''})
                             </span>
                           </h3>
-                          <div className="border rounded-lg flex-1 overflow-y-auto min-h-[200px] max-h-[350px]">
+                          <div className="border rounded-lg flex-1 overflow-y-auto min-h-[280px] max-h-[500px]">
                             {loadingMessages ? (
                               <div className="p-4 text-center text-gray-500">
                                 <div className="w-6 h-6 border-2 border-[#CB2030] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
