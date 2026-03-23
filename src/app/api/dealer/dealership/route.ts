@@ -30,7 +30,11 @@ export async function GET() {
       include: {
         subscription: {
           include: {
-            plan: true
+            plan: true,
+            payments: {
+              orderBy: { createdAt: 'desc' },
+              take: 5,
+            },
           }
         },
         _count: {
@@ -96,8 +100,13 @@ export async function PUT(request: Request) {
       instagramUrl,
       twitterUrl,
       linkedinUrl,
-      logoUrl,
-      coverImageUrl
+      logo,
+      coverImage,
+      googleMapsUrl,
+      openingHours,
+      highlightTitle,
+      highlightDescription,
+      highlightActive,
     } = body;
 
     const updatedDealership = await prisma.dealership.update({
@@ -121,13 +130,22 @@ export async function PUT(request: Request) {
         instagramUrl,
         twitterUrl,
         linkedinUrl,
-        logoUrl,
-        coverImageUrl
+        logo,
+        coverImage,
+        googleMapsUrl,
+        openingHours,
+        highlightTitle,
+        highlightDescription,
+        highlightActive: highlightActive === true || highlightActive === 'true' ? true : false,
       },
       include: {
         subscription: {
           include: {
-            plan: true
+            plan: true,
+            payments: {
+              orderBy: { createdAt: 'desc' },
+              take: 5,
+            },
           }
         },
         _count: {

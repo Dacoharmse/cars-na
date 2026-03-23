@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -8,6 +9,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 import { api } from '@/lib/api';
 import WebsiteManagerContent from '@/components/dealer/WebsiteManagerContent';
+import SalesProfileContent from '@/components/dealer/SalesProfileContent';
+import DealershipAnalyticsDashboard from '@/components/analytics/DealershipAnalyticsDashboard';
+import DealerSubscriptionTab from '@/components/dealer/DealerSubscriptionTab';
 import { InvoiceReminderModal } from '@/components/dealer/InvoiceReminderModal';
 import {
   Car,
@@ -418,6 +422,7 @@ function VehicleListingsTab() {
   const [selectedListing, setSelectedListing] = useState<any>(null);
   const [showInterestModal, setShowInterestModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const detailsScrollRef = useRef<HTMLDivElement>(null);
   const [offerPrice, setOfferPrice] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -431,6 +436,19 @@ function VehicleListingsTab() {
   useEffect(() => {
     fetchListings();
   }, []);
+
+  // Lock body scroll & reset scroll position when details modal opens
+  useEffect(() => {
+    if (showDetailsModal) {
+      document.body.style.overflow = 'hidden';
+      if (detailsScrollRef.current) {
+        detailsScrollRef.current.scrollTop = 0;
+      }
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [showDetailsModal]);
 
   const fetchListings = async () => {
     try {
@@ -869,8 +887,8 @@ function VehicleListingsTab() {
         </div>
       )}
 
-      {/* Express Interest Modal */}
-      {showInterestModal && selectedListing && (
+      {/* Express Interest Modal — portalled to body to escape stacking context */}
+      {showInterestModal && selectedListing && createPortal(
         <div className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl max-w-md w-full shadow-2xl overflow-hidden">
             {/* Modal header */}
@@ -948,13 +966,14 @@ function VehicleListingsTab() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Vehicle Details Modal — full redesign */}
-      {showDetailsModal && selectedListing && (
-        <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-5xl w-full max-h-[92vh] overflow-hidden flex flex-col shadow-2xl">
+      {/* Vehicle Details Modal — portalled to body to escape stacking context */}
+      {showDetailsModal && selectedListing && createPortal(
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4" onClick={() => setShowDetailsModal(false)}>
+          <div className="bg-white rounded-xl max-w-5xl w-full max-h-[92vh] overflow-hidden flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
             {/* Sticky header */}
             <div className="flex-shrink-0 border-b border-gray-100 bg-white px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -987,23 +1006,23 @@ function VehicleListingsTab() {
             </div>
 
             {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto">
-              {/* Image gallery */}
-              {selectedListing.images && selectedListing.images.length > 0 && (
-                <div className="bg-gray-950 p-4">
-                  <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
-                    {selectedListing.images.map((image: string, index: number) => (
-                      <div key={index} className="flex-shrink-0 rounded-lg overflow-hidden" style={{ width: selectedListing.images.length === 1 ? '100%' : '360px' }}>
-                        <img
-                          src={image}
-                          alt={`${selectedListing.make} ${selectedListing.model} - ${index + 1}`}
-                          className="w-full h-56 object-cover"
-                        />
-                      </div>
-                    ))}
+            <div className="flex-1 overflow-y-auto overscroll-contain" ref={detailsScrollRef}>
+              {/* At-a-glance strip — always visible near top */}
+              <div className="flex flex-wrap gap-2 px-6 py-3 border-b border-gray-100 bg-gray-50/60">
+                {[
+                  selectedListing.year && { label: 'Year', value: selectedListing.year },
+                  selectedListing.mileage && { label: 'Mileage', value: `${Number(selectedListing.mileage).toLocaleString()} km` },
+                  selectedListing.transmission && { label: 'Trans.', value: selectedListing.transmission },
+                  selectedListing.fuelType && { label: 'Fuel', value: selectedListing.fuelType },
+                  selectedListing.color && { label: 'Color', value: selectedListing.color },
+                  selectedListing.status && { label: 'Status', value: selectedListing.status },
+                ].filter(Boolean).map((spec: any, i: number) => (
+                  <div key={i} className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1">
+                    <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">{spec.label}:</span>
+                    <span className="text-xs font-semibold text-gray-800">{spec.value}</span>
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
 
               <div className="p-6 space-y-6">
                 {/* Specs grid */}
@@ -1032,6 +1051,24 @@ function VehicleListingsTab() {
                   <div>
                     <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Description</h4>
                     <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedListing.description}</p>
+                  </div>
+                )}
+
+                {/* Image gallery — placed after specs so specs are visible on open */}
+                {selectedListing.images && selectedListing.images.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Photos</h4>
+                    <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1" style={{ scrollbarWidth: 'thin' }}>
+                      {selectedListing.images.map((image: string, index: number) => (
+                        <div key={index} className="flex-shrink-0 rounded-lg overflow-hidden border border-gray-200" style={{ width: selectedListing.images.length === 1 ? '100%' : '240px' }}>
+                          <img
+                            src={image}
+                            alt={`${selectedListing.make} ${selectedListing.model} - ${index + 1}`}
+                            className="w-full h-36 object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -1174,7 +1211,8 @@ function VehicleListingsTab() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -1212,6 +1250,9 @@ function DealerDashboardContent() {
   const [leadStatusFilter, setLeadStatusFilter] = useState<string>('ALL');
   const [leadMessages, setLeadMessages] = useState<any[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [showMentionDropdown, setShowMentionDropdown] = useState(false);
+  const [mentionCursorPos, setMentionCursorPos] = useState(0);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
@@ -1389,7 +1430,7 @@ function DealerDashboardContent() {
   // Check for tab parameter in URL
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['overview', 'inventory', 'leads', 'listings', 'analytics', 'users', 'profile'].includes(tab)) {
+    if (tab && ['overview', 'inventory', 'leads', 'listings', 'analytics', 'users', 'profile', 'sales-profile'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -1453,16 +1494,26 @@ function DealerDashboardContent() {
     setLeadResponse('');
     setShowLeadDetail(true);
     setLoadingMessages(true);
+    setShowMentionDropdown(false);
 
-    // Fetch messages for this lead
+    // Fetch messages and team members in parallel
     try {
-      const response = await fetch(`/api/dealer/leads?leadId=${lead.id}`);
-      if (response.ok) {
-        const data = await response.json();
+      const [messagesRes, teamRes] = await Promise.all([
+        fetch(`/api/dealer/leads?leadId=${lead.id}`),
+        teamMembers.length === 0 ? fetch('/api/dealer/users') : Promise.resolve(null),
+      ]);
+
+      if (messagesRes.ok) {
+        const data = await messagesRes.json();
         setLeadMessages(data.lead?.messages || []);
       }
+
+      if (teamRes && teamRes.ok) {
+        const teamData = await teamRes.json();
+        setTeamMembers(teamData.users || []);
+      }
     } catch (error) {
-      console.error('Error fetching lead messages:', error);
+      console.error('Error fetching lead data:', error);
       setLeadMessages([]);
     } finally {
       setLoadingMessages(false);
@@ -1544,6 +1595,59 @@ function DealerDashboardContent() {
       console.error('Error updating lead status:', error);
       showToast({ title: 'Error', description: 'Failed to update status', variant: 'error' });
     }
+  };
+
+  // @mention helpers
+  const handleLeadResponseChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const cursorPos = e.target.selectionStart || 0;
+    setLeadResponse(value);
+    setMentionCursorPos(cursorPos);
+
+    // Check if user is typing an @mention
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+    if (mentionMatch) {
+      setMentionQuery(mentionMatch[1].toLowerCase());
+      setShowMentionDropdown(true);
+    } else {
+      setShowMentionDropdown(false);
+      setMentionQuery('');
+    }
+  };
+
+  const insertMention = (member: { id: string; name: string }) => {
+    const textBeforeCursor = leadResponse.substring(0, mentionCursorPos);
+    const textAfterCursor = leadResponse.substring(mentionCursorPos);
+    // Find the @ trigger position
+    const atIndex = textBeforeCursor.lastIndexOf('@');
+    const before = leadResponse.substring(0, atIndex);
+    const after = textAfterCursor;
+    const mention = `@[${member.name}](${member.id}) `;
+    setLeadResponse(before + mention + after);
+    setShowMentionDropdown(false);
+    setMentionQuery('');
+  };
+
+  const filteredTeamMembers = teamMembers.filter(
+    (m: any) => m.id !== (session?.user as any)?.id &&
+      (mentionQuery === '' || m.name?.toLowerCase().includes(mentionQuery))
+  );
+
+  // Render message content with styled @mentions
+  const renderMessageContent = (content: string) => {
+    const parts = content.split(/(@\[[^\]]+\]\([^)]+\))/g);
+    return parts.map((part, i) => {
+      const mentionMatch = part.match(/@\[([^\]]+)\]\(([^)]+)\)/);
+      if (mentionMatch) {
+        return (
+          <span key={i} className="inline-flex items-center bg-[#CB2030]/10 text-[#CB2030] font-medium rounded px-1 -mx-0.5">
+            @{mentionMatch[1]}
+          </span>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
   };
 
   // Helper functions
@@ -2303,8 +2407,13 @@ function DealerDashboardContent() {
                 Website Manager
               </button>
               <button
-                onClick={() => router.push('/dealer/profile')}
-                className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:bg-gray-50"
+                onClick={() => handleTabSwitch('sales-profile')}
+                disabled={isLoading}
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  activeTab === 'sales-profile'
+                    ? 'bg-red-50 text-[#CB2030] border-l-2 border-[#CB2030]'
+                    : 'text-gray-600 hover:bg-gray-50'
+                } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <UserCheck className="h-4 w-4 mr-3" />
                 My Sales Profile
@@ -2343,6 +2452,7 @@ function DealerDashboardContent() {
                 {activeTab === 'billing' && 'Billing & Invoices'}
                 {activeTab === 'users' && 'Team Management'}
                 {activeTab === 'profile' && 'Website Manager'}
+                {activeTab === 'sales-profile' && 'My Sales Profile'}
               </h1>
               <p className="text-xs text-gray-400">
                 {activeTab === 'overview' && 'Monitor your dealership performance'}
@@ -2354,6 +2464,7 @@ function DealerDashboardContent() {
                 {activeTab === 'billing' && 'View and download your monthly invoices'}
                 {activeTab === 'users' && 'Manage your dealership team members'}
                 {activeTab === 'profile' && 'Update your dealership information'}
+                {activeTab === 'sales-profile' && 'Manage your personal sales profile'}
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -3356,332 +3467,259 @@ function DealerDashboardContent() {
             )}
 
             {/* Leads Tab */}
-            {activeTab === 'leads' && (
-              <div className="space-y-6">
-                {/* Lead Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-200">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-600">Total Leads</p>
-                          <p className="text-2xl font-bold text-blue-600">{leadStats?.total || 0}</p>
-                        </div>
-                        <Users className="h-8 w-8 text-blue-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gradient-to-br from-green-50 to-white border-green-200">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-600">New</p>
-                          <p className="text-2xl font-bold text-green-600">{leadStats?.new || 0}</p>
-                        </div>
-                        <Inbox className="h-8 w-8 text-green-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gradient-to-br from-yellow-50 to-white border-yellow-200">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-600">Contacted</p>
-                          <p className="text-2xl font-bold text-yellow-600">{leadStats?.contacted || 0}</p>
-                        </div>
-                        <MessageCircle className="h-8 w-8 text-yellow-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-600">Converted</p>
-                          <p className="text-2xl font-bold text-purple-600">{leadStats?.converted || 0}</p>
-                        </div>
-                        <CheckCircle className="h-8 w-8 text-purple-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+            {activeTab === 'leads' && (() => {
+              const filteredLeads = leads.filter((lead: any) => leadStatusFilter === 'ALL' || lead.status === leadStatusFilter);
+              const leadSearchTerm = searchTerm.toLowerCase();
+              const searchedLeads = leadSearchTerm
+                ? filteredLeads.filter((lead: any) =>
+                    (lead.customerName || '').toLowerCase().includes(leadSearchTerm) ||
+                    (lead.customerEmail || '').toLowerCase().includes(leadSearchTerm) ||
+                    (lead.vehicle?.make || '').toLowerCase().includes(leadSearchTerm) ||
+                    (lead.vehicle?.model || '').toLowerCase().includes(leadSearchTerm)
+                  )
+                : filteredLeads;
 
-                {/* Lead Filters */}
-                <div className="flex gap-2 flex-wrap">
-                  {['ALL', 'NEW', 'CONTACTED', 'INTERESTED', 'QUALIFIED', 'CONVERTED', 'CLOSED'].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setLeadStatusFilter(status)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                        leadStatusFilter === status
-                          ? 'text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                      style={leadStatusFilter === status ? { background: '#CB2030' } : {}}
-                    >
-                      {status}
-                    </button>
+              const timeAgo = (dateStr: string) => {
+                const now = new Date();
+                const date = new Date(dateStr);
+                const diffMs = now.getTime() - date.getTime();
+                const diffMins = Math.floor(diffMs / 60000);
+                if (diffMins < 1) return 'Just now';
+                if (diffMins < 60) return `${diffMins}m ago`;
+                const diffHours = Math.floor(diffMins / 60);
+                if (diffHours < 24) return `${diffHours}h ago`;
+                const diffDays = Math.floor(diffHours / 24);
+                if (diffDays < 7) return `${diffDays}d ago`;
+                return date.toLocaleDateString();
+              };
+
+              const statusCounts: Record<string, number> = {};
+              leads.forEach((l: any) => { statusCounts[l.status] = (statusCounts[l.status] || 0) + 1; });
+
+              return (
+              <div className="space-y-5">
+                {/* Lead Stats */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: 'Total Leads', value: leadStats?.total || 0, color: 'text-gray-900' },
+                    { label: 'New', value: leadStats?.new || 0, color: 'text-[#CB2030]' },
+                    { label: 'Contacted', value: leadStats?.contacted || 0, color: 'text-amber-600' },
+                    { label: 'Converted', value: leadStats?.converted || 0, color: 'text-emerald-600' },
+                  ].map((stat) => (
+                    <div key={stat.label} className="bg-white rounded-xl border border-gray-100 px-4 py-3">
+                      <p className="text-xs text-gray-500 mb-0.5">{stat.label}</p>
+                      <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
+                      {stat.label === 'Total Leads' && leadStats && leadStats.total > 0 && (
+                        <p className="text-[11px] text-gray-400 mt-0.5">{leadStats.conversionRate}% conversion</p>
+                      )}
+                    </div>
                   ))}
                 </div>
 
-                {/* Leads List */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Customer Leads</CardTitle>
-                    <CardDescription>Click on a lead to view full details and respond</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {leads
-                        .filter((lead: any) => leadStatusFilter === 'ALL' || lead.status === leadStatusFilter)
-                        .map((lead: any) => (
-                        <div
-                          key={lead.id}
-                          className="border rounded-lg p-4 hover:border-red-300 hover:shadow-md transition-all cursor-pointer"
-                          onClick={() => handleViewLead(lead)}
+                {/* Search + Filter Controls */}
+                <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                    <div className="relative flex-1 max-w-xs">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        placeholder="Search leads by name, email, vehicle..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 h-9 text-sm border-gray-200"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      <span className="font-medium text-gray-900">{searchedLeads.length}</span> lead{searchedLeads.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  {/* Status filter pills */}
+                  <div className="flex gap-1.5 flex-wrap">
+                    {[
+                      { key: 'ALL', label: 'All' },
+                      { key: 'NEW', label: 'New' },
+                      { key: 'CONTACTED', label: 'Contacted' },
+                      { key: 'INTERESTED', label: 'Interested' },
+                      { key: 'QUALIFIED', label: 'Qualified' },
+                      { key: 'CONVERTED', label: 'Converted' },
+                      { key: 'CLOSED', label: 'Closed' },
+                    ].map(({ key, label }) => {
+                      const count = key === 'ALL' ? leads.length : (statusCounts[key] || 0);
+                      const isActive = leadStatusFilter === key;
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => setLeadStatusFilter(key)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                            isActive
+                              ? 'text-white'
+                              : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                          }`}
+                          style={isActive ? { background: '#CB2030' } : {}}
                         >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg" style={{ background: '#CB2030' }}>
-                                {lead.customerName?.charAt(0)?.toUpperCase() || '?'}
-                              </div>
-                              <div>
-                                <h4 className="font-semibold text-gray-900">{lead.customerName}</h4>
-                                <p className="text-sm text-gray-600">
-                                  {lead.vehicle ? `${lead.vehicle.year} ${lead.vehicle.make} ${lead.vehicle.model}` : 'General Inquiry'}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge className={getLeadStatusColor(lead.status)}>
+                          {label}
+                          {count > 0 && (
+                            <span className={`text-[10px] rounded-full px-1.5 py-px ${
+                              isActive ? 'bg-white/20' : 'bg-gray-200 text-gray-500'
+                            }`}>
+                              {count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Leads List */}
+                {leadsLoading ? (
+                  <div className="bg-white rounded-xl border border-gray-100 py-16 text-center">
+                    <div className="w-8 h-8 border-2 border-[#CB2030] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                    <p className="text-sm text-gray-500">Loading leads...</p>
+                  </div>
+                ) : leadsError ? (
+                  <div className="bg-white rounded-xl border border-gray-100 py-16 text-center">
+                    <AlertTriangle className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                    <h3 className="font-medium text-gray-900 mb-1">Error loading leads</h3>
+                    <p className="text-sm text-gray-500">{leadsError.message}</p>
+                  </div>
+                ) : searchedLeads.length === 0 ? (
+                  <div className="bg-white rounded-xl border border-gray-100 py-16 text-center">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Inbox className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <h3 className="font-medium text-gray-900 mb-1">
+                      {leads.length === 0 ? 'No leads yet' : 'No matching leads'}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {leads.length === 0 ? 'Customer inquiries will appear here' : 'Try adjusting your search or filters'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-50">
+                    {searchedLeads.map((lead: any) => (
+                      <div
+                        key={lead.id}
+                        className="px-4 py-3.5 hover:bg-gray-50/50 transition-colors cursor-pointer group"
+                        onClick={() => handleViewLead(lead)}
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Avatar */}
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0" style={{ background: lead.status === 'NEW' ? '#CB2030' : '#6b7280' }}>
+                            {lead.customerName?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <h4 className="font-semibold text-sm text-gray-900 truncate">{lead.customerName}</h4>
+                              <Badge className={`${getLeadStatusColor(lead.status)} text-[10px] font-bold uppercase tracking-wide shrink-0`}>
                                 {lead.status}
                               </Badge>
-                              <Badge variant="outline" className="text-xs">{lead.source?.replace('_', ' ')}</Badge>
-                            </div>
-                          </div>
-                          <p className="text-gray-700 mb-3 line-clamp-2">{lead.message || 'No message provided'}</p>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4 text-sm text-gray-500">
-                              <span className="flex items-center gap-1">
-                                <Mail className="h-4 w-4" />
-                                {lead.customerEmail}
-                              </span>
-                              {lead.customerPhone && (
-                                <span className="flex items-center gap-1">
-                                  <Phone className="h-4 w-4" />
-                                  {lead.customerPhone}
-                                </span>
+                              {lead.status === 'NEW' && (
+                                <span className="w-2 h-2 rounded-full bg-[#CB2030] shrink-0" title="Unread" />
                               )}
-                              <span className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4" />
-                                {new Date(lead.createdAt).toLocaleDateString()}
-                              </span>
                             </div>
-                            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                              <Button size="sm" variant="outline" onClick={() => handleViewLead(lead)}>
-                                <Eye className="h-4 w-4 mr-1" /> View
-                              </Button>
+                            <p className="text-xs text-gray-500 mb-1">
+                              {lead.vehicle ? `${lead.vehicle.year} ${lead.vehicle.make} ${lead.vehicle.model}` : 'General Inquiry'}
+                              {lead.vehicle?.price ? ` · ${formatPrice(lead.vehicle.price)}` : ''}
+                            </p>
+                            <p className="text-sm text-gray-600 line-clamp-1">{lead.message || 'No message provided'}</p>
+                          </div>
+
+                          {/* Right side */}
+                          <div className="shrink-0 text-right flex flex-col items-end gap-1.5">
+                            <span className="text-[11px] text-gray-400">{timeAgo(lead.createdAt)}</span>
+                            <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                               {lead.customerPhone && (
-                                <a href={`https://wa.me/${lead.customerPhone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
-                                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                                    <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
-                                  </Button>
+                                <a href={`https://wa.me/${lead.customerPhone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg hover:bg-green-50 text-green-600" title="WhatsApp">
+                                  <MessageCircle className="h-3.5 w-3.5" />
+                                </a>
+                              )}
+                              <a href={`mailto:${lead.customerEmail}`} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="Email">
+                                <Mail className="h-3.5 w-3.5" />
+                              </a>
+                              {lead.customerPhone && (
+                                <a href={`tel:${lead.customerPhone}`} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="Call">
+                                  <Phone className="h-3.5 w-3.5" />
                                 </a>
                               )}
                             </div>
                           </div>
                         </div>
-                      ))}
-                      {leadsLoading && (
-                        <div className="text-center py-8 text-gray-500">
-                          <div className="w-8 h-8 border-2 border-[#CB2030] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                          <p className="text-sm">Loading leads...</p>
-                        </div>
-                      )}
-                      {leadsError && (
-                        <div className="text-center py-8 text-red-500">
-                          <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-300" />
-                          <h3 className="font-medium mb-2">Error loading leads</h3>
-                          <p className="text-sm">{leadsError.message}</p>
-                        </div>
-                      )}
-                      {!leadsLoading && !leadsError && leads.filter((lead: any) => leadStatusFilter === 'ALL' || lead.status === leadStatusFilter).length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                          <h3 className="font-medium mb-2">No leads {leadStatusFilter !== 'ALL' ? `with status "${leadStatusFilter}"` : 'yet'}</h3>
-                          <p className="text-sm">Customer inquiries will appear here</p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Lead Detail Modal */}
                 {showLeadDetail && selectedLead && (
-                  <div className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                      {/* Modal Header */}
-                      <div className="p-6 text-white" style={{ background: '#CB2030' }}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
+                  <div className="fixed inset-0 bg-black/40 z-[200] flex items-center justify-center p-4" onClick={() => setShowLeadDetail(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+                      {/* Modal Header — clean white */}
+                      <div className="px-6 py-5 border-b border-gray-100">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-semibold text-sm" style={{ background: '#CB2030' }}>
                               {selectedLead.customerName?.charAt(0)?.toUpperCase() || '?'}
                             </div>
                             <div>
-                              <h2 className="text-2xl font-bold">{selectedLead.customerName}</h2>
-                              <p className="text-blue-100">{selectedLead.customerEmail}</p>
+                              <h2 className="text-lg font-semibold text-gray-900">{selectedLead.customerName}</h2>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <Badge className={`${getLeadStatusColor(selectedLead.status)} text-[10px] font-bold uppercase`}>
+                                  {selectedLead.status}
+                                </Badge>
+                                <span className="text-xs text-gray-400">{selectedLead.source?.replace('_', ' ')}</span>
+                                <span className="text-xs text-gray-400">· {timeAgo(selectedLead.createdAt)}</span>
+                              </div>
                             </div>
                           </div>
-                          <button
-                            onClick={() => setShowLeadDetail(false)}
-                            className="p-2 hover:bg-white/20 rounded-full transition-colors"
-                          >
-                            <X className="h-6 w-6" />
+                          <button onClick={() => setShowLeadDetail(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <X className="h-5 w-5 text-gray-400" />
                           </button>
                         </div>
                       </div>
 
                       {/* Modal Content */}
-                      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                        {/* Status and Source */}
-                        <div className="flex items-center gap-3">
-                          <Badge className={`${getLeadStatusColor(selectedLead.status)} text-sm px-3 py-1`}>
-                            {selectedLead.status}
-                          </Badge>
-                          <Badge variant="outline" className="text-sm px-3 py-1">
-                            {selectedLead.source?.replace('_', ' ')}
-                          </Badge>
-                          <span className="text-gray-500 text-sm ml-auto">
-                            {new Date(selectedLead.createdAt).toLocaleString()}
-                          </span>
-                        </div>
-
-                        {/* Contact Info */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <h3 className="font-semibold text-gray-900 mb-3">Contact Information</h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="flex items-center gap-2">
-                              <Mail className="h-5 w-5 text-gray-400" />
-                              <a href={`mailto:${selectedLead.customerEmail}`} className="text-blue-600 hover:underline">
-                                {selectedLead.customerEmail}
-                              </a>
-                            </div>
+                      <div className="flex-1 overflow-y-auto">
+                        {/* Contact + Vehicle Info Row */}
+                        <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100">
+                          <div className="flex flex-wrap gap-4 text-sm">
+                            <a href={`mailto:${selectedLead.customerEmail}`} className="flex items-center gap-1.5 text-gray-700 hover:text-[#CB2030] transition-colors">
+                              <Mail className="h-4 w-4 text-gray-400" /> {selectedLead.customerEmail}
+                            </a>
                             {selectedLead.customerPhone && (
-                              <div className="flex items-center gap-2">
-                                <Phone className="h-5 w-5 text-gray-400" />
-                                <a href={`tel:${selectedLead.customerPhone}`} className="text-blue-600 hover:underline">
-                                  {selectedLead.customerPhone}
-                                </a>
-                              </div>
+                              <a href={`tel:${selectedLead.customerPhone}`} className="flex items-center gap-1.5 text-gray-700 hover:text-[#CB2030] transition-colors">
+                                <Phone className="h-4 w-4 text-gray-400" /> {selectedLead.customerPhone}
+                              </a>
                             )}
                           </div>
+                          {selectedLead.vehicle && (
+                            <div className="mt-3 flex items-center gap-2 bg-white rounded-lg border border-gray-200 px-3 py-2">
+                              <Car className="h-4 w-4 text-gray-400 shrink-0" />
+                              <span className="text-sm font-medium text-gray-900">
+                                {selectedLead.vehicle.year} {selectedLead.vehicle.make} {selectedLead.vehicle.model}
+                              </span>
+                              {selectedLead.vehicle.price && (
+                                <span className="text-sm font-semibold ml-auto" style={{ color: '#CB2030' }}>
+                                  {formatPrice(selectedLead.vehicle.price)}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
 
-                        {/* Vehicle Interest */}
-                        {selectedLead.vehicle && (
-                          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                            <h3 className="font-semibold text-green-800 mb-2">Vehicle of Interest</h3>
-                            <p className="text-green-700 text-lg font-medium">
-                              {selectedLead.vehicle.year} {selectedLead.vehicle.make} {selectedLead.vehicle.model}
-                            </p>
-                            {selectedLead.vehicle.price && (
-                              <p className="text-green-600">Price: {formatPrice(selectedLead.vehicle.price)}</p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Conversation Thread */}
-                        <div className="flex-1 flex flex-col min-h-0">
-                          <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                            Conversation Thread
-                            <span className="text-sm font-normal text-gray-500">
-                              ({(leadMessages.some((m: any) => m.senderType === 'CUSTOMER') ? leadMessages.length : leadMessages.length + 1)} message{(leadMessages.some((m: any) => m.senderType === 'CUSTOMER') ? leadMessages.length : leadMessages.length + 1) !== 1 ? 's' : ''})
-                            </span>
-                          </h3>
-                          <div className="border rounded-lg flex-1 overflow-y-auto min-h-[280px] max-h-[500px]">
-                            {loadingMessages ? (
-                              <div className="p-4 text-center text-gray-500">
-                                <div className="w-6 h-6 border-2 border-[#CB2030] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                                Loading messages...
-                              </div>
-                            ) : (
-                              <>
-                                {/* Always show original customer inquiry first if not already in messages */}
-                                {!leadMessages.some((m: any) => m.senderType === 'CUSTOMER') && selectedLead.message && (
-                                  <div className="p-4 bg-blue-50 border-b">
-                                    <div className="flex items-start gap-3">
-                                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                                        {selectedLead.customerName?.charAt(0)?.toUpperCase() || '?'}
-                                      </div>
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                          <span className="font-semibold text-gray-900">{selectedLead.customerName}</span>
-                                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-200 text-blue-800">Customer</span>
-                                          <span className="text-xs text-gray-500">{new Date(selectedLead.createdAt).toLocaleString()}</span>
-                                          <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-200 text-yellow-800">Original Inquiry</span>
-                                        </div>
-                                        <p className="text-gray-700 whitespace-pre-wrap">{selectedLead.message}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                                {/* Show all messages from the thread */}
-                                {leadMessages.map((msg: any, index: number) => (
-                                  <div
-                                    key={msg.id || index}
-                                    className={`p-4 border-b last:border-b-0 ${
-                                      msg.senderType === 'DEALERSHIP' ? 'bg-green-50' : 'bg-blue-50'
-                                    }`}
-                                  >
-                                    <div className="flex items-start gap-3">
-                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${
-                                        msg.senderType === 'DEALERSHIP' ? 'bg-green-600' : 'bg-blue-600'
-                                      }`}>
-                                        {msg.senderName?.charAt(0)?.toUpperCase() || (msg.senderType === 'DEALERSHIP' ? 'D' : 'C')}
-                                      </div>
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                          <span className="font-semibold text-gray-900">{msg.senderName}</span>
-                                          <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                            msg.senderType === 'DEALERSHIP' ? 'bg-green-200 text-green-800' : 'bg-blue-200 text-blue-800'
-                                          }`}>
-                                            {msg.senderType === 'DEALERSHIP' ? 'Staff' : 'Customer'}
-                                          </span>
-                                          <span className="text-xs text-gray-500">{new Date(msg.createdAt).toLocaleString()}</span>
-                                          {msg.emailSent && (
-                                            <span className="text-xs text-green-600 flex items-center gap-1">
-                                              <Mail className="h-3 w-3" /> Email sent
-                                            </span>
-                                          )}
-                                        </div>
-                                        <p className="text-gray-700 whitespace-pre-wrap">{msg.content}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                                {/* Show empty state if no messages at all */}
-                                {leadMessages.length === 0 && !selectedLead.message && (
-                                  <div className="p-4 text-center text-gray-500">
-                                    No messages in this conversation yet.
-                                  </div>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Update Status */}
-                        <div>
-                          <h3 className="font-semibold text-gray-900 mb-3">Update Status</h3>
-                          <div className="flex flex-wrap gap-2">
+                        {/* Status Update — inline select */}
+                        <div className="px-6 py-3 border-b border-gray-100 flex items-center gap-2">
+                          <span className="text-xs font-medium text-gray-500">Status:</span>
+                          <div className="flex gap-1 flex-wrap">
                             {['NEW', 'CONTACTED', 'INTERESTED', 'QUALIFIED', 'CONVERTED', 'CLOSED'].map((status) => (
                               <button
                                 key={status}
                                 onClick={() => handleUpdateLeadStatus(selectedLead.id, status)}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
                                   selectedLead.status === status
-                                    ? 'text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'text-white shadow-sm'
+                                    : 'bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700'
                                 }`}
                                 style={selectedLead.status === status ? { background: '#CB2030' } : {}}
                               >
@@ -3691,564 +3729,181 @@ function DealerDashboardContent() {
                           </div>
                         </div>
 
-                        {/* Response Form */}
-                        <div>
-                          <h3 className="font-semibold text-gray-900 mb-3">Send Response</h3>
-                          <textarea
-                            value={leadResponse}
-                            onChange={(e) => setLeadResponse(e.target.value)}
-                            placeholder="Type your response to the customer here..."
-                            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-[#CB2030] resize-none"
-                            rows={5}
-                          />
+                        {/* Conversation Thread */}
+                        <div className="px-6 py-4">
+                          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Conversation</h3>
+                          <div className="space-y-3 min-h-[200px] max-h-[360px] overflow-y-auto">
+                            {loadingMessages ? (
+                              <div className="py-10 text-center">
+                                <div className="w-6 h-6 border-2 border-[#CB2030] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                                <p className="text-xs text-gray-400">Loading...</p>
+                              </div>
+                            ) : (
+                              <>
+                                {/* Original inquiry */}
+                                {!leadMessages.some((m: any) => m.senderType === 'CUSTOMER') && selectedLead.message && (
+                                  <div className="flex gap-2.5">
+                                    <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-[11px] font-bold text-gray-600 shrink-0 mt-0.5">
+                                      {selectedLead.customerName?.charAt(0)?.toUpperCase() || '?'}
+                                    </div>
+                                    <div className="flex-1 bg-gray-50 rounded-xl rounded-tl-sm px-3.5 py-2.5">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xs font-semibold text-gray-900">{selectedLead.customerName}</span>
+                                        <span className="text-[10px] text-gray-400">{timeAgo(selectedLead.createdAt)}</span>
+                                      </div>
+                                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{renderMessageContent(selectedLead.message)}</p>
+                                    </div>
+                                  </div>
+                                )}
+                                {/* Messages */}
+                                {leadMessages.map((msg: any, index: number) => {
+                                  const isDealer = msg.senderType === 'DEALERSHIP';
+                                  return (
+                                    <div key={msg.id || index} className={`flex gap-2.5 ${isDealer ? 'flex-row-reverse' : ''}`}>
+                                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5 ${
+                                        isDealer ? 'bg-[#CB2030] text-white' : 'bg-gray-200 text-gray-600'
+                                      }`}>
+                                        {msg.senderName?.charAt(0)?.toUpperCase() || (isDealer ? 'D' : 'C')}
+                                      </div>
+                                      <div className={`flex-1 rounded-xl px-3.5 py-2.5 max-w-[85%] ${
+                                        isDealer ? 'bg-[#CB2030]/5 rounded-tr-sm' : 'bg-gray-50 rounded-tl-sm'
+                                      }`}>
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="text-xs font-semibold text-gray-900">{msg.senderName}</span>
+                                          <span className="text-[10px] text-gray-400">{timeAgo(msg.createdAt)}</span>
+                                          {msg.emailSent && (
+                                            <span className="text-[10px] text-emerald-600 flex items-center gap-0.5">
+                                              <CheckCircle className="h-2.5 w-2.5" /> Delivered
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{renderMessageContent(msg.content)}</p>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                {leadMessages.length === 0 && !selectedLead.message && (
+                                  <p className="text-center text-sm text-gray-400 py-8">No messages yet</p>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Modal Footer */}
-                      <div className="border-t p-4 bg-gray-50 flex items-center justify-between">
-                        <div className="flex gap-2">
-                          {selectedLead.customerPhone && (
-                            <a
-                              href={`https://wa.me/${selectedLead.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${selectedLead.customerName}, thank you for your inquiry on Cars.na!`)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                      {/* Compose + Footer */}
+                      <div className="border-t border-gray-100 p-4 bg-white">
+                        <div className="relative mb-3">
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <textarea
+                                value={leadResponse}
+                                onChange={handleLeadResponseChange}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Escape') setShowMentionDropdown(false);
+                                }}
+                                placeholder="Type your response... Use @ to mention a team member"
+                                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#CB2030]/20 focus:border-[#CB2030] resize-none transition-colors"
+                                rows={2}
+                              />
+                              {/* @mention autocomplete dropdown */}
+                              {showMentionDropdown && filteredTeamMembers.length > 0 && (
+                                <div className="absolute bottom-full left-0 mb-1 w-64 bg-white rounded-lg border border-gray-200 shadow-lg z-50 max-h-40 overflow-y-auto">
+                                  <div className="px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">Team Members</div>
+                                  {filteredTeamMembers.map((member) => (
+                                    <button
+                                      key={member.id}
+                                      onClick={() => insertMention(member)}
+                                      className="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                                    >
+                                      <div className="w-7 h-7 rounded-full bg-[#CB2030] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                                        {member.name?.charAt(0)?.toUpperCase() || '?'}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 truncate">{member.name}</p>
+                                        <p className="text-[11px] text-gray-400 truncate">{member.role === 'DEALER_PRINCIPAL' ? 'Principal' : 'Sales'}</p>
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              onClick={handleSendLeadResponse}
+                              disabled={!leadResponse.trim() || sendingResponse}
+                              className="text-white hover:opacity-90 self-end px-4"
+                              style={{ background: '#CB2030' }}
                             >
-                              <Button variant="outline" className="border-green-500 text-green-600 hover:bg-green-50">
-                                <MessageCircle className="h-4 w-4 mr-2" />
-                                WhatsApp
-                              </Button>
-                            </a>
-                          )}
-                          <a href={`tel:${selectedLead.customerPhone}`}>
-                            <Button variant="outline">
-                              <Phone className="h-4 w-4 mr-2" />
-                              Call
+                              {sendingResponse ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <Send className="h-4 w-4" />
+                              )}
                             </Button>
-                          </a>
-                          <a href={`mailto:${selectedLead.customerEmail}`}>
-                            <Button variant="outline">
-                              <Mail className="h-4 w-4 mr-2" />
-                              Email
-                            </Button>
-                          </a>
+                          </div>
+                          <p className="text-[10px] text-gray-400 mt-1 ml-1">Use <span className="font-medium">@</span> to mention team members — they&apos;ll be notified via system and email</p>
                         </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" onClick={() => setShowLeadDetail(false)}>
-                            Close
-                          </Button>
-                          <Button
-                            onClick={handleSendLeadResponse}
-                            disabled={!leadResponse.trim() || sendingResponse}
-                            className="text-white hover:opacity-90"
-                            style={{ background: '#CB2030' }}
-                          >
-                            {sendingResponse ? (
-                              <>
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                Sending...
-                              </>
-                            ) : (
-                              <>
-                                <Send className="h-4 w-4 mr-2" />
-                                Send Response
-                              </>
+                        <div className="flex items-center justify-between">
+                          <div className="flex gap-1.5">
+                            {selectedLead.customerPhone && (
+                              <a
+                                href={`https://wa.me/${selectedLead.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${selectedLead.customerName}, thank you for your inquiry on Cars.na!`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-green-700 hover:bg-green-50 transition-colors"
+                              >
+                                <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                              </a>
                             )}
-                          </Button>
+                            {selectedLead.customerPhone && (
+                              <a href={`tel:${selectedLead.customerPhone}`} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                                <Phone className="h-3.5 w-3.5" /> Call
+                              </a>
+                            )}
+                            <a href={`mailto:${selectedLead.customerEmail}`} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                              <Mail className="h-3.5 w-3.5" /> Email
+                            </a>
+                          </div>
+                          <button onClick={() => setShowLeadDetail(false)} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                            Close
+                          </button>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
               </div>
-            )}
+              );
+            })()}
 
             {/* Vehicle Listings Tab */}
             {activeTab === 'listings' && (
               <VehicleListingsTab />
             )}
 
-            {/* Analytics Tab */}
+            {/* Analytics Tab — uses real data from /api/dealer/analytics */}
             {activeTab === 'analytics' && (
-              <div className="space-y-6">
-                {/* Key Metrics Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Vehicles</CardTitle>
-                      <Car className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{totalVehicles}</div>
-                      <p className="text-xs text-muted-foreground">
-                        {availableVehicles} available, {soldVehicles} sold
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Monthly Views</CardTitle>
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">2,900</div>
-                      <p className="text-xs text-muted-foreground">
-                        +12% from last month
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Monthly Inquiries</CardTitle>
-                      <MessageCircle className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">98</div>
-                      <p className="text-xs text-muted-foreground">
-                        +8% from last month
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Monthly Sales</CardTitle>
-                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">19</div>
-                      <p className="text-xs text-muted-foreground">
-                        +5% from last month
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Charts Row 1 */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Monthly Performance Trends</CardTitle>
-                      <CardDescription>Views, inquiries, and sales over time</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={monthlyData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="month" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Line type="monotone" dataKey="views" stroke="#CB2030" strokeWidth={2} />
-                          <Line type="monotone" dataKey="inquiries" stroke="#10B981" strokeWidth={2} />
-                          <Line type="monotone" dataKey="sales" stroke="#F59E0B" strokeWidth={2} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Lead Sources Distribution</CardTitle>
-                      <CardDescription>Where your customers are coming from</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                          <Pie
-                            data={leadSourceData}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, value }) => `${name}: ${value}%`}
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {leadSourceData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Charts Row 2 */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Vehicle Performance by Brand</CardTitle>
-                      <CardDescription>Views, inquiries, and sales by manufacturer</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={vehiclePerformanceData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="make" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="views" fill="#FCA5A5" />
-                          <Bar dataKey="inquiries" fill="#CB2030" />
-                          <Bar dataKey="sales" fill="#7F1325" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Conversion Funnel</CardTitle>
-                      <CardDescription>From views to sales conversion</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={conversionData} layout="horizontal">
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis type="number" />
-                          <YAxis dataKey="name" type="category" />
-                          <Tooltip />
-                          <Bar dataKey="value" fill="#CB2030" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Charts Row 3 */}
-                <div className="grid grid-cols-1 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Monthly Activity Overview</CardTitle>
-                      <CardDescription>Comprehensive view of all activities over the past 6 months</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={400}>
-                        <AreaChart data={monthlyData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="month" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Area type="monotone" dataKey="views" stackId="1" stroke="#E5E7EB" fill="#E5E7EB" />
-                          <Area type="monotone" dataKey="inquiries" stackId="1" stroke="#FCA5A5" fill="#FCA5A5" />
-                          <Area type="monotone" dataKey="sales" stackId="1" stroke="#CB2030" fill="#CB2030" />
-                          <Area type="monotone" dataKey="listings" stackId="1" stroke="#10B981" fill="#10B981" />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Additional Analytics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Conversion Rate</CardTitle>
-                      <CardDescription>Views to sales conversion</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold text-green-600">6.5%</div>
-                      <p className="text-sm text-gray-500 mt-2">
-                        19 sales from 2,900 views
-                      </p>
-                      <div className="mt-4 bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-600 h-2 rounded-full" style={{ width: '6.5%' }}></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Average Response Time</CardTitle>
-                      <CardDescription>Time to respond to inquiries</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold text-indigo-600">2.4h</div>
-                      <p className="text-sm text-gray-500 mt-2">
-                        Average response time
-                      </p>
-                      <p className="text-xs text-green-600 mt-1">
-                        ↓ 15% faster than last month
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Top Performing Vehicle</CardTitle>
-                      <CardDescription>Most viewed this month</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-lg font-bold text-gray-900">2022 BMW X3</div>
-                      <p className="text-sm text-gray-500 mt-1">
-                        456 views, 18 inquiries
-                      </p>
-                      <p className="text-xs mt-2" style={{ color: '#CB2030' }}>
-                        View listing →
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              <DealershipAnalyticsDashboard dealershipId={session?.user?.id || ''} />
             )}
 
-            {/* Profile Tab */}
+            {/* Website Manager Tab */}
             {activeTab === 'profile' && (
               <WebsiteManagerContent />
+            )}
+
+            {/* Sales Profile Tab */}
+            {activeTab === 'sales-profile' && (
+              <SalesProfileContent />
             )}
 
             {/* Subscription Tab - Only visible to dealership principals */}
             {activeTab === 'subscription' && isDealershipPrincipal && (
               <div className="space-y-6">
-                {/* Current Subscription Status */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="text-xl flex items-center gap-2">
-                              <Crown className="h-5 w-5 text-yellow-500" />
-                              Current Subscription
-                            </CardTitle>
-                            <CardDescription>Your active plan and usage</CardDescription>
-                          </div>
-                          <Badge className={`${
-                            mockSubscription.status === 'ACTIVE'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {mockSubscription.status}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="text-2xl font-bold">{mockSubscription.plan} Plan</h3>
-                            <p className="text-gray-600">
-                              {formatSubscriptionPrice(mockSubscription.amount)} per month
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-gray-500">Next billing</p>
-                            <p className="font-semibold">
-                              {new Date(mockSubscription.nextBilling).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Usage Progress */}
-                        <div>
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium">Vehicle Listings</span>
-                            <span className="text-sm text-gray-600">
-                              {mockSubscription.listings.used} / {mockSubscription.listings.limit}
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="h-2 rounded-full"
-                              style={{
-                                background: '#CB2030',
-                                width: `${(mockSubscription.listings.used / mockSubscription.listings.limit) * 100}%`
-                              }}
-                            ></div>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {mockSubscription.listings.limit - mockSubscription.listings.used} listings remaining
-                          </p>
-                        </div>
-
-                        {/* Features */}
-                        <div>
-                          <h4 className="font-medium mb-3">Plan Features</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {mockSubscription.features.map((feature, index) => (
-                              <div key={index} className="flex items-center gap-2">
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                                <span className="text-sm">{feature}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Auto-renewal status */}
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm font-medium">Auto-renewal</span>
-                          </div>
-                          <Badge variant={mockSubscription.autoRenew ? "default" : "secondary"}>
-                            {mockSubscription.autoRenew ? 'Enabled' : 'Disabled'}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Quick Actions</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <Button className="w-full text-white hover:opacity-90" style={{ background: '#CB2030' }}>
-                          <CreditCard className="h-4 w-4 mr-2" />
-                          Upgrade Plan
-                        </Button>
-                        <Button variant="outline" className="w-full">
-                          Update Payment Method
-                        </Button>
-                        <Button variant="outline" className="w-full">
-                          Download Invoice
-                        </Button>
-                        <Button variant="ghost" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50">
-                          Cancel Subscription
-                        </Button>
-                      </CardContent>
-                    </Card>
-
-                    {/* Usage Alert */}
-                    {mockSubscription.listings.used / mockSubscription.listings.limit > 0.8 && (
-                      <Card className="border-orange-200 bg-orange-50">
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <AlertTriangle className="h-4 w-4 text-orange-600" />
-                            <span className="font-medium text-orange-800">Usage Alert</span>
-                          </div>
-                          <p className="text-sm text-orange-700">
-                            You're approaching your listing limit. Consider upgrading to continue adding vehicles.
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </div>
-
-                {/* Available Plans */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Available Plans</CardTitle>
-                    <CardDescription>Choose the plan that best fits your dealership needs</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {subscriptionPlans.map((plan) => (
-                        <div
-                          key={plan.id}
-                          className={`relative border rounded-lg p-6 ${
-                            plan.popular
-                              ? 'border-[#CB2030] ring-2 ring-red-100'
-                              : 'border-gray-200'
-                          } ${
-                            plan.name === mockSubscription.plan
-                              ? 'bg-red-50'
-                              : 'bg-white'
-                          }`}
-                        >
-                          {plan.popular && (
-                            <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 text-white" style={{ background: '#CB2030' }}>
-                              Most Popular
-                            </Badge>
-                          )}
-
-                          <div className="text-center">
-                            <h3 className="text-xl font-bold">{plan.name}</h3>
-                            <div className="mt-2 mb-4">
-                              <span className="text-3xl font-bold">
-                                {formatSubscriptionPrice(plan.price)}
-                              </span>
-                              <span className="text-gray-600">/{plan.interval}</span>
-                            </div>
-                          </div>
-
-                          <ul className="space-y-2 mb-6">
-                            {plan.features.map((feature, index) => (
-                              <li key={index} className="flex items-center gap-2">
-                                <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                <span className="text-sm">{feature}</span>
-                              </li>
-                            ))}
-                          </ul>
-
-                          <Button
-                            className={`w-full ${
-                              plan.name === mockSubscription.plan
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : plan.popular
-                                  ? 'text-white hover:opacity-90'
-                                  : 'bg-gray-600 hover:bg-gray-700'
-                            }`}
-                            style={plan.name !== mockSubscription.plan && plan.popular ? { background: '#CB2030' } : {}}
-                            disabled={plan.name === mockSubscription.plan}
-                          >
-                            {plan.name === mockSubscription.plan ? 'Current Plan' : 'Select Plan'}
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Billing History */}
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle>Billing History</CardTitle>
-                      <CardDescription>Your recent payments and invoices</CardDescription>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => router.push('/dealer/invoices')}>
-                      View All
-                    </Button>
-                  </CardHeader>
-                  <CardContent>
-                    {invoices.length === 0 ? (
-                      <p className="text-sm text-gray-500 text-center py-6">No invoices yet.</p>
-                    ) : (
-                      <div className="space-y-4">
-                        {invoices.slice(0, 5).map((invoice: any) => (
-                          <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(203,32,48,0.08)' }}>
-                                <CreditCard className="h-5 w-5 text-[#CB2030]" />
-                              </div>
-                              <div>
-                                <p className="font-medium font-mono text-sm">{invoice.invoiceNumber}</p>
-                                <p className="text-sm text-gray-600">
-                                  {(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][invoice.billingMonth - 1] ?? '—')} {invoice.billingYear} • {invoice.planName}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <div className="text-right">
-                                <p className="font-medium">N$ {invoice.totalAmount.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</p>
-                                <Badge className={`${
-                                  invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
-                                  invoice.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
-                                  'bg-yellow-100 text-yellow-800'
-                                }`}>
-                                  {invoice.status}
-                                </Badge>
-                              </div>
-                              {invoice.pdfPath && (
-                                <Button variant="ghost" size="sm" onClick={() => router.push('/dealer/invoices')}>
-                                  Download
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                {/* Real Subscription Data */}
+                <DealerSubscriptionTab
+                  dealershipId={session?.user?.dealershipId || session?.user?.id || ''}
+                  userEmail={session?.user?.email || ''}
+                />
 
                 {/* Featured Dealership Request */}
                 <Card>

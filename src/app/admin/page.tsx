@@ -100,6 +100,7 @@ import {
   HandCoins,
   Send,
   FileDown,
+  Megaphone,
 } from 'lucide-react';
 
 // Admin stats will be fetched from API
@@ -1156,26 +1157,26 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Sell Your Car Listings</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-slate-400 mt-1">
             Auto-Moderate: {autoModerate ? 'Enabled' : 'Disabled'}
           </p>
         </div>
         <div className="flex gap-3 items-center">
           {/* Auto-Moderate Toggle */}
-          <div className="flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center gap-3 px-4 py-2 bg-[#0D1117] rounded-lg border border-white/[0.06]">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className={`h-4 w-4 ${autoModerate ? 'text-green-600' : 'text-gray-400'}`} />
-              <span className="text-sm font-medium text-gray-700">Auto-Approve</span>
+              <CheckCircle2 className={`h-4 w-4 ${autoModerate ? 'text-green-600' : 'text-slate-500'}`} />
+              <span className="text-sm font-medium text-slate-300">Auto-Approve</span>
             </div>
             <button
               onClick={toggleAutoModerate}
               disabled={loadingAutoModerate}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                autoModerate ? 'bg-green-600' : 'bg-gray-300'
+                autoModerate ? 'bg-green-600' : 'bg-white/[0.08]'
               } ${loadingAutoModerate ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                   autoModerate ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
@@ -1183,13 +1184,13 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
             <input
               type="text"
               placeholder="Search listings..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <Button variant="outline" size="sm" onClick={() => fetchListings()}>
@@ -1205,7 +1206,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Listings</p>
+                <p className="text-sm text-slate-400">Total Listings</p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <Car className="h-8 w-8 text-blue-600" />
@@ -1216,7 +1217,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Pending Approval</p>
+                <p className="text-sm text-slate-400">Pending Approval</p>
                 <p className="text-2xl font-bold">{stats.pending}</p>
               </div>
               <Clock className="h-8 w-8 text-yellow-600" />
@@ -1227,7 +1228,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Approved</p>
+                <p className="text-sm text-slate-400">Approved</p>
                 <p className="text-2xl font-bold">{stats.approved}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-600" />
@@ -1238,7 +1239,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Rejected</p>
+                <p className="text-sm text-slate-400">Rejected</p>
                 <p className="text-2xl font-bold">{stats.rejected}</p>
               </div>
               <XCircle className="h-8 w-8 text-red-600" />
@@ -1256,7 +1257,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
             className={`px-4 py-2 -mb-px font-medium text-sm border-b-2 transition-colors ${
               filterStatus === status
                 ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                : 'border-transparent text-slate-400 hover:text-white hover:border-white/[0.1]'
             }`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -1271,70 +1272,70 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading listings...</p>
+                <p className="text-slate-400">Loading listings...</p>
               </div>
             </div>
           ) : filteredListings.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <Car className="h-16 w-16 text-gray-300 mb-4" />
-              <p className="text-gray-600 text-lg font-medium">No listings found</p>
-              <p className="text-gray-500 text-sm mt-1">Try adjusting your filters or search term</p>
+              <Car className="h-16 w-16 text-slate-600 mb-4" />
+              <p className="text-slate-400 text-lg font-medium">No listings found</p>
+              <p className="text-slate-500 text-sm mt-1">Try adjusting your filters or search term</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[#0D1117]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Vehicle
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Seller
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Price
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Submitted
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
                   {filteredListings.map((listing) => (
-                    <tr key={listing.id} className="hover:bg-gray-50">
+                    <tr key={listing.id} className="hover:bg-[#0D1117]">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded flex items-center justify-center">
-                            <Car className="h-6 w-6 text-gray-500" />
+                          <div className="flex-shrink-0 h-10 w-10 bg-white/[0.06] rounded flex items-center justify-center">
+                            <Car className="h-6 w-6 text-slate-500" />
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-white">
                               {listing.year} {listing.make} {listing.model}
                             </div>
-                            <div className="text-sm text-gray-500">{listing.category}</div>
+                            <div className="text-sm text-slate-500">{listing.category}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{listing.userName}</div>
-                        <div className="text-sm text-gray-500">{listing.userEmail}</div>
-                        <div className="text-sm text-gray-500">{listing.userPhone}</div>
+                        <div className="text-sm text-white">{listing.userName}</div>
+                        <div className="text-sm text-slate-500">{listing.userEmail}</div>
+                        <div className="text-sm text-slate-500">{listing.userPhone}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-white">
                           N$ {listing.price?.toLocaleString()}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(listing.status)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                         {new Date(listing.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -1371,7 +1372,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
                             size="sm"
                             variant="outline"
                             onClick={() => handleDelete(listing.id)}
-                            className="text-gray-600 hover:text-gray-700"
+                            className="text-slate-400 hover:text-slate-300"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -1635,8 +1636,10 @@ function AdminDashboardContent() {
     geographic: []
   });
 
-  // Fetch admin stats, dealers, users, and listings from database on mount
+  // Fetch admin stats, dealers, users, and listings from database once authenticated
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchAdminData = async () => {
       try {
         // Fetch all admin data in parallel
@@ -1673,10 +1676,12 @@ function AdminDashboardContent() {
     };
 
     fetchAdminData();
-  }, []);
+  }, [isAuthenticated]);
 
   // Fetch subscription data
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchSubscriptionData = async () => {
       try {
         const response = await fetch('/api/admin/subscriptions');
@@ -1696,10 +1701,12 @@ function AdminDashboardContent() {
     };
 
     fetchSubscriptionData();
-  }, []);
+  }, [isAuthenticated]);
 
   // Fetch promo codes
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchPromoCodes = async () => {
       try {
         const response = await fetch('/api/admin/promo-codes');
@@ -1717,10 +1724,12 @@ function AdminDashboardContent() {
     };
 
     fetchPromoCodes();
-  }, []);
+  }, [isAuthenticated]);
 
   // Fetch analytics data
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchAnalytics = async () => {
       try {
         const response = await fetch('/api/admin/analytics');
@@ -1738,21 +1747,7 @@ function AdminDashboardContent() {
     if (activeTab === 'analytics') {
       fetchAnalytics();
     }
-  }, [activeTab]);
-
-  // Persist dealers data to localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('admin_dealers_data', JSON.stringify(dealers));
-    }
-  }, [dealers]);
-
-  // Persist listings data to localStorage whenever it changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('admin_listings_data', JSON.stringify(listings));
-    }
-  }, [listings]);
+  }, [isAuthenticated, activeTab]);
 
   // Newsletter modal state
   const [newsletterModalOpen, setNewsletterModalOpen] = useState(false);
@@ -1816,13 +1811,10 @@ function AdminDashboardContent() {
   });
   const [activeAdvertTab, setActiveAdvertTab] = useState('banners'); // 'banners', 'payments', 'analytics'
 
-  // Debug: Log when activeAdvertTab changes
-  useEffect(() => {
-    console.log('Active Advert Tab changed to:', activeAdvertTab);
-  }, [activeAdvertTab]);
-
   // Load platform settings from database
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const loadSettings = async () => {
       try {
         const response = await fetch('/api/admin/settings');
@@ -1843,7 +1835,7 @@ function AdminDashboardContent() {
     };
 
     loadSettings();
-  }, []);
+  }, [isAuthenticated]);
 
   // Dealer management functions
   const handleViewDealer = (dealer: any) => {
@@ -3334,7 +3326,7 @@ function AdminDashboardContent() {
     // Check if user is admin
     const isAdmin = (session?.user as any)?.role === 'ADMIN' || session?.user?.email === 'admin@cars.na';
     if (!isAdmin) {
-      router.push('/dealer/login');
+      router.push('/admin/login');
       return;
     }
 
@@ -3382,10 +3374,10 @@ function AdminDashboardContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0B0F1A] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CB2030] mx-auto"></div>
+          <p className="mt-4 text-slate-400">Loading admin dashboard...</p>
         </div>
       </div>
     );
@@ -3506,12 +3498,12 @@ function AdminDashboardContent() {
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      'Active': 'bg-green-100 text-green-800',
-      'Pending': 'bg-yellow-100 text-yellow-800',
-      'Suspended': 'bg-red-100 text-red-800',
-      'Flagged': 'bg-orange-100 text-orange-800'
+      'Active': 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20',
+      'Pending': 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
+      'Suspended': 'bg-red-500/10 text-red-400 ring-1 ring-red-500/20',
+      'Flagged': 'bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20'
     };
-    return variants[status as keyof typeof variants] || 'bg-gray-100 text-gray-800';
+    return variants[status as keyof typeof variants] || 'bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/20';
   };
 
   // Handler to open edit plan modal
@@ -3786,49 +3778,49 @@ function AdminDashboardContent() {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-50 flex overflow-hidden">
+    <div className="fixed inset-0 bg-[#0B0F1A] flex overflow-hidden">
       {/* Sidebar */}
-      <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white shadow-sm border-r border-gray-200 flex flex-col transition-all duration-300`}>
+      <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-[#111827] border-r border-white/[0.06] flex flex-col transition-all duration-300`}>
         {/* Sidebar Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-white/[0.06]">
           <div className="flex items-center">
-            <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg">
+            <div className="flex items-center justify-center w-9 h-9 bg-[#CB2030] rounded-lg shadow-lg shadow-[#CB2030]/20">
               <Shield className="h-5 w-5 text-white" />
             </div>
             {!sidebarCollapsed && (
               <div className="ml-3">
-                <h1 className="text-lg font-bold text-gray-900">Admin Panel</h1>
-                <p className="text-sm text-gray-600">Cars.na Management</p>
+                <h1 className="text-base font-bold text-white tracking-tight">Admin Panel</h1>
+                <p className="text-xs text-slate-400 font-medium">Cars.na Management</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
           {navigation.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+              className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer ${
                 item.current
-                  ? 'bg-blue-100 text-blue-700 shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                  ? 'bg-[#CB2030]/10 text-[#CB2030] ring-1 ring-[#CB2030]/20'
+                  : 'text-slate-400 hover:bg-[#111827]/[0.04] hover:text-slate-200'
               }`}
             >
-              <item.icon className={`h-5 w-5 ${item.current ? 'text-blue-700' : 'text-gray-500'}`} />
-              {!sidebarCollapsed && <span className="ml-3">{item.name}</span>}
+              <item.icon className={`h-[18px] w-[18px] flex-shrink-0 ${item.current ? 'text-[#CB2030]' : 'text-slate-500'}`} />
+              {!sidebarCollapsed && <span className="ml-3 truncate">{item.name}</span>}
             </button>
           ))}
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-3 border-t border-white/[0.06]">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center px-3 py-3 text-sm font-medium text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+            className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
           >
-            <LogOut className="h-5 w-5 text-red-500" />
+            <LogOut className="h-[18px] w-[18px] text-red-400" />
             {!sidebarCollapsed && <span className="ml-3">Logout</span>}
           </button>
         </div>
@@ -3837,21 +3829,21 @@ function AdminDashboardContent() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="bg-[#111827] border-b border-white/[0.06]">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <button
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded-lg text-slate-400 hover:bg-[#111827]/[0.06] transition-colors cursor-pointer"
                 >
                   <MoreHorizontal className="h-5 w-5" />
                 </button>
                 <div className="ml-4">
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className="text-xl font-bold text-white tracking-tight">
                     {navigation.find(nav => nav.id === activeTab)?.name || 'Dashboard'}
                   </h1>
-                  <p className="text-gray-600">
+                  <p className="text-sm text-slate-400">
                     {activeTab === 'overview' && 'Platform overview and key metrics'}
                     {activeTab === 'messages' && 'Customer inquiries and dealership messages'}
                     {activeTab === 'users' && 'Manage platform users'}
@@ -3865,14 +3857,14 @@ function AdminDashboardContent() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
                   <Input
                     placeholder="Search..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-64"
+                    className="pl-10 w-64 bg-[#111827]/[0.04] border-white/[0.08] text-white placeholder:text-slate-500 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50"
                   />
                 </div>
                 <NotificationPanel />
@@ -3880,15 +3872,15 @@ function AdminDashboardContent() {
                 {/* Admin User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#111827]/[0.06] transition-colors cursor-pointer">
+                      <div className="w-8 h-8 rounded-full bg-[#1F3469] ring-2 ring-[#CB2030]/30 flex items-center justify-center">
                         <Shield className="h-4 w-4 text-white" />
                       </div>
                       <div className="text-left hidden md:block">
-                        <p className="text-sm font-medium text-gray-900">Admin</p>
-                        <p className="text-xs text-gray-500">System Administrator</p>
+                        <p className="text-sm font-medium text-white">Admin</p>
+                        <p className="text-xs text-slate-400">System Administrator</p>
                       </div>
-                      <ChevronDown className="h-4 w-4 text-gray-500" />
+                      <ChevronDown className="h-4 w-4 text-slate-400" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
@@ -3906,68 +3898,68 @@ function AdminDashboardContent() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 overflow-auto p-6 pt-[50px]">
+        <div className="flex-1 overflow-auto p-6 pt-[50px] bg-[#0B0F1A]">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
               {/* Key Metrics - Enhanced */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                <Card className="bg-[#111827] border-white/[0.06] hover:border-blue-500/20 transition-colors">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-blue-900">Total Users</CardTitle>
-                    <div className="p-2 bg-blue-500 rounded-lg">
-                      <Users className="h-5 w-5 text-white" />
+                    <CardTitle className="text-sm font-medium text-slate-400">Total Users</CardTitle>
+                    <div className="p-2 bg-blue-500/10 rounded-lg ring-1 ring-blue-500/20">
+                      <Users className="h-5 w-5 text-blue-400" />
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-blue-900">{(adminStats.totalUsers || 0).toLocaleString()}</div>
-                    <div className="mt-3 pt-3 border-t border-blue-200">
-                      <p className="text-xs text-blue-700">Total registered users</p>
+                    <div className="text-3xl font-bold text-white tabular-nums">{(adminStats.totalUsers || 0).toLocaleString()}</div>
+                    <div className="mt-3 pt-3 border-t border-white/[0.06]">
+                      <p className="text-xs text-slate-500">Total registered users</p>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                <Card className="bg-[#111827] border-white/[0.06] hover:border-purple-500/20 transition-colors">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-purple-900">Active Dealers</CardTitle>
-                    <div className="p-2 bg-purple-500 rounded-lg">
-                      <Building2 className="h-5 w-5 text-white" />
+                    <CardTitle className="text-sm font-medium text-slate-400">Active Dealers</CardTitle>
+                    <div className="p-2 bg-purple-500/10 rounded-lg ring-1 ring-purple-500/20">
+                      <Building2 className="h-5 w-5 text-purple-400" />
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-purple-900">{adminStats.totalDealers}</div>
-                    <div className="mt-3 pt-3 border-t border-purple-200">
-                      <p className="text-xs text-purple-700">Verified: {adminStats.verifiedDealers} • Pending: {adminStats.pendingDealers}</p>
+                    <div className="text-3xl font-bold text-white tabular-nums">{adminStats.totalDealers}</div>
+                    <div className="mt-3 pt-3 border-t border-white/[0.06]">
+                      <p className="text-xs text-slate-500">Verified: {adminStats.verifiedDealers} &bull; Pending: {adminStats.pendingDealers}</p>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                <Card className="bg-[#111827] border-white/[0.06] hover:border-emerald-500/20 transition-colors">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-green-900">Total Listings</CardTitle>
-                    <div className="p-2 bg-green-500 rounded-lg">
-                      <Car className="h-5 w-5 text-white" />
+                    <CardTitle className="text-sm font-medium text-slate-400">Total Listings</CardTitle>
+                    <div className="p-2 bg-emerald-500/10 rounded-lg ring-1 ring-emerald-500/20">
+                      <Car className="h-5 w-5 text-emerald-400" />
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-green-900">{(adminStats.totalListings || 0).toLocaleString()}</div>
-                    <div className="mt-3 pt-3 border-t border-green-200">
-                      <p className="text-xs text-green-700">Available: {adminStats.availableListings || adminStats.activeListings || 0}</p>
+                    <div className="text-3xl font-bold text-white tabular-nums">{(adminStats.totalListings || 0).toLocaleString()}</div>
+                    <div className="mt-3 pt-3 border-t border-white/[0.06]">
+                      <p className="text-xs text-slate-500">Available: {adminStats.availableListings || adminStats.activeListings || 0}</p>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+                <Card className="bg-[#111827] border-white/[0.06] hover:border-amber-500/20 transition-colors">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-amber-900">Monthly Revenue</CardTitle>
-                    <div className="p-2 bg-amber-500 rounded-lg">
-                      <DollarSign className="h-5 w-5 text-white" />
+                    <CardTitle className="text-sm font-medium text-slate-400">Monthly Revenue</CardTitle>
+                    <div className="p-2 bg-amber-500/10 rounded-lg ring-1 ring-amber-500/20">
+                      <DollarSign className="h-5 w-5 text-amber-400" />
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-amber-900">N${(adminStats.monthlyRevenue || 0).toLocaleString()}</div>
-                    <div className="mt-3 pt-3 border-t border-amber-200">
-                      <p className="text-xs text-amber-700">From completed payments</p>
+                    <div className="text-3xl font-bold text-white tabular-nums">N${(adminStats.monthlyRevenue || 0).toLocaleString()}</div>
+                    <div className="mt-3 pt-3 border-t border-white/[0.06]">
+                      <p className="text-xs text-slate-500">From completed payments</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -3975,55 +3967,55 @@ function AdminDashboardContent() {
 
               {/* Additional Quick Stats */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="border-l-4 border-l-blue-500">
+                <Card className="bg-[#111827] border-white/[0.06] border-l-2 border-l-blue-500">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Active Subscriptions</p>
-                        <p className="text-2xl font-bold text-gray-900">{adminStats.activeSubscriptions}</p>
+                        <p className="text-sm font-medium text-slate-400">Active Subscriptions</p>
+                        <p className="text-2xl font-bold text-white tabular-nums">{adminStats.activeSubscriptions}</p>
                       </div>
-                      <CreditCard className="h-8 w-8 text-blue-500" />
+                      <CreditCard className="h-8 w-8 text-blue-400/60" />
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">Monthly recurring revenue</p>
+                    <p className="text-xs text-slate-500 mt-2">Monthly recurring revenue</p>
                   </CardContent>
                 </Card>
 
-                <Card className="border-l-4 border-l-purple-500">
+                <Card className="bg-[#111827] border-white/[0.06] border-l-2 border-l-purple-500">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Total Leads</p>
-                        <p className="text-2xl font-bold text-gray-900">{adminStats.totalLeads}</p>
+                        <p className="text-sm font-medium text-slate-400">Total Leads</p>
+                        <p className="text-2xl font-bold text-white tabular-nums">{adminStats.totalLeads}</p>
                       </div>
-                      <MessageSquare className="h-8 w-8 text-purple-500" />
+                      <MessageSquare className="h-8 w-8 text-purple-400/60" />
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">Customer inquiries</p>
+                    <p className="text-xs text-slate-500 mt-2">Customer inquiries</p>
                   </CardContent>
                 </Card>
 
-                <Card className="border-l-4 border-l-green-500">
+                <Card className="bg-[#111827] border-white/[0.06] border-l-2 border-l-emerald-500">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Avg. Response Time</p>
-                        <p className="text-2xl font-bold text-gray-900">2.4h</p>
+                        <p className="text-sm font-medium text-slate-400">Avg. Response Time</p>
+                        <p className="text-2xl font-bold text-white tabular-nums">2.4h</p>
                       </div>
-                      <Clock className="h-8 w-8 text-green-500" />
+                      <Clock className="h-8 w-8 text-emerald-400/60" />
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">Lead response time</p>
+                    <p className="text-xs text-slate-500 mt-2">Lead response time</p>
                   </CardContent>
                 </Card>
 
-                <Card className="border-l-4 border-l-orange-500">
+                <Card className="bg-[#111827] border-white/[0.06] border-l-2 border-l-orange-500">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
-                        <p className="text-2xl font-bold text-gray-900">12.8%</p>
+                        <p className="text-sm font-medium text-slate-400">Conversion Rate</p>
+                        <p className="text-2xl font-bold text-white tabular-nums">12.8%</p>
                       </div>
-                      <TrendingUp className="h-8 w-8 text-orange-500" />
+                      <TrendingUp className="h-8 w-8 text-orange-400/60" />
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">Lead to sale conversion</p>
+                    <p className="text-xs text-slate-500 mt-2">Lead to sale conversion</p>
                   </CardContent>
                 </Card>
               </div>
@@ -4043,23 +4035,23 @@ function AdminDashboardContent() {
                     <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
                       <div>
                         <p className="font-medium">New Dealer Applications</p>
-                        <p className="text-sm text-gray-600">Awaiting verification</p>
+                        <p className="text-sm text-slate-400">Awaiting verification</p>
                       </div>
-                      <Badge className="bg-yellow-100 text-yellow-800">{adminStats.pendingDealers}</Badge>
+                      <Badge className="bg-amber-500/10 text-amber-400">{adminStats.pendingDealers}</Badge>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                       <div>
                         <p className="font-medium">Flagged Listings</p>
-                        <p className="text-sm text-gray-600">Reported content</p>
+                        <p className="text-sm text-slate-400">Reported content</p>
                       </div>
-                      <Badge className="bg-orange-100 text-orange-800">0</Badge>
+                      <Badge className="bg-orange-500/10 text-orange-400">0</Badge>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                       <div>
                         <p className="font-medium">User Reports</p>
-                        <p className="text-sm text-gray-600">Moderation queue</p>
+                        <p className="text-sm text-slate-400">Moderation queue</p>
                       </div>
-                      <Badge className="bg-red-100 text-red-800">0</Badge>
+                      <Badge className="bg-red-500/10 text-red-400">0</Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -4076,19 +4068,19 @@ function AdminDashboardContent() {
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Server Status</span>
-                      <Badge className="bg-green-100 text-green-800">Healthy</Badge>
+                      <Badge className="bg-emerald-500/10 text-emerald-400">Healthy</Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Database</span>
-                      <Badge className="bg-green-100 text-green-800">Online</Badge>
+                      <Badge className="bg-emerald-500/10 text-emerald-400">Online</Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">API Response</span>
-                      <Badge className="bg-green-100 text-green-800">Fast</Badge>
+                      <Badge className="bg-emerald-500/10 text-emerald-400">Fast</Badge>
                     </div>
                     <div className="mt-4">
-                      <p className="text-xs text-gray-500">99.9% uptime</p>
-                      <p className="text-xs text-gray-500">Avg: 120ms</p>
+                      <p className="text-xs text-slate-500">99.9% uptime</p>
+                      <p className="text-xs text-slate-500">Avg: 120ms</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -4101,7 +4093,7 @@ function AdminDashboardContent() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {users.length === 0 && listings.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
+                      <div className="text-center py-8 text-slate-500">
                         <p className="text-sm">No recent activity</p>
                       </div>
                     ) : (
@@ -4111,7 +4103,7 @@ function AdminDashboardContent() {
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                             <div>
                               <p className="text-sm font-medium">New user: {user.name}</p>
-                              <p className="text-xs text-gray-500">{new Date(user.joinedAt).toLocaleDateString()}</p>
+                              <p className="text-xs text-slate-500">{new Date(user.joinedAt).toLocaleDateString()}</p>
                             </div>
                           </div>
                         ))}
@@ -4120,7 +4112,7 @@ function AdminDashboardContent() {
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                             <div>
                               <p className="text-sm font-medium">New listing: {listing.title}</p>
-                              <p className="text-xs text-gray-500">{listing.dealer}</p>
+                              <p className="text-xs text-slate-500">{listing.dealer}</p>
                             </div>
                           </div>
                         ))}
@@ -4137,13 +4129,13 @@ function AdminDashboardContent() {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>Revenue Trend (Last 6 Months)</span>
-                      <BarChart3 className="h-5 w-5 text-gray-400" />
+                      <BarChart3 className="h-5 w-5 text-slate-500" />
                     </CardTitle>
                     <CardDescription>Monthly revenue comparison</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-center py-12 text-gray-500">
-                      <BarChart3 className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                    <div className="text-center py-12 text-slate-500">
+                      <BarChart3 className="h-12 w-12 mx-auto mb-3 text-slate-500" />
                       <p className="text-sm font-medium mb-1">No revenue data yet</p>
                       <p className="text-xs">Revenue trends will appear once payments are processed</p>
                     </div>
@@ -4161,8 +4153,8 @@ function AdminDashboardContent() {
                   </CardHeader>
                   <CardContent>
                     {topDealers.length === 0 ? (
-                      <div className="text-center py-12 text-gray-500">
-                        <Star className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                      <div className="text-center py-12 text-slate-500">
+                        <Star className="h-12 w-12 mx-auto mb-3 text-slate-500" />
                         <p className="text-sm font-medium mb-1">No dealers yet</p>
                         <p className="text-xs">Top dealers will appear once dealerships are approved</p>
                       </div>
@@ -4173,7 +4165,7 @@ function AdminDashboardContent() {
                             key={dealer.id}
                             className={`flex items-center gap-3 p-3 rounded-lg border ${
                               idx === 0 ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200' :
-                              idx === 1 ? 'bg-gradient-to-r from-gray-50 to-slate-50 border-gray-200' :
+                              idx === 1 ? 'bg-gradient-to-r from-gray-50 to-slate-50 border-white/[0.06]' :
                               idx === 2 ? 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200' :
                               ''
                             }`}
@@ -4187,13 +4179,13 @@ function AdminDashboardContent() {
                               {idx + 1}
                             </div>
                             <div className="flex-1">
-                              <p className={idx < 3 ? 'font-semibold text-gray-900' : 'font-medium text-gray-900'}>{dealer.name}</p>
-                              <p className="text-xs text-gray-600">{dealer.activeListings} listings • {dealer.city}</p>
+                              <p className={idx < 3 ? 'font-semibold text-white' : 'font-medium text-white'}>{dealer.name}</p>
+                              <p className="text-xs text-slate-400">{dealer.activeListings} listings • {dealer.city}</p>
                             </div>
                             {idx < 3 && (
                               <Star className={`h-5 w-5 fill-current ${
                                 idx === 0 ? 'text-amber-500' :
-                                idx === 1 ? 'text-gray-400' :
+                                idx === 1 ? 'text-slate-500' :
                                 'text-orange-600'
                               }`} />
                             )}
@@ -4218,8 +4210,8 @@ function AdminDashboardContent() {
                   </CardHeader>
                   <CardContent>
                     {recentPayments.length === 0 ? (
-                      <div className="text-center py-12 text-gray-500">
-                        <CreditCard className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                      <div className="text-center py-12 text-slate-500">
+                        <CreditCard className="h-12 w-12 mx-auto mb-3 text-slate-500" />
                         <p className="text-sm font-medium mb-1">No transactions yet</p>
                         <p className="text-xs">Payment transactions will appear here once dealers subscribe</p>
                       </div>
@@ -4231,25 +4223,25 @@ function AdminDashboardContent() {
                           const timeAgo = new Date(payment.createdAt).toLocaleString();
 
                           return (
-                            <div key={payment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                            <div key={payment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-[#0D1117]">
                               <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${isCompleted ? 'bg-green-100' : isPending ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                                <div className={`p-2 rounded-lg ${isCompleted ? 'bg-green-100' : isPending ? 'bg-blue-100' : 'bg-[#111827]/[0.04]'}`}>
                                   {isCompleted ? (
                                     <CheckCircle className="h-5 w-5 text-green-600" />
                                   ) : isPending ? (
                                     <Clock className="h-5 w-5 text-blue-600" />
                                   ) : (
-                                    <XCircle className="h-5 w-5 text-gray-600" />
+                                    <XCircle className="h-5 w-5 text-slate-400" />
                                   )}
                                 </div>
                                 <div>
                                   <p className="font-medium text-sm">{payment.dealershipName} - {payment.planName}</p>
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-slate-500">
                                     {payment.description || 'Subscription payment'} • {timeAgo}
                                   </p>
                                 </div>
                               </div>
-                              <span className={`font-semibold ${isCompleted ? 'text-green-600' : isPending ? 'text-blue-600' : 'text-gray-600'}`}>
+                              <span className={`font-semibold ${isCompleted ? 'text-green-600' : isPending ? 'text-blue-600' : 'text-slate-400'}`}>
                                 {isCompleted ? '+' : ''}N${(payment.amount / 100).toFixed(2)}
                               </span>
                             </div>
@@ -4331,7 +4323,7 @@ function AdminDashboardContent() {
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setAddUserModalOpen(true)}>
+                  <Button size="sm" className="bg-[#CB2030] hover:bg-[#B01C2A]" onClick={() => setAddUserModalOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add User
                   </Button>
@@ -4344,11 +4336,11 @@ function AdminDashboardContent() {
                   <CardContent className="pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Role</label>
                         <select
                           value={userRoleFilter}
                           onChange={(e) => setUserRoleFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="all">All Roles</option>
                           <option value="User">User</option>
@@ -4357,11 +4349,11 @@ function AdminDashboardContent() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Status</label>
                         <select
                           value={userStatusFilter}
                           onChange={(e) => setUserStatusFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="all">All Statuses</option>
                           <option value="Active">Active</option>
@@ -4386,25 +4378,25 @@ function AdminDashboardContent() {
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-[#0D1117]">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">User</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Role</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Joined</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
                         {users
                           .filter(user => userRoleFilter === 'all' || user.role === userRoleFilter)
                           .filter(user => userStatusFilter === 'all' || user.status === userStatusFilter)
                           .map((user) => (
-                          <tr key={user.id} className="hover:bg-gray-50">
+                          <tr key={user.id} className="hover:bg-[#0D1117]">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div>
-                                <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                <div className="text-sm text-gray-500">{user.email}</div>
+                                <div className="text-sm font-medium text-white">{user.name}</div>
+                                <div className="text-sm text-slate-500">{user.email}</div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -4413,7 +4405,7 @@ function AdminDashboardContent() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <Badge className={getStatusBadge(user.status)}>{user.status}</Badge>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                               {new Date(user.joinedAt).toLocaleDateString()}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -4436,7 +4428,7 @@ function AdminDashboardContent() {
 
           {/* Add User Modal */}
           {addUserModalOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setAddUserModalOpen(false)}>
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setAddUserModalOpen(false)}>
               <Card className="w-full max-w-md m-4" onClick={(e) => e.stopPropagation()}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -4449,35 +4441,35 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
                     <input
                       type="text"
                       placeholder="John Doe"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
                     <input
                       type="email"
                       placeholder="john@example.com"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Role</label>
+                    <select className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                       <option value="Dealer">Dealer</option>
                       <option value="Admin">Admin</option>
                       <option value="Sales Executive">Sales Executive</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Dealership <span className="text-red-500">*</span>
                     </label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
                       <option value="">Select a dealership</option>
@@ -4485,21 +4477,21 @@ function AdminDashboardContent() {
                         <option key={dealer.id} value={dealer.id}>{dealer.name}</option>
                       ))}
                     </select>
-                    <p className="text-xs text-gray-500 mt-1">All users must be assigned to a dealership</p>
+                    <p className="text-xs text-slate-500 mt-1">All users must be assigned to a dealership</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
                     <input
                       type="password"
                       placeholder="••••••••"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div className="flex gap-3 pt-4">
                     <Button variant="outline" className="flex-1" onClick={() => setAddUserModalOpen(false)}>
                       Cancel
                     </Button>
-                    <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => {
+                    <Button className="flex-1 bg-[#CB2030] hover:bg-[#B01C2A]" onClick={() => {
                       // In real app, this would call an API
                       alert('User would be created here');
                       setAddUserModalOpen(false);
@@ -4522,14 +4514,14 @@ function AdminDashboardContent() {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
                     <Input
                       value={editingUser.name}
                       onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
                     <Input
                       type="email"
                       value={editingUser.email}
@@ -4537,9 +4529,9 @@ function AdminDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Role</label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500"
                       value={editingUser.role}
                       onChange={(e) => setEditingUser({...editingUser, role: e.target.value})}
                     >
@@ -4549,11 +4541,11 @@ function AdminDashboardContent() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Dealership <span className="text-red-500">*</span>
                     </label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500"
                       value={editingUser.dealershipId || ''}
                       onChange={(e) => setEditingUser({...editingUser, dealershipId: e.target.value})}
                       required
@@ -4563,7 +4555,7 @@ function AdminDashboardContent() {
                         <option key={dealer.id} value={dealer.id}>{dealer.name}</option>
                       ))}
                     </select>
-                    <p className="text-xs text-gray-500 mt-1">All users must be assigned to a dealership</p>
+                    <p className="text-xs text-slate-500 mt-1">All users must be assigned to a dealership</p>
                   </div>
                 </div>
                 <DialogFooter className="mt-4 gap-2">
@@ -4586,7 +4578,7 @@ function AdminDashboardContent() {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Reason for suspension (optional)</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Reason for suspension (optional)</label>
                     <Textarea
                       value={suspendReason}
                       onChange={(e) => setSuspendReason(e.target.value)}
@@ -4595,10 +4587,10 @@ function AdminDashboardContent() {
                     />
                   </div>
                 </div>
-                <div className="flex flex-row justify-end gap-3 mt-6 pt-4 border-t border-gray-200" style={{ marginTop: '24px', paddingTop: '16px' }}>
+                <div className="flex flex-row justify-end gap-3 mt-6 pt-4 border-t border-white/[0.06]" style={{ marginTop: '24px', paddingTop: '16px' }}>
                   <button
                     onClick={() => setSuspendingUser(null)}
-                    className="px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 font-medium text-sm"
+                    className="px-4 py-2 border border-white/[0.1] rounded-md bg-[#111827] text-slate-300 hover:bg-[#0D1117] font-medium text-sm"
                   >
                     Cancel
                   </button>
@@ -4642,13 +4634,13 @@ function AdminDashboardContent() {
                 <h2 className="text-xl font-semibold">Dealer Management</h2>
                 <div className="flex gap-3">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
                     <input
                       type="text"
                       placeholder="Search dealers..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="pl-10 pr-4 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <DropdownMenu>
@@ -4769,19 +4761,19 @@ function AdminDashboardContent() {
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-[#0D1117]">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dealer</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Verification</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dealer</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contact</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Location</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Plan</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Verification</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Performance</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
                         {dealers
                           .filter(dealer => {
                             // Search filter
@@ -4798,54 +4790,54 @@ function AdminDashboardContent() {
                             return matchesSearch && matchesStatus && matchesVerification;
                           })
                           .map((dealer) => (
-                          <tr key={dealer.id} className="hover:bg-gray-50">
+                          <tr key={dealer.id} className="hover:bg-[#0D1117]">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
-                                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                  <Building className="h-5 w-5 text-gray-500" />
+                                <div className="h-10 w-10 rounded-full bg-white/[0.06] flex items-center justify-center">
+                                  <Building className="h-5 w-5 text-slate-500" />
                                 </div>
                                 <div className="ml-3">
-                                  <div className="text-sm font-medium text-gray-900">{dealer.name}</div>
-                                  <div className="text-sm text-gray-500">{dealer.contactPerson}</div>
+                                  <div className="text-sm font-medium text-white">{dealer.name}</div>
+                                  <div className="text-sm text-slate-500">{dealer.contactPerson}</div>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{dealer.email}</div>
-                              <div className="text-sm text-gray-500">{dealer.phone}</div>
+                              <div className="text-sm text-white">{dealer.email}</div>
+                              <div className="text-sm text-slate-500">{dealer.phone}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{dealer.city}</div>
-                              <div className="text-sm text-gray-500">{dealer.region}</div>
+                              <div className="text-sm text-white">{dealer.city}</div>
+                              <div className="text-sm text-slate-500">{dealer.region}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{dealer.subscriptionPlan}</div>
-                              <div className="text-sm text-gray-500">N${(dealer.monthlyFee / 100).toFixed(2)}/mo</div>
+                              <div className="text-sm text-white">{dealer.subscriptionPlan}</div>
+                              <div className="text-sm text-slate-500">N${(dealer.monthlyFee / 100).toFixed(2)}/mo</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <Badge className={
-                                dealer.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                dealer.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                dealer.status === 'SUSPENDED' ? 'bg-red-100 text-red-800' :
-                                'bg-gray-100 text-gray-800'
+                                dealer.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
+                                dealer.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
+                                dealer.status === 'SUSPENDED' ? 'bg-red-500/10 text-red-400' :
+                                'bg-[#111827]/[0.04] text-slate-200'
                               }>
                                 {dealer.status}
                               </Badge>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <Badge className={
-                                dealer.verificationStatus === 'Verified' ? 'bg-green-100 text-green-800' :
-                                dealer.verificationStatus === 'Flagged' ? 'bg-red-100 text-red-800' :
-                                'bg-yellow-100 text-yellow-800'
+                                dealer.verificationStatus === 'Verified' ? 'bg-emerald-500/10 text-emerald-400' :
+                                dealer.verificationStatus === 'Flagged' ? 'bg-red-500/10 text-red-400' :
+                                'bg-amber-500/10 text-amber-400'
                               }>
                                 {dealer.verificationStatus}
                               </Badge>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
+                              <div className="text-sm text-white">
                                 {dealer.activeListings} active / {dealer.totalListings} total
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-slate-500">
                                 ⭐ {dealer.rating.toFixed(1)} • {dealer.totalSales} sales
                               </div>
                             </td>
@@ -4996,13 +4988,13 @@ function AdminDashboardContent() {
                 <h2 className="text-xl font-semibold">Listing Management</h2>
                 <div className="flex gap-3">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
                     <input
                       type="text"
                       placeholder="Search listings..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="pl-10 pr-4 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <Button variant="outline" size="sm">
@@ -5079,18 +5071,18 @@ function AdminDashboardContent() {
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-[#0D1117]">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dealer</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posted</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Vehicle</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dealer</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Price</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Performance</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Posted</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
                         {listings
                           .filter(listing =>
                             listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -5099,57 +5091,57 @@ function AdminDashboardContent() {
                             listing.model.toLowerCase().includes(searchTerm.toLowerCase())
                           )
                           .map((listing) => (
-                          <tr key={listing.id} className="hover:bg-gray-50">
+                          <tr key={listing.id} className="hover:bg-[#0D1117]">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
-                                <div className="h-12 w-16 rounded bg-gray-200 flex items-center justify-center mr-3">
-                                  <Car className="h-6 w-6 text-gray-500" />
+                                <div className="h-12 w-16 rounded bg-white/[0.06] flex items-center justify-center mr-3">
+                                  <Car className="h-6 w-6 text-slate-500" />
                                 </div>
                                 <div>
-                                  <div className="text-sm font-medium text-gray-900">{listing.title}</div>
-                                  <div className="text-sm text-gray-500">
+                                  <div className="text-sm font-medium text-white">{listing.title}</div>
+                                  <div className="text-sm text-slate-500">
                                     {listing.year} • {(listing.mileage || 0).toLocaleString()} km • {listing.fuelType}
                                   </div>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{listing.dealerName}</div>
-                              <div className="text-sm text-gray-500">{listing.location}</div>
+                              <div className="text-sm text-white">{listing.dealerName}</div>
+                              <div className="text-sm text-slate-500">{listing.location}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-white">
                                 N${(listing.price || 0).toLocaleString()}
                               </div>
-                              <div className="text-sm text-gray-500">{listing.condition}</div>
+                              <div className="text-sm text-slate-500">{listing.condition}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <Badge className={
-                                listing.listingStatus === 'Approved' ? 'bg-green-100 text-green-800' :
-                                listing.listingStatus === 'Rejected' ? 'bg-red-100 text-red-800' :
-                                listing.listingStatus === 'Under Review' ? 'bg-orange-100 text-orange-800' :
-                                'bg-yellow-100 text-yellow-800'
+                                listing.listingStatus === 'Approved' ? 'bg-emerald-500/10 text-emerald-400' :
+                                listing.listingStatus === 'Rejected' ? 'bg-red-500/10 text-red-400' :
+                                listing.listingStatus === 'Under Review' ? 'bg-orange-500/10 text-orange-400' :
+                                'bg-amber-500/10 text-amber-400'
                               }>
                                 {listing.listingStatus}
                               </Badge>
-                              <div className="flex items-center mt-1 text-xs text-gray-500">
+                              <div className="flex items-center mt-1 text-xs text-slate-500">
                                 {listing.featured && <Star className="h-3 w-3 text-yellow-500 mr-1" />}
                                 {listing.status}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
+                              <div className="text-sm text-white">
                                 👁 {listing.views} views
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-slate-500">
                                 💬 {listing.inquiries} inquiries
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
+                              <div className="text-sm text-white">
                                 {new Date(listing.datePosted).toLocaleDateString()}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-slate-500">
                                 Updated: {new Date(listing.lastUpdated).toLocaleDateString()}
                               </div>
                             </td>
@@ -5202,7 +5194,7 @@ function AdminDashboardContent() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className={listing.featured ? "text-yellow-600 hover:text-yellow-800" : "text-gray-600 hover:text-gray-800"}
+                                      className={listing.featured ? "text-yellow-600 hover:text-yellow-800" : "text-slate-400 hover:text-slate-200"}
                                       onClick={() => handleFeatureListing(listing.id)}
                                       title={listing.featured ? "Remove Feature" : "Feature Listing"}
                                     >
@@ -5330,16 +5322,16 @@ function AdminDashboardContent() {
               </div>
 
               {/* Sub-tabs Navigation */}
-              <div className="border-b border-gray-200">
+              <div className="border-b border-white/[0.06]">
                 {/* Debug indicator */}
-                <div className="text-xs text-gray-400 px-4 py-1">Current tab: {activeAdvertTab}</div>
+                <div className="text-xs text-slate-500 px-4 py-1">Current tab: {activeAdvertTab}</div>
                 <nav className="flex gap-6">
                   <button
                     onClick={() => setActiveAdvertTab('banners')}
                     className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                       activeAdvertTab === 'banners'
                         ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/[0.1]'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -5352,7 +5344,7 @@ function AdminDashboardContent() {
                     className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                       activeAdvertTab === 'payments'
                         ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/[0.1]'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -5365,7 +5357,7 @@ function AdminDashboardContent() {
                     className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
                       activeAdvertTab === 'analytics'
                         ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/[0.1]'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -5432,8 +5424,8 @@ function AdminDashboardContent() {
               <div className="space-y-8">
                 {banners.length === 0 ? (
                   <div className="text-center py-12">
-                    <Image className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                    <p className="text-gray-500">No banners found. Create your first banner to get started!</p>
+                    <Image className="h-16 w-16 mx-auto mb-4 text-slate-600" />
+                    <p className="text-slate-500">No banners found. Create your first banner to get started!</p>
                   </div>
                 ) : (
                   <>
@@ -5451,8 +5443,8 @@ function AdminDashboardContent() {
                         <div key={position}>
                           <div className="flex items-center justify-between mb-4">
                             <div>
-                              <h3 className="text-lg font-semibold text-gray-900">{positionInfo[position].title}</h3>
-                              <p className="text-sm text-gray-500">
+                              <h3 className="text-lg font-semibold text-white">{positionInfo[position].title}</h3>
+                              <p className="text-sm text-slate-500">
                                 {positionInfo[position].description} • <a href={positionInfo[position].page} target="_blank" className="text-blue-600 hover:underline">View page</a>
                               </p>
                             </div>
@@ -5464,7 +5456,7 @@ function AdminDashboardContent() {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">{banner.title}</CardTitle>
-                        <Badge className={banner.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                        <Badge className={banner.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-200'}>
                           {banner.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </div>
@@ -5475,7 +5467,7 @@ function AdminDashboardContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {/* Banner Preview */}
-                      <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                      <div className="aspect-video bg-[#111827]/[0.04] rounded-lg overflow-hidden">
                         {banner.imageUrl ? (
                           <img
                             src={banner.imageUrl}
@@ -5485,12 +5477,12 @@ function AdminDashboardContent() {
                               e.currentTarget.style.display = 'none';
                               const parent = e.currentTarget.parentElement;
                               if (parent) {
-                                parent.innerHTML = '<div class="flex items-center justify-center h-full text-center text-gray-400"><div><div class="h-12 w-12 mx-auto mb-2 flex items-center justify-center"><svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div><p class="text-sm">Failed to load image</p></div></div>';
+                                parent.innerHTML = '<div class="flex items-center justify-center h-full text-center text-slate-500"><div><div class="h-12 w-12 mx-auto mb-2 flex items-center justify-center"><svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div><p class="text-sm">Failed to load image</p></div></div>';
                               }
                             }}
                           />
                         ) : (
-                          <div className="flex items-center justify-center h-full text-center text-gray-400">
+                          <div className="flex items-center justify-center h-full text-center text-slate-500">
                             <div>
                               <Image className="h-12 w-12 mx-auto mb-2" />
                               <p className="text-sm">No image available</p>
@@ -5502,27 +5494,27 @@ function AdminDashboardContent() {
                       {/* Banner Details */}
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <p className="text-gray-500">Link</p>
+                          <p className="text-slate-500">Link</p>
                           <p className="font-medium text-blue-600 truncate">{banner.linkUrl || 'N/A'}</p>
                         </div>
                         <div>
-                          <p className="text-gray-500">Priority</p>
+                          <p className="text-slate-500">Priority</p>
                           <p className="font-medium">{banner.priority || 0}</p>
                         </div>
                         <div>
-                          <p className="text-gray-500">Start Date</p>
+                          <p className="text-slate-500">Start Date</p>
                           <p className="font-medium">{banner.startDate ? new Date(banner.startDate).toLocaleDateString() : 'N/A'}</p>
                         </div>
                         <div>
-                          <p className="text-gray-500">End Date</p>
+                          <p className="text-slate-500">End Date</p>
                           <p className="font-medium">{banner.endDate ? new Date(banner.endDate).toLocaleDateString() : 'N/A'}</p>
                         </div>
                         <div>
-                          <p className="text-gray-500">Clicks</p>
+                          <p className="text-slate-500">Clicks</p>
                           <p className="font-medium text-blue-600">{(banner.clicks || 0).toLocaleString()}</p>
                         </div>
                         <div>
-                          <p className="text-gray-500">Impressions</p>
+                          <p className="text-slate-500">Impressions</p>
                           <p className="font-medium text-green-600">{(banner.impressions || 0).toLocaleString()}</p>
                         </div>
                       </div>
@@ -5581,7 +5573,7 @@ function AdminDashboardContent() {
                   <p><strong>2. Preview Changes:</strong> Use the "Preview" button to see how the banner looks before making changes.</p>
                   <p><strong>3. Toggle Active/Inactive:</strong> Use the status dropdown in edit mode to enable or disable banners.</p>
                   <p><strong>4. Banner Positions are Fixed:</strong> Each banner slot is tied to a specific location on the website and cannot be moved.</p>
-                  <p className="mt-4 p-3 bg-white rounded border border-blue-300">
+                  <p className="mt-4 p-3 bg-[#111827] rounded border border-blue-300">
                     <strong>💡 Tip:</strong> Changes take effect immediately on the live site. Always preview your changes before saving!
                   </p>
                 </CardContent>
@@ -5648,24 +5640,24 @@ function AdminDashboardContent() {
                     <CardContent>
                       <div className="overflow-x-auto">
                         <table className="w-full">
-                          <thead className="bg-gray-50 border-b">
+                          <thead className="bg-[#0D1117] border-b">
                             <tr>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Advertiser</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Banner Position</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Plan</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Advertiser</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Banner Position</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Plan</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Start Date</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">End Date</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Amount</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Actions</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
-                            <tr className="hover:bg-gray-50">
+                            <tr className="hover:bg-[#0D1117]">
                               <td className="px-4 py-3">
                                 <div>
-                                  <p className="font-medium text-gray-900">ABC Motors</p>
-                                  <p className="text-sm text-gray-500">contact@abcmotors.com</p>
+                                  <p className="font-medium text-white">ABC Motors</p>
+                                  <p className="text-sm text-slate-500">contact@abcmotors.com</p>
                                 </div>
                               </td>
                               <td className="px-4 py-3">
@@ -5676,7 +5668,7 @@ function AdminDashboardContent() {
                               <td className="px-4 py-3 text-sm">Jan 31, 2025</td>
                               <td className="px-4 py-3 text-sm font-semibold">$500/mo</td>
                               <td className="px-4 py-3">
-                                <Badge className="bg-green-100 text-green-800">Active</Badge>
+                                <Badge className="bg-emerald-500/10 text-emerald-400">Active</Badge>
                               </td>
                               <td className="px-4 py-3">
                                 <div className="flex gap-2">
@@ -5685,11 +5677,11 @@ function AdminDashboardContent() {
                                 </div>
                               </td>
                             </tr>
-                            <tr className="hover:bg-gray-50">
+                            <tr className="hover:bg-[#0D1117]">
                               <td className="px-4 py-3">
                                 <div>
-                                  <p className="font-medium text-gray-900">XYZ Dealership</p>
-                                  <p className="text-sm text-gray-500">info@xyzdealership.com</p>
+                                  <p className="font-medium text-white">XYZ Dealership</p>
+                                  <p className="text-sm text-slate-500">info@xyzdealership.com</p>
                                 </div>
                               </td>
                               <td className="px-4 py-3">
@@ -5700,7 +5692,7 @@ function AdminDashboardContent() {
                               <td className="px-4 py-3 text-sm">Mar 15, 2025</td>
                               <td className="px-4 py-3 text-sm font-semibold">$1,200/qtr</td>
                               <td className="px-4 py-3">
-                                <Badge className="bg-green-100 text-green-800">Active</Badge>
+                                <Badge className="bg-emerald-500/10 text-emerald-400">Active</Badge>
                               </td>
                               <td className="px-4 py-3">
                                 <div className="flex gap-2">
@@ -5709,11 +5701,11 @@ function AdminDashboardContent() {
                                 </div>
                               </td>
                             </tr>
-                            <tr className="hover:bg-gray-50">
+                            <tr className="hover:bg-[#0D1117]">
                               <td className="px-4 py-3">
                                 <div>
-                                  <p className="font-medium text-gray-900">Premium Autos Ltd</p>
-                                  <p className="text-sm text-gray-500">sales@premiumautos.com</p>
+                                  <p className="font-medium text-white">Premium Autos Ltd</p>
+                                  <p className="text-sm text-slate-500">sales@premiumautos.com</p>
                                 </div>
                               </td>
                               <td className="px-4 py-3">
@@ -5724,7 +5716,7 @@ function AdminDashboardContent() {
                               <td className="px-4 py-3 text-sm">Feb 5, 2025</td>
                               <td className="px-4 py-3 text-sm font-semibold">$200/mo</td>
                               <td className="px-4 py-3">
-                                <Badge className="bg-yellow-100 text-yellow-800">Expiring Soon</Badge>
+                                <Badge className="bg-amber-500/10 text-amber-400">Expiring Soon</Badge>
                               </td>
                               <td className="px-4 py-3">
                                 <div className="flex gap-2">
@@ -5749,7 +5741,7 @@ function AdminDashboardContent() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="border rounded-lg p-6">
                           <h3 className="font-semibold text-lg mb-2">Basic Plan</h3>
-                          <p className="text-3xl font-bold mb-4">$200<span className="text-sm text-gray-500">/month</span></p>
+                          <p className="text-3xl font-bold mb-4">$200<span className="text-sm text-slate-500">/month</span></p>
                           <ul className="space-y-2 text-sm mb-4">
                             <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />SIDEBAR position</li>
                             <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Basic analytics</li>
@@ -5761,9 +5753,9 @@ function AdminDashboardContent() {
                         <div className="border-2 border-blue-500 rounded-lg p-6">
                           <div className="flex justify-between items-center mb-2">
                             <h3 className="font-semibold text-lg">Standard Plan</h3>
-                            <Badge className="bg-blue-100 text-blue-800">Popular</Badge>
+                            <Badge className="bg-blue-500/10 text-blue-400">Popular</Badge>
                           </div>
-                          <p className="text-3xl font-bold mb-4">$400<span className="text-sm text-gray-500">/month</span></p>
+                          <p className="text-3xl font-bold mb-4">$400<span className="text-sm text-slate-500">/month</span></p>
                           <ul className="space-y-2 text-sm mb-4">
                             <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />MAIN position</li>
                             <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Advanced analytics</li>
@@ -5775,7 +5767,7 @@ function AdminDashboardContent() {
 
                         <div className="border rounded-lg p-6 bg-gradient-to-br from-purple-50 to-blue-50">
                           <h3 className="font-semibold text-lg mb-2">Premium Plan</h3>
-                          <p className="text-3xl font-bold mb-4">$600<span className="text-sm text-gray-500">/month</span></p>
+                          <p className="text-3xl font-bold mb-4">$600<span className="text-sm text-slate-500">/month</span></p>
                           <ul className="space-y-2 text-sm mb-4">
                             <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />HERO position</li>
                             <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Full analytics suite</li>
@@ -5853,21 +5845,21 @@ function AdminDashboardContent() {
                           <div className="flex items-center justify-between mb-2">
                             <div>
                               <h4 className="font-semibold">HERO Position</h4>
-                              <p className="text-sm text-gray-500">Top banner on vehicles page</p>
+                              <p className="text-sm text-slate-500">Top banner on vehicles page</p>
                             </div>
-                            <Badge className="bg-green-100 text-green-800">Best CTR</Badge>
+                            <Badge className="bg-emerald-500/10 text-emerald-400">Best CTR</Badge>
                           </div>
                           <div className="grid grid-cols-3 gap-4 mt-3">
                             <div>
-                              <p className="text-sm text-gray-500">Impressions</p>
+                              <p className="text-sm text-slate-500">Impressions</p>
                               <p className="text-2xl font-bold">45,234</p>
                             </div>
                             <div>
-                              <p className="text-sm text-gray-500">Clicks</p>
+                              <p className="text-sm text-slate-500">Clicks</p>
                               <p className="text-2xl font-bold">4,892</p>
                             </div>
                             <div>
-                              <p className="text-sm text-gray-500">CTR</p>
+                              <p className="text-sm text-slate-500">CTR</p>
                               <p className="text-2xl font-bold text-green-600">10.8%</p>
                             </div>
                           </div>
@@ -5877,20 +5869,20 @@ function AdminDashboardContent() {
                           <div className="flex items-center justify-between mb-2">
                             <div>
                               <h4 className="font-semibold">MAIN Position</h4>
-                              <p className="text-sm text-gray-500">Main banner on homepage</p>
+                              <p className="text-sm text-slate-500">Main banner on homepage</p>
                             </div>
                           </div>
                           <div className="grid grid-cols-3 gap-4 mt-3">
                             <div>
-                              <p className="text-sm text-gray-500">Impressions</p>
+                              <p className="text-sm text-slate-500">Impressions</p>
                               <p className="text-2xl font-bold">38,567</p>
                             </div>
                             <div>
-                              <p className="text-sm text-gray-500">Clicks</p>
+                              <p className="text-sm text-slate-500">Clicks</p>
                               <p className="text-2xl font-bold">3,534</p>
                             </div>
                             <div>
-                              <p className="text-sm text-gray-500">CTR</p>
+                              <p className="text-sm text-slate-500">CTR</p>
                               <p className="text-2xl font-bold text-blue-600">9.2%</p>
                             </div>
                           </div>
@@ -5900,20 +5892,20 @@ function AdminDashboardContent() {
                           <div className="flex items-center justify-between mb-2">
                             <div>
                               <h4 className="font-semibold">SIDEBAR Position</h4>
-                              <p className="text-sm text-gray-500">Sidebar banner on vehicles page</p>
+                              <p className="text-sm text-slate-500">Sidebar banner on vehicles page</p>
                             </div>
                           </div>
                           <div className="grid grid-cols-3 gap-4 mt-3">
                             <div>
-                              <p className="text-sm text-gray-500">Impressions</p>
+                              <p className="text-sm text-slate-500">Impressions</p>
                               <p className="text-2xl font-bold">22,145</p>
                             </div>
                             <div>
-                              <p className="text-sm text-gray-500">Clicks</p>
+                              <p className="text-sm text-slate-500">Clicks</p>
                               <p className="text-2xl font-bold">1,508</p>
                             </div>
                             <div>
-                              <p className="text-sm text-gray-500">CTR</p>
+                              <p className="text-sm text-slate-500">CTR</p>
                               <p className="text-2xl font-bold text-orange-600">6.8%</p>
                             </div>
                           </div>
@@ -5933,28 +5925,28 @@ function AdminDashboardContent() {
                         {banners.slice(0, 5).map((banner, index) => (
                           <div key={banner.id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div className="flex items-center gap-4">
-                              <div className="text-2xl font-bold text-gray-300">#{index + 1}</div>
-                              <div className="w-24 h-16 bg-gray-100 rounded overflow-hidden">
+                              <div className="text-2xl font-bold text-slate-600">#{index + 1}</div>
+                              <div className="w-24 h-16 bg-[#111827]/[0.04] rounded overflow-hidden">
                                 {banner.imageUrl && (
                                   <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />
                                 )}
                               </div>
                               <div>
                                 <h4 className="font-semibold">{banner.title}</h4>
-                                <p className="text-sm text-gray-500">{banner.position}</p>
+                                <p className="text-sm text-slate-500">{banner.position}</p>
                               </div>
                             </div>
                             <div className="grid grid-cols-3 gap-8 text-center">
                               <div>
-                                <p className="text-sm text-gray-500">Impressions</p>
+                                <p className="text-sm text-slate-500">Impressions</p>
                                 <p className="font-semibold">{(banner.impressions || 0).toLocaleString()}</p>
                               </div>
                               <div>
-                                <p className="text-sm text-gray-500">Clicks</p>
+                                <p className="text-sm text-slate-500">Clicks</p>
                                 <p className="font-semibold">{(banner.clicks || 0).toLocaleString()}</p>
                               </div>
                               <div>
-                                <p className="text-sm text-gray-500">CTR</p>
+                                <p className="text-sm text-slate-500">CTR</p>
                                 <p className="font-semibold text-green-600">
                                   {banner.impressions > 0 ? ((banner.clicks / banner.impressions) * 100).toFixed(1) : 0}%
                                 </p>
@@ -5973,8 +5965,8 @@ function AdminDashboardContent() {
                       <CardDescription>Banner performance over the last 6 months</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                        <div className="text-center text-gray-500">
+                      <div className="h-64 flex items-center justify-center bg-[#0D1117] rounded-lg border-2 border-dashed border-white/[0.1]">
+                        <div className="text-center text-slate-500">
                           <BarChart3 className="h-12 w-12 mx-auto mb-2" />
                           <p>Performance chart visualization</p>
                           <p className="text-sm">(Chart library integration coming soon)</p>
@@ -5994,13 +5986,13 @@ function AdminDashboardContent() {
                 <h2 className="text-xl font-semibold">Content Moderation</h2>
                 <div className="flex gap-3">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
                     <input
                       type="text"
                       placeholder="Search reports..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="pl-10 pr-4 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <Button variant="outline" size="sm">
@@ -6064,7 +6056,7 @@ function AdminDashboardContent() {
               </div>
 
               {/* Moderation Filter Tabs */}
-              <div className="border-b border-gray-200">
+              <div className="border-b border-white/[0.06]">
                 <nav className="-mb-px flex space-x-8">
                   {[
                     { id: 'all', name: 'All Reports', count: reports.length },
@@ -6078,14 +6070,14 @@ function AdminDashboardContent() {
                       className={`${
                         moderationFilter === tab.id
                           ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/[0.1]'
                       } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
                     >
                       {tab.name}
                       <span className={`${
                         moderationFilter === tab.id
                           ? 'bg-blue-100 text-blue-600'
-                          : 'bg-gray-100 text-gray-600'
+                          : 'bg-[#111827]/[0.04] text-slate-400'
                       } py-0.5 px-2.5 rounded-full text-xs font-medium`}>
                         {tab.count}
                       </span>
@@ -6099,19 +6091,19 @@ function AdminDashboardContent() {
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-[#0D1117]">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reporter</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Report</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Reporter</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Severity</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Assigned</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
                         {reports
                           .filter(report => {
                             // Filter by tab
@@ -6129,60 +6121,60 @@ function AdminDashboardContent() {
                             );
                           })
                           .map((report) => (
-                          <tr key={report.id} className="hover:bg-gray-50">
+                          <tr key={report.id} className="hover:bg-[#0D1117]">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
-                                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                                  {report.type === 'listing' && <Car className="h-5 w-5 text-gray-500" />}
-                                  {report.type === 'user' && <Users className="h-5 w-5 text-gray-500" />}
-                                  {report.type === 'comment' && <MessageSquare className="h-5 w-5 text-gray-500" />}
+                                <div className="h-10 w-10 rounded-full bg-white/[0.06] flex items-center justify-center mr-3">
+                                  {report.type === 'listing' && <Car className="h-5 w-5 text-slate-500" />}
+                                  {report.type === 'user' && <Users className="h-5 w-5 text-slate-500" />}
+                                  {report.type === 'comment' && <MessageSquare className="h-5 w-5 text-slate-500" />}
                                 </div>
                                 <div>
-                                  <div className="text-sm font-medium text-gray-900">{report.targetTitle}</div>
-                                  <div className="text-sm text-gray-500">{report.reportReason}</div>
+                                  <div className="text-sm font-medium text-white">{report.targetTitle}</div>
+                                  <div className="text-sm text-slate-500">{report.reportReason}</div>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{report.targetType}</div>
-                              <div className="text-sm text-gray-500">{report.reportCategory}</div>
+                              <div className="text-sm text-white">{report.targetType}</div>
+                              <div className="text-sm text-slate-500">{report.reportCategory}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{report.reporterName}</div>
-                              <div className="text-sm text-gray-500">{report.reporterEmail}</div>
+                              <div className="text-sm text-white">{report.reporterName}</div>
+                              <div className="text-sm text-slate-500">{report.reporterEmail}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <Badge className={
-                                report.severity === 'Critical' ? 'bg-red-100 text-red-800' :
-                                report.severity === 'High' ? 'bg-orange-100 text-orange-800' :
-                                report.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-blue-100 text-blue-800'
+                                report.severity === 'Critical' ? 'bg-red-500/10 text-red-400' :
+                                report.severity === 'High' ? 'bg-orange-500/10 text-orange-400' :
+                                report.severity === 'Medium' ? 'bg-amber-500/10 text-amber-400' :
+                                'bg-blue-500/10 text-blue-400'
                               }>
                                 {report.severity}
                               </Badge>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <Badge className={
-                                report.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                                report.status === 'Under Review' ? 'bg-blue-100 text-blue-800' :
-                                'bg-green-100 text-green-800'
+                                report.status === 'Pending' ? 'bg-amber-500/10 text-amber-400' :
+                                report.status === 'Under Review' ? 'bg-blue-500/10 text-blue-400' :
+                                'bg-emerald-500/10 text-emerald-400'
                               }>
                                 {report.status}
                               </Badge>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
+                              <div className="text-sm text-white">
                                 {report.assignedTo || 'Unassigned'}
                               </div>
                               {report.actionTaken && (
-                                <div className="text-sm text-gray-500">{report.actionTaken}</div>
+                                <div className="text-sm text-slate-500">{report.actionTaken}</div>
                               )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
+                              <div className="text-sm text-white">
                                 {new Date(report.dateReported).toLocaleDateString()}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-slate-500">
                                 {new Date(report.lastUpdated).toLocaleDateString()}
                               </div>
                             </td>
@@ -6381,7 +6373,7 @@ function AdminDashboardContent() {
                             }}></div>
                             <div>
                               <p className="text-sm font-medium">{source.name}</p>
-                              <p className="text-xs text-gray-500">{source.visitors.toLocaleString()} visitors</p>
+                              <p className="text-xs text-slate-500">{source.visitors.toLocaleString()} visitors</p>
                             </div>
                           </div>
                           <div className="text-right">
@@ -6474,7 +6466,7 @@ function AdminDashboardContent() {
                               <td className="py-2">
                                 <div>
                                   <p className="font-medium">{make.make}</p>
-                                  <p className="text-xs text-gray-500">Avg: N${make.avgPrice.toLocaleString()}</p>
+                                  <p className="text-xs text-slate-500">Avg: N${make.avgPrice.toLocaleString()}</p>
                                 </div>
                               </td>
                               <td className="text-right py-2">{make.views.toLocaleString()}</td>
@@ -6503,11 +6495,11 @@ function AdminDashboardContent() {
                         <div key={index} className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium">{region.region}</p>
-                            <p className="text-xs text-gray-500">{region.users.toLocaleString()} users</p>
+                            <p className="text-xs text-slate-500">{region.users.toLocaleString()} users</p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium">N${(region.revenue / 100).toLocaleString()}</p>
-                            <p className="text-xs text-gray-500">{region.percentage}%</p>
+                            <p className="text-xs text-slate-500">{region.percentage}%</p>
                           </div>
                         </div>
                       ))}
@@ -6529,19 +6521,19 @@ function AdminDashboardContent() {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-600">{(analyticsData?.users?.engagement?.activeUsers || 0).toLocaleString()}</div>
-                      <p className="text-sm text-gray-600">Active Users</p>
+                      <p className="text-sm text-slate-400">Active Users</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-600">{(analyticsData?.users?.engagement?.returningUsers || 0).toLocaleString()}</div>
-                      <p className="text-sm text-gray-600">Returning Users</p>
+                      <p className="text-sm text-slate-400">Returning Users</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-yellow-600">{analyticsData?.users?.engagement?.pagesPerSession || 0}</div>
-                      <p className="text-sm text-gray-600">Pages/Session</p>
+                      <p className="text-sm text-slate-400">Pages/Session</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-purple-600">{(analyticsData?.users?.engagement?.messagesSent || 0).toLocaleString()}</div>
-                      <p className="text-sm text-gray-600">Messages Sent</p>
+                      <p className="text-sm text-slate-400">Messages Sent</p>
                     </div>
                   </div>
                 </CardContent>
@@ -6663,37 +6655,37 @@ function AdminDashboardContent() {
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-[#0D1117]">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                             Dealership
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                             Duration
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                             Amount
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                             Status
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                             Requested
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                             Active Period
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
                         {featuredRequests.length === 0 ? (
                           <tr>
                             <td colSpan={7} className="px-6 py-12 text-center">
-                              <div className="flex flex-col items-center justify-center text-gray-500">
-                                <Crown className="h-12 w-12 mb-4 text-gray-300" />
+                              <div className="flex flex-col items-center justify-center text-slate-500">
+                                <Crown className="h-12 w-12 mb-4 text-slate-600" />
                                 <p className="font-medium">No featured requests yet</p>
                                 <p className="text-sm mt-1">Requests will appear here when dealerships apply</p>
                               </div>
@@ -6701,49 +6693,49 @@ function AdminDashboardContent() {
                           </tr>
                         ) : (
                           featuredRequests.map((request) => (
-                            <tr key={request.id} className="hover:bg-gray-50">
+                            <tr key={request.id} className="hover:bg-[#0D1117]">
                               <td className="px-6 py-4">
                                 <div>
-                                  <div className="font-medium text-gray-900">{request.dealership.name}</div>
-                                  <div className="text-sm text-gray-500">{request.dealership.city}</div>
-                                  <div className="text-xs text-gray-400">{request.dealership.email}</div>
+                                  <div className="font-medium text-white">{request.dealership.name}</div>
+                                  <div className="text-sm text-slate-500">{request.dealership.city}</div>
+                                  <div className="text-xs text-slate-500">{request.dealership.email}</div>
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-gray-900">{request.duration} days</div>
+                                <div className="text-sm font-medium text-white">{request.duration} days</div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-gray-900">N${request.amount}</div>
+                                <div className="text-sm font-medium text-white">N${request.amount}</div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <Badge className={`${
-                                  request.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                                  request.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                  request.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
-                                  request.status === 'EXPIRED' ? 'bg-gray-100 text-gray-800' :
-                                  'bg-red-100 text-red-800'
+                                  request.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400' :
+                                  request.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
+                                  request.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400' :
+                                  request.status === 'EXPIRED' ? 'bg-[#111827]/[0.04] text-slate-200' :
+                                  'bg-red-500/10 text-red-400'
                                 }`}>
                                   {request.status}
                                 </Badge>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">
+                                <div className="text-sm text-white">
                                   {new Date(request.requestedAt).toLocaleDateString()}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-slate-500">
                                   {new Date(request.requestedAt).toLocaleTimeString()}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 {request.startDate && request.endDate ? (
-                                  <div className="text-sm text-gray-900">
+                                  <div className="text-sm text-white">
                                     <div>{new Date(request.startDate).toLocaleDateString()}</div>
-                                    <div className="text-xs text-gray-500">
+                                    <div className="text-xs text-slate-500">
                                       to {new Date(request.endDate).toLocaleDateString()}
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="text-sm text-gray-400">-</div>
+                                  <div className="text-sm text-slate-500">-</div>
                                 )}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -6817,7 +6809,7 @@ function AdminDashboardContent() {
                     <select
                       value={invoiceMonth}
                       onChange={e => setInvoiceMonth(Number(e.target.value))}
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                      className="border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                     >
                       {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, i) => (
                         <option key={i} value={i + 1}>{m}</option>
@@ -6827,13 +6819,13 @@ function AdminDashboardContent() {
                       type="number"
                       value={invoiceYear}
                       onChange={e => setInvoiceYear(Number(e.target.value))}
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-24 focus:ring-2 focus:ring-blue-500"
+                      className="border border-white/[0.1] rounded-lg px-3 py-2 text-sm w-24 focus:ring-2 focus:ring-blue-500"
                       min={2024}
                       max={2030}
                     />
                     <Button
                       size="sm"
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      className="bg-[#CB2030] hover:bg-[#B01C2A] text-white"
                       onClick={async () => {
                         setGeneratingInvoices(true);
                         try {
@@ -6898,8 +6890,8 @@ function AdminDashboardContent() {
                     onClick={() => setInvoiceFilter(s)}
                     className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                       invoiceFilter === s
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                        ? 'bg-[#1F3469] text-white border-blue-600'
+                        : 'bg-[#111827] text-slate-400 border-white/[0.1] hover:bg-[#0D1117]'
                     }`}
                   >
                     {s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
@@ -6914,41 +6906,41 @@ function AdminDashboardContent() {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
                     </div>
                   ) : adminInvoices.length === 0 ? (
-                    <p className="text-center text-gray-500 py-16">No invoices found.</p>
+                    <p className="text-center text-slate-500 py-16">No invoices found.</p>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="bg-gray-50 border-b">
-                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Invoice #</th>
-                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Dealership</th>
-                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Period</th>
-                            <th className="text-right px-4 py-3 font-semibold text-gray-600">Total</th>
-                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Due Date</th>
-                            <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+                          <tr className="bg-[#0D1117] border-b">
+                            <th className="text-left px-4 py-3 font-semibold text-slate-400">Invoice #</th>
+                            <th className="text-left px-4 py-3 font-semibold text-slate-400">Dealership</th>
+                            <th className="text-left px-4 py-3 font-semibold text-slate-400">Period</th>
+                            <th className="text-right px-4 py-3 font-semibold text-slate-400">Total</th>
+                            <th className="text-left px-4 py-3 font-semibold text-slate-400">Due Date</th>
+                            <th className="text-left px-4 py-3 font-semibold text-slate-400">Status</th>
                             <th className="px-4 py-3" />
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {adminInvoices.map((inv: any) => (
-                            <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-4 py-3 font-mono text-gray-900 font-medium">{inv.invoiceNumber}</td>
-                              <td className="px-4 py-3 text-gray-700">{inv.dealership?.name ?? '—'}</td>
-                              <td className="px-4 py-3 text-gray-700">
+                            <tr key={inv.id} className="hover:bg-[#0D1117] transition-colors">
+                              <td className="px-4 py-3 font-mono text-white font-medium">{inv.invoiceNumber}</td>
+                              <td className="px-4 py-3 text-slate-300">{inv.dealership?.name ?? '—'}</td>
+                              <td className="px-4 py-3 text-slate-300">
                                 {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][inv.billingMonth - 1]} {inv.billingYear}
                               </td>
-                              <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                              <td className="px-4 py-3 text-right font-semibold text-white">
                                 N$ {inv.totalAmount.toLocaleString('en-NA', { minimumFractionDigits: 2 })}
                               </td>
-                              <td className="px-4 py-3 text-gray-600">
+                              <td className="px-4 py-3 text-slate-400">
                                 {new Date(inv.dueDate).toLocaleDateString('en-NA')}
                               </td>
                               <td className="px-4 py-3">
                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${
-                                  inv.status === 'PAID' ? 'bg-green-100 text-green-800 border-green-200' :
-                                  inv.status === 'OVERDUE' ? 'bg-red-100 text-red-800 border-red-200' :
-                                  inv.status === 'CANCELLED' ? 'bg-gray-100 text-gray-600 border-gray-200' :
-                                  'bg-yellow-100 text-yellow-800 border-yellow-200'
+                                  inv.status === 'PAID' ? 'bg-emerald-500/10 text-emerald-400 border-green-200' :
+                                  inv.status === 'OVERDUE' ? 'bg-red-500/10 text-red-400 border-red-200' :
+                                  inv.status === 'CANCELLED' ? 'bg-[#111827]/[0.04] text-slate-400 border-white/[0.06]' :
+                                  'bg-amber-500/10 text-amber-400 border-yellow-200'
                                 }`}>
                                   {inv.status}
                                 </span>
@@ -6959,7 +6951,7 @@ function AdminDashboardContent() {
                                     const res = await fetch(`/api/admin/invoices/${inv.id}`);
                                     const data = await res.json();
                                     if (data.invoice) { setSelectedInvoice(data.invoice); setInvoiceModalMode('view'); }
-                                  }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-blue-600"><Eye className="h-4 w-4" /></button>
+                                  }} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-blue-600"><Eye className="h-4 w-4" /></button>
                                   <button title="Edit" onClick={async () => {
                                     const res = await fetch(`/api/admin/invoices/${inv.id}`);
                                     const data = await res.json();
@@ -6974,18 +6966,18 @@ function AdminDashboardContent() {
                                       });
                                       setInvoiceModalMode('edit');
                                     }
-                                  }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-yellow-600"><Edit className="h-4 w-4" /></button>
+                                  }} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-yellow-600"><Edit className="h-4 w-4" /></button>
                                   {inv.status !== 'PAID' && inv.status !== 'CANCELLED' && (
                                     <button title="Mark Paid" onClick={async () => {
                                       const res = await fetch(`/api/admin/invoices/${inv.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'mark-paid' }) });
                                       const data = await res.json();
                                       if (res.ok) { showToast({ title: 'Marked Paid', description: `Invoice ${inv.invoiceNumber} marked as paid.`, type: 'success' }); setAdminInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: 'PAID' } : i)); }
                                       else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
-                                    }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-green-600"><Check className="h-4 w-4" /></button>
+                                    }} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-green-600"><Check className="h-4 w-4" /></button>
                                   )}
-                                  <button title="Download PDF" onClick={() => { window.open(`/api/admin/invoices/${inv.id}/pdf`, '_blank'); }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-indigo-600"><FileDown className="h-4 w-4" /></button>
-                                  <button title="Send Email" onClick={() => { setSendEmailInvoiceId(inv.id); setSendEmailTo(inv.dealership?.email || ''); }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-purple-600"><Send className="h-4 w-4" /></button>
-                                  <button title="Delete" onClick={() => setDeletingInvoiceId(inv.id)} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
+                                  <button title="Download PDF" onClick={() => { window.open(`/api/admin/invoices/${inv.id}/pdf`, '_blank'); }} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-indigo-600"><FileDown className="h-4 w-4" /></button>
+                                  <button title="Send Email" onClick={() => { setSendEmailInvoiceId(inv.id); setSendEmailTo(inv.dealership?.email || ''); }} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-purple-600"><Send className="h-4 w-4" /></button>
+                                  <button title="Delete" onClick={() => setDeletingInvoiceId(inv.id)} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                                 </div>
                               </td>
                             </tr>
@@ -6999,38 +6991,38 @@ function AdminDashboardContent() {
 
               {/* Invoice View Modal */}
               {invoiceModalMode === 'view' && selectedInvoice && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>
-                  <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>
+                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-lg font-semibold">Invoice Details</h3>
-                      <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
+                      <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }} className="text-slate-500 hover:text-slate-400"><XCircle className="h-5 w-5" /></button>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><p className="text-gray-500">Invoice #</p><p className="font-mono font-semibold">{selectedInvoice.invoiceNumber}</p></div>
-                      <div><p className="text-gray-500">Status</p><span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${selectedInvoice.status === 'PAID' ? 'bg-green-100 text-green-800 border-green-200' : selectedInvoice.status === 'OVERDUE' ? 'bg-red-100 text-red-800 border-red-200' : selectedInvoice.status === 'CANCELLED' ? 'bg-gray-100 text-gray-600 border-gray-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}>{selectedInvoice.status}</span></div>
-                      <div><p className="text-gray-500">Dealership</p><p className="font-medium">{selectedInvoice.dealership?.name}</p></div>
-                      <div><p className="text-gray-500">Contact</p><p>{selectedInvoice.dealership?.contactPerson || '—'}</p></div>
-                      <div><p className="text-gray-500">Period</p><p>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][selectedInvoice.billingMonth - 1]} {selectedInvoice.billingYear}</p></div>
-                      <div><p className="text-gray-500">Plan</p><p>{selectedInvoice.planName}</p></div>
-                      <div><p className="text-gray-500">Due Date</p><p>{new Date(selectedInvoice.dueDate).toLocaleDateString('en-NA')}</p></div>
-                      <div><p className="text-gray-500">Vehicle Count</p><p>{selectedInvoice.vehicleCount}</p></div>
+                      <div><p className="text-slate-500">Invoice #</p><p className="font-mono font-semibold">{selectedInvoice.invoiceNumber}</p></div>
+                      <div><p className="text-slate-500">Status</p><span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${selectedInvoice.status === 'PAID' ? 'bg-emerald-500/10 text-emerald-400 border-green-200' : selectedInvoice.status === 'OVERDUE' ? 'bg-red-500/10 text-red-400 border-red-200' : selectedInvoice.status === 'CANCELLED' ? 'bg-[#111827]/[0.04] text-slate-400 border-white/[0.06]' : 'bg-amber-500/10 text-amber-400 border-yellow-200'}`}>{selectedInvoice.status}</span></div>
+                      <div><p className="text-slate-500">Dealership</p><p className="font-medium">{selectedInvoice.dealership?.name}</p></div>
+                      <div><p className="text-slate-500">Contact</p><p>{selectedInvoice.dealership?.contactPerson || '—'}</p></div>
+                      <div><p className="text-slate-500">Period</p><p>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][selectedInvoice.billingMonth - 1]} {selectedInvoice.billingYear}</p></div>
+                      <div><p className="text-slate-500">Plan</p><p>{selectedInvoice.planName}</p></div>
+                      <div><p className="text-slate-500">Due Date</p><p>{new Date(selectedInvoice.dueDate).toLocaleDateString('en-NA')}</p></div>
+                      <div><p className="text-slate-500">Vehicle Count</p><p>{selectedInvoice.vehicleCount}</p></div>
                     </div>
-                    <div className="mt-6 bg-gray-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-700 mb-3">Amount Breakdown</h4>
+                    <div className="mt-6 bg-[#0D1117] rounded-lg p-4">
+                      <h4 className="font-semibold text-slate-300 mb-3">Amount Breakdown</h4>
                       <div className="space-y-2 text-sm">
-                        <div className="flex justify-between"><span className="text-gray-600">Subscription Fee</span><span>N$ {selectedInvoice.subscriptionAmount?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-600">Stock Value</span><span>N$ {selectedInvoice.stockValue?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-600">Stock Fee (0.1%)</span><span>N$ {selectedInvoice.stockFeeAmount?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
+                        <div className="flex justify-between"><span className="text-slate-400">Subscription Fee</span><span>N$ {selectedInvoice.subscriptionAmount?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
+                        <div className="flex justify-between"><span className="text-slate-400">Stock Value</span><span>N$ {selectedInvoice.stockValue?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
+                        <div className="flex justify-between"><span className="text-slate-400">Stock Fee (0.1%)</span><span>N$ {selectedInvoice.stockFeeAmount?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
                         <div className="flex justify-between border-t pt-2 font-semibold text-base"><span>Total</span><span>N$ {selectedInvoice.totalAmount?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
                       </div>
                     </div>
                     {selectedInvoice.paidAt && (
-                      <div className="mt-4 text-sm text-gray-500">
+                      <div className="mt-4 text-sm text-slate-500">
                         <p>Paid on {new Date(selectedInvoice.paidAt).toLocaleDateString('en-NA')} by {selectedInvoice.paidBy?.name || 'Admin'}</p>
                       </div>
                     )}
                     <div className="mt-6 flex gap-2 justify-end flex-wrap">
-                      <button onClick={() => { window.open(`/api/admin/invoices/${selectedInvoice.id}/pdf`, '_blank'); }} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"><FileDown className="h-4 w-4" /> Download PDF</button>
+                      <button onClick={() => { window.open(`/api/admin/invoices/${selectedInvoice.id}/pdf`, '_blank'); }} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-white/[0.1] rounded-lg hover:bg-[#0D1117] text-slate-300"><FileDown className="h-4 w-4" /> Download PDF</button>
                       <Button variant="outline" onClick={() => { setSendEmailInvoiceId(selectedInvoice.id); setSendEmailTo(selectedInvoice.dealership?.email || ''); }}>
                         <Send className="h-4 w-4 mr-1.5" /> Send Email
                       </Button>
@@ -7046,39 +7038,39 @@ function AdminDashboardContent() {
 
               {/* Invoice Edit Modal */}
               {invoiceModalMode === 'edit' && selectedInvoice && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>
-                  <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>
+                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-lg font-semibold">Edit Invoice — {selectedInvoice.invoiceNumber}</h3>
-                      <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
+                      <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }} className="text-slate-500 hover:text-slate-400"><XCircle className="h-5 w-5" /></button>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
+                        <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} className="w-full border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
                           {['PENDING', 'PAID', 'OVERDUE', 'CANCELLED'].map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Subscription Amount (NAD)</label>
-                        <input type="number" step="0.01" value={editForm.subscriptionAmount} onChange={e => { const v = Number(e.target.value); setEditForm(f => ({ ...f, subscriptionAmount: v, totalAmount: v + f.stockFeeAmount })); }} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Subscription Amount (NAD)</label>
+                        <input type="number" step="0.01" value={editForm.subscriptionAmount} onChange={e => { const v = Number(e.target.value); setEditForm(f => ({ ...f, subscriptionAmount: v, totalAmount: v + f.stockFeeAmount })); }} className="w-full border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock Fee Amount (NAD)</label>
-                        <input type="number" step="0.01" value={editForm.stockFeeAmount} onChange={e => { const v = Number(e.target.value); setEditForm(f => ({ ...f, stockFeeAmount: v, totalAmount: f.subscriptionAmount + v })); }} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Stock Fee Amount (NAD)</label>
+                        <input type="number" step="0.01" value={editForm.stockFeeAmount} onChange={e => { const v = Number(e.target.value); setEditForm(f => ({ ...f, stockFeeAmount: v, totalAmount: f.subscriptionAmount + v })); }} className="w-full border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount (NAD)</label>
-                        <input type="number" step="0.01" value={editForm.totalAmount} readOnly className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-700" />
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Total Amount (NAD)</label>
+                        <input type="number" step="0.01" value={editForm.totalAmount} readOnly className="w-full border border-white/[0.06] rounded-lg px-3 py-2 text-sm bg-[#0D1117] text-slate-300" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                        <input type="date" value={editForm.dueDate} onChange={e => setEditForm(f => ({ ...f, dueDate: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Due Date</label>
+                        <input type="date" value={editForm.dueDate} onChange={e => setEditForm(f => ({ ...f, dueDate: e.target.value }))} className="w-full border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
                       </div>
                     </div>
                     <div className="mt-6 flex gap-2 justify-end">
                       <Button variant="outline" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>Cancel</Button>
-                      <Button className="bg-blue-600 hover:bg-blue-700 text-white" disabled={savingInvoice} onClick={async () => {
+                      <Button className="bg-[#CB2030] hover:bg-[#B01C2A] text-white" disabled={savingInvoice} onClick={async () => {
                         setSavingInvoice(true);
                         try {
                           const res = await fetch(`/api/admin/invoices/${selectedInvoice.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', ...editForm }) });
@@ -7098,10 +7090,10 @@ function AdminDashboardContent() {
 
               {/* Delete Confirmation Modal */}
               {deletingInvoiceId && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setDeletingInvoiceId(null)}>
-                  <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Invoice</h3>
-                    <p className="text-sm text-gray-600 mb-4">Are you sure you want to delete invoice <strong>{adminInvoices.find(i => i.id === deletingInvoiceId)?.invoiceNumber}</strong>? This action cannot be undone.</p>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setDeletingInvoiceId(null)}>
+                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+                    <h3 className="text-lg font-semibold text-white mb-2">Delete Invoice</h3>
+                    <p className="text-sm text-slate-400 mb-4">Are you sure you want to delete invoice <strong>{adminInvoices.find(i => i.id === deletingInvoiceId)?.invoiceNumber}</strong>? This action cannot be undone.</p>
                     <div className="flex gap-2 justify-end">
                       <Button variant="outline" onClick={() => setDeletingInvoiceId(null)}>Cancel</Button>
                       <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={async () => {
@@ -7120,24 +7112,24 @@ function AdminDashboardContent() {
 
               {/* Send Email Modal */}
               {sendEmailInvoiceId && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }}>
-                  <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }}>
+                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Send Invoice Email</h3>
-                      <button onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
+                      <h3 className="text-lg font-semibold text-white">Send Invoice Email</h3>
+                      <button onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }} className="text-slate-500 hover:text-slate-400"><XCircle className="h-5 w-5" /></button>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">Send invoice <strong>{adminInvoices.find(i => i.id === sendEmailInvoiceId)?.invoiceNumber}</strong> to:</p>
+                    <p className="text-sm text-slate-400 mb-3">Send invoice <strong>{adminInvoices.find(i => i.id === sendEmailInvoiceId)?.invoiceNumber}</strong> to:</p>
                     <input
                       type="email"
                       value={sendEmailTo}
                       onChange={e => setSendEmailTo(e.target.value)}
                       placeholder="recipient@example.com"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 mb-4"
+                      className="w-full border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 mb-4"
                       autoFocus
                     />
                     <div className="flex gap-2 justify-end">
                       <Button variant="outline" onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }}>Cancel</Button>
-                      <Button className="bg-blue-600 hover:bg-blue-700 text-white" disabled={sendingEmail || !sendEmailTo} onClick={async () => {
+                      <Button className="bg-[#CB2030] hover:bg-[#B01C2A] text-white" disabled={sendingEmail || !sendEmailTo} onClick={async () => {
                         setSendingEmail(true);
                         try {
                           const res = await fetch(`/api/admin/invoices/${sendEmailInvoiceId}/send`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: sendEmailTo }) });
@@ -7163,13 +7155,13 @@ function AdminDashboardContent() {
                 <h2 className="text-xl font-semibold">Subscription Management</h2>
                 <div className="flex gap-3">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
                     <input
                       type="text"
                       placeholder="Search subscriptions..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="pl-10 pr-4 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <Button variant="outline" size="sm">
@@ -7237,24 +7229,24 @@ function AdminDashboardContent() {
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-[#0D1117]">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dealership</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monthly Fee</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Next Billing</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Paid</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Auto-Renew</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dealership</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Plan</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Monthly Fee</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Next Billing</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Total Paid</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Auto-Renew</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
                         {subscriptions.length === 0 ? (
                           <tr>
                             <td colSpan={8} className="px-6 py-12 text-center">
-                              <div className="flex flex-col items-center justify-center text-gray-500">
-                                <CreditCard className="h-12 w-12 mb-3 text-gray-400" />
+                              <div className="flex flex-col items-center justify-center text-slate-500">
+                                <CreditCard className="h-12 w-12 mb-3 text-slate-500" />
                                 <p className="text-sm font-medium mb-1">No subscriptions yet</p>
                                 <p className="text-xs">Subscription data will appear here once dealerships subscribe to plans</p>
                               </div>
@@ -7268,38 +7260,38 @@ function AdminDashboardContent() {
                               subscription.status.toLowerCase().includes(searchTerm.toLowerCase())
                             )
                             .map((subscription) => (
-                            <tr key={subscription.id} className="hover:bg-gray-50">
+                            <tr key={subscription.id} className="hover:bg-[#0D1117]">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div>
-                                  <div className="text-sm font-medium text-gray-900">{subscription.dealershipName}</div>
-                                  <div className="text-sm text-gray-500">{subscription.billingEmail}</div>
+                                  <div className="text-sm font-medium text-white">{subscription.dealershipName}</div>
+                                  <div className="text-sm text-slate-500">{subscription.billingEmail}</div>
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="text-sm font-medium text-gray-900">{subscription.plan}</span>
-                                <div className="text-xs text-gray-500">{subscription.billingCycle}</div>
+                                <span className="text-sm font-medium text-white">{subscription.plan}</span>
+                                <div className="text-xs text-slate-500">{subscription.billingCycle}</div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <Badge className={getStatusBadge(subscription.status)}>
                                   {subscription.status}
                                 </Badge>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                                 N${(subscription.monthlyFee / 100).toLocaleString()}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                                 {subscription.nextBilling ? new Date(subscription.nextBilling).toLocaleDateString() : 'N/A'}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                                 N${(subscription.totalPaid / 100).toLocaleString()}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 {subscription.autoRenew ? (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">
                                     Yes
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#111827]/[0.04] text-slate-200">
                                     No
                                   </span>
                                 )}
@@ -7334,31 +7326,31 @@ function AdminDashboardContent() {
                               {plan.name}
                               <Badge className={getStatusBadge(plan.status)}>{plan.status}</Badge>
                             </h3>
-                            <p className="text-sm text-gray-500">{plan.subscribers} active subscribers</p>
+                            <p className="text-sm text-slate-500">{plan.subscribers} active subscribers</p>
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-bold text-blue-600">
                               N${(plan.price / 100).toLocaleString()}
                             </p>
-                            <p className="text-sm text-gray-500">{plan.billingCycle}</p>
+                            <p className="text-sm text-slate-500">{plan.billingCycle}</p>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Price (NAD)</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-1">Price (NAD)</label>
                             <input
                               type="number"
                               defaultValue={plan.price / 100}
                               step="0.01"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Billing Cycle</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-1">Billing Cycle</label>
                             <select
                               defaultValue={plan.billingCycle}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                               <option value="Monthly">Monthly</option>
                               <option value="Quarterly">Quarterly</option>
@@ -7366,10 +7358,10 @@ function AdminDashboardContent() {
                             </select>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
                             <select
                               defaultValue={plan.status}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                               <option value="Active">Active</option>
                               <option value="Inactive">Inactive</option>
@@ -7379,14 +7371,14 @@ function AdminDashboardContent() {
                         </div>
 
                         <div className="mt-3">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Features</label>
+                          <label className="block text-sm font-medium text-slate-300 mb-2">Features</label>
                           <div className="flex flex-wrap gap-2">
                             {Array.isArray(plan.features) ? plan.features.map((feature, idx) => (
-                              <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                              <span key={idx} className="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs rounded">
                                 {feature}
                               </span>
                             )) : (
-                              <span className="text-sm text-gray-500">No features defined</span>
+                              <span className="text-sm text-slate-500">No features defined</span>
                             )}
                           </div>
                         </div>
@@ -7418,14 +7410,14 @@ function AdminDashboardContent() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
+                      <label className="block text-sm font-medium text-slate-300 mb-1">Code</label>
                       <div className="flex gap-2">
                         <input
                           type="text"
                           placeholder="PROMO2024"
                           value={promoFormData.code}
                           onChange={(e) => setPromoFormData({ ...promoFormData, code: e.target.value.toUpperCase() })}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                          className="flex-1 px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
                         />
                         <Button variant="outline" size="sm" onClick={generatePromoCode}>
                           <RotateCcw className="h-4 w-4 mr-2" />
@@ -7436,62 +7428,62 @@ function AdminDashboardContent() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Discount Type</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Discount Type</label>
                         <select
                           value={promoFormData.discountType}
                           onChange={(e) => setPromoFormData({ ...promoFormData, discountType: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="PERCENTAGE">Percentage</option>
                           <option value="FIXED_AMOUNT">Fixed Amount</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Discount Value</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Discount Value</label>
                         <input
                           type="number"
                           placeholder="20"
                           value={promoFormData.discountValue}
                           onChange={(e) => setPromoFormData({ ...promoFormData, discountValue: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Start Date</label>
                         <input
                           type="date"
                           value={promoFormData.startDate}
                           onChange={(e) => setPromoFormData({ ...promoFormData, startDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">End Date</label>
                         <input
                           type="date"
                           value={promoFormData.endDate}
                           onChange={(e) => setPromoFormData({ ...promoFormData, endDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Usage Limit</label>
+                      <label className="block text-sm font-medium text-slate-300 mb-1">Usage Limit</label>
                       <input
                         type="number"
                         placeholder="100 (leave empty for unlimited)"
                         value={promoFormData.usageLimit}
                         onChange={(e) => setPromoFormData({ ...promoFormData, usageLimit: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Applicable Plans</label>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">Applicable Plans</label>
                       <div className="space-y-2">
                         {subscriptionPlans.length > 0 ? (
                           subscriptionPlans.map((plan) => (
@@ -7506,13 +7498,13 @@ function AdminDashboardContent() {
                             </label>
                           ))
                         ) : (
-                          <p className="text-sm text-gray-500">Loading plans...</p>
+                          <p className="text-sm text-slate-500">Loading plans...</p>
                         )}
                       </div>
                     </div>
 
                     <Button
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      className="w-full bg-[#CB2030] hover:bg-[#B01C2A] text-white"
                       onClick={handleCreatePromoCode}
                     >
                       <Plus className="h-4 w-4 mr-2" />
@@ -7529,9 +7521,9 @@ function AdminDashboardContent() {
                   </CardHeader>
                   <CardContent>
                     {promoCodesLoading ? (
-                      <p className="text-sm text-gray-500">Loading promo codes...</p>
+                      <p className="text-sm text-slate-500">Loading promo codes...</p>
                     ) : promoCodes.length === 0 ? (
-                      <p className="text-sm text-gray-500">No promo codes created yet</p>
+                      <p className="text-sm text-slate-500">No promo codes created yet</p>
                     ) : (
                       <div className="space-y-3">
                         {promoCodes.slice(0, 5).map((promo) => (
@@ -7541,7 +7533,7 @@ function AdminDashboardContent() {
                                 <code className="px-2 py-1 bg-blue-50 text-blue-700 rounded font-mono text-sm font-bold">
                                   {promo.code}
                                 </code>
-                                <Badge className={promo.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}>
+                                <Badge className={promo.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-400'}>
                                   {promo.isActive ? 'Active' : 'Inactive'}
                                 </Badge>
                               </div>
@@ -7553,13 +7545,13 @@ function AdminDashboardContent() {
                               </span>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-2">
+                            <div className="grid grid-cols-2 gap-2 text-xs text-slate-400 mb-2">
                               <div>
-                                <span className="text-gray-500">Used:</span> {promo.usageCount}
+                                <span className="text-slate-500">Used:</span> {promo.usageCount}
                                 {promo.usageLimit && ` / ${promo.usageLimit}`}
                               </div>
                               <div>
-                                <span className="text-gray-500">Expires:</span>{' '}
+                                <span className="text-slate-500">Expires:</span>{' '}
                                 {promo.endDate ? new Date(promo.endDate).toLocaleDateString() : 'Never'}
                               </div>
                             </div>
@@ -7568,7 +7560,7 @@ function AdminDashboardContent() {
                               {promo.applicablePlans.map((planId: string, idx: number) => {
                                 const plan = subscriptionPlans.find(p => p.id === planId);
                                 return plan ? (
-                                  <span key={idx} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                                  <span key={idx} className="px-1.5 py-0.5 bg-[#111827]/[0.04] text-slate-400 text-xs rounded">
                                     {plan.name}
                                   </span>
                                 ) : null;
@@ -7612,33 +7604,33 @@ function AdminDashboardContent() {
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-[#0D1117]">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discount</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usage</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valid Period</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plans</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Code</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Discount</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Usage</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Valid Period</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Plans</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
                         {promoCodesLoading ? (
                           <tr>
-                            <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                            <td colSpan={7} className="px-6 py-4 text-center text-sm text-slate-500">
                               Loading promo codes...
                             </td>
                           </tr>
                         ) : promoCodes.length === 0 ? (
                           <tr>
-                            <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                            <td colSpan={7} className="px-6 py-4 text-center text-sm text-slate-500">
                               No promo codes found
                             </td>
                           </tr>
                         ) : (
                           promoCodes.map((promo) => (
-                            <tr key={promo.id} className="hover:bg-gray-50">
+                            <tr key={promo.id} className="hover:bg-[#0D1117]">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <code className="px-2 py-1 bg-blue-50 text-blue-700 rounded font-mono text-sm font-bold">
                                   {promo.code}
@@ -7653,14 +7645,14 @@ function AdminDashboardContent() {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <Badge className={promo.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                                <Badge className={promo.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-200'}>
                                   {promo.isActive ? 'Active' : 'Inactive'}
                                 </Badge>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 {promo.usageCount}{promo.usageLimit && ` / ${promo.usageLimit}`}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                                 {promo.startDate ? new Date(promo.startDate).toLocaleDateString() : 'Immediate'} -
                                 {promo.endDate ? ` ${new Date(promo.endDate).toLocaleDateString()}` : ' No End'}
                               </td>
@@ -7669,7 +7661,7 @@ function AdminDashboardContent() {
                                   {promo.applicablePlans.map((planId: string, idx: number) => {
                                     const plan = subscriptionPlans.find(p => p.id === planId);
                                     return plan ? (
-                                      <span key={idx} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                                      <span key={idx} className="px-1.5 py-0.5 bg-[#111827]/[0.04] text-slate-400 text-xs rounded">
                                         {plan.name}
                                       </span>
                                     ) : null;
@@ -7724,7 +7716,7 @@ function AdminDashboardContent() {
                   </Button>
                   <Button
                     size="sm"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-[#CB2030] hover:bg-[#B01C2A]"
                     onClick={handleSaveSettings}
                     disabled={!settingsChanged}
                   >
@@ -7735,7 +7727,7 @@ function AdminDashboardContent() {
               </div>
 
               {/* Settings Navigation */}
-              <div className="border-b border-gray-200">
+              <div className="border-b border-white/[0.06]">
                 <nav className="-mb-px flex space-x-8">
                   {[
                     { id: 'general', name: 'General', icon: Settings },
@@ -7754,7 +7746,7 @@ function AdminDashboardContent() {
                       className={`${
                         activeSettingsTab === tab.id
                           ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/[0.1]'
                       } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
                     >
                       <tab.icon className="h-4 w-4" />
@@ -7776,39 +7768,39 @@ function AdminDashboardContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Site Name</label>
                         <input
                           type="text"
                           value={settingsData.general.siteName}
                           onChange={(e) => updateSettings('general', 'siteName', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Site Description</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Site Description</label>
                         <textarea
                           value={settingsData.general.siteDescription}
                           onChange={(e) => updateSettings('general', 'siteDescription', e.target.value)}
                           rows={3}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Site URL</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Site URL</label>
                         <input
                           type="url"
                           value={settingsData.general.siteUrl}
                           onChange={(e) => updateSettings('general', 'siteUrl', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Admin Email</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Admin Email</label>
                         <input
                           type="email"
                           value={settingsData.general.adminEmail}
                           onChange={(e) => updateSettings('general', 'adminEmail', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </CardContent>
@@ -7823,33 +7815,33 @@ function AdminDashboardContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Timezone</label>
                         <select
                           value={settingsData.general.timezone}
                           onChange={(e) => updateSettings('general', 'timezone', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="Africa/Windhoek">Africa/Windhoek</option>
                           <option value="UTC">UTC</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Language</label>
                         <select
                           value={settingsData.general.language}
                           onChange={(e) => updateSettings('general', 'language', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="en">English</option>
                           <option value="af">Afrikaans</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Currency</label>
                         <select
                           value={settingsData.general.currency}
                           onChange={(e) => updateSettings('general', 'currency', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="NAD">Namibian Dollar (NAD)</option>
                           <option value="USD">US Dollar (USD)</option>
@@ -7860,18 +7852,18 @@ function AdminDashboardContent() {
                           <span className="text-sm font-medium">Maintenance Mode</span>
                           <button
                             onClick={() => toggleSetting('general', 'maintenanceMode')}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.general.maintenanceMode ? 'bg-blue-600' : 'bg-gray-200'}`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.general.maintenanceMode ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
                           >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${settingsData.general.maintenanceMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition ${settingsData.general.maintenanceMode ? 'translate-x-6' : 'translate-x-1'}`} />
                           </button>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">Guest Browsing</span>
                           <button
                             onClick={() => toggleSetting('general', 'guestBrowsing')}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.general.guestBrowsing ? 'bg-blue-600' : 'bg-gray-200'}`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.general.guestBrowsing ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
                           >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${settingsData.general.guestBrowsing ? 'translate-x-6' : 'translate-x-1'}`} />
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition ${settingsData.general.guestBrowsing ? 'translate-x-6' : 'translate-x-1'}`} />
                           </button>
                         </div>
                       </div>
@@ -7896,46 +7888,46 @@ function AdminDashboardContent() {
                           <span className="text-sm font-medium">Require Email Verification</span>
                           <button
                             onClick={() => toggleSetting('security', 'requireEmailVerification')}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.requireEmailVerification ? 'bg-blue-600' : 'bg-gray-200'}`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.requireEmailVerification ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
                           >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${settingsData.security.requireEmailVerification ? 'translate-x-6' : 'translate-x-1'}`} />
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition ${settingsData.security.requireEmailVerification ? 'translate-x-6' : 'translate-x-1'}`} />
                           </button>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">Two-Factor Authentication</span>
                           <button
                             onClick={() => toggleSetting('security', 'twoFactorAuth')}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.twoFactorAuth ? 'bg-blue-600' : 'bg-gray-200'}`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.twoFactorAuth ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
                           >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${settingsData.security.twoFactorAuth ? 'translate-x-6' : 'translate-x-1'}`} />
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition ${settingsData.security.twoFactorAuth ? 'translate-x-6' : 'translate-x-1'}`} />
                           </button>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">Require CAPTCHA</span>
                           <button
                             onClick={() => toggleSetting('security', 'requireCaptcha')}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.requireCaptcha ? 'bg-blue-600' : 'bg-gray-200'}`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.requireCaptcha ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
                           >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${settingsData.security.requireCaptcha ? 'translate-x-6' : 'translate-x-1'}`} />
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition ${settingsData.security.requireCaptcha ? 'translate-x-6' : 'translate-x-1'}`} />
                           </button>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Password Min Length</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Password Min Length</label>
                         <input
                           type="number"
                           value={settingsData.security.passwordMinLength}
                           onChange={(e) => updateSettings('security', 'passwordMinLength', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Session Timeout (minutes)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Session Timeout (minutes)</label>
                         <input
                           type="number"
                           value={settingsData.security.sessionTimeout}
                           onChange={(e) => updateSettings('security', 'sessionTimeout', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </CardContent>
@@ -7950,21 +7942,21 @@ function AdminDashboardContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Max Login Attempts</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Max Login Attempts</label>
                         <input
                           type="number"
                           value={settingsData.security.maxLoginAttempts}
                           onChange={(e) => updateSettings('security', 'maxLoginAttempts', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Account Lockout Duration (minutes)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Account Lockout Duration (minutes)</label>
                         <input
                           type="number"
                           value={settingsData.security.accountLockoutDuration}
                           onChange={(e) => updateSettings('security', 'accountLockoutDuration', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div className="space-y-3">
@@ -7972,18 +7964,18 @@ function AdminDashboardContent() {
                           <span className="text-sm font-medium">SSL Enabled</span>
                           <button
                             onClick={() => toggleSetting('security', 'sslEnabled')}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.sslEnabled ? 'bg-blue-600' : 'bg-gray-200'}`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.sslEnabled ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
                           >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${settingsData.security.sslEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition ${settingsData.security.sslEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                           </button>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">Security Headers</span>
                           <button
                             onClick={() => toggleSetting('security', 'securityHeaders')}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.securityHeaders ? 'bg-blue-600' : 'bg-gray-200'}`}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.securityHeaders ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
                           >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${settingsData.security.securityHeaders ? 'translate-x-6' : 'translate-x-1'}`} />
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition ${settingsData.security.securityHeaders ? 'translate-x-6' : 'translate-x-1'}`} />
                           </button>
                         </div>
                       </div>
@@ -8004,43 +7996,43 @@ function AdminDashboardContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Payment Provider</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Payment Provider</label>
                         <select
                           value={settingsData.payment.provider}
                           onChange={(e) => updateSettings('payment', 'provider', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="Paystack">Paystack</option>
                           <option value="Stripe">Stripe</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Paystack Public Key</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Paystack Public Key</label>
                         <input
                           type="text"
                           value={settingsData.payment.paystackPublicKey}
                           onChange={(e) => updateSettings('payment', 'paystackPublicKey', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Commission Rate (%)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Commission Rate (%)</label>
                         <input
                           type="number"
                           step="0.1"
                           value={settingsData.payment.commissionRate}
                           onChange={(e) => updateSettings('payment', 'commissionRate', parseFloat(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Tax Rate (%)</label>
                         <input
                           type="number"
                           step="0.1"
                           value={settingsData.payment.taxRate}
                           onChange={(e) => updateSettings('payment', 'taxRate', parseFloat(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </CardContent>
@@ -8055,7 +8047,7 @@ function AdminDashboardContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Basic Plan (NAD)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Basic Plan (NAD)</label>
                         <input
                           type="number"
                           value={settingsData.payment.subscriptionPricing.basic / 100}
@@ -8063,11 +8055,11 @@ function AdminDashboardContent() {
                             const newPricing = { ...settingsData.payment.subscriptionPricing, basic: parseFloat(e.target.value) * 100 };
                             updateSettings('payment', 'subscriptionPricing', newPricing);
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Professional Plan (NAD)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Professional Plan (NAD)</label>
                         <input
                           type="number"
                           value={settingsData.payment.subscriptionPricing.professional / 100}
@@ -8075,11 +8067,11 @@ function AdminDashboardContent() {
                             const newPricing = { ...settingsData.payment.subscriptionPricing, professional: parseFloat(e.target.value) * 100 };
                             updateSettings('payment', 'subscriptionPricing', newPricing);
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Enterprise Plan (NAD)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Enterprise Plan (NAD)</label>
                         <input
                           type="number"
                           value={settingsData.payment.subscriptionPricing.enterprise / 100}
@@ -8087,16 +8079,16 @@ function AdminDashboardContent() {
                             const newPricing = { ...settingsData.payment.subscriptionPricing, enterprise: parseFloat(e.target.value) * 100 };
                             updateSettings('payment', 'subscriptionPricing', newPricing);
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Featured Listing Price (NAD)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Featured Listing Price (NAD)</label>
                         <input
                           type="number"
                           value={settingsData.payment.featuredListingPrice / 100}
                           onChange={(e) => updateSettings('payment', 'featuredListingPrice', parseFloat(e.target.value) * 100)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </CardContent>
@@ -8118,7 +8110,7 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">New User Registration</p>
-                          <p className="text-sm text-gray-600">Notify when new users register</p>
+                          <p className="text-sm text-slate-400">Notify when new users register</p>
                         </div>
                         <button
                           onClick={() => {
@@ -8126,11 +8118,11 @@ function AdminDashboardContent() {
                             updateSettings('notifications', 'emailNotifications', newEmailNotifications);
                           }}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.notifications.emailNotifications.newUserRegistration ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.notifications.emailNotifications.newUserRegistration ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.notifications.emailNotifications.newUserRegistration ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
@@ -8139,7 +8131,7 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">New Listing Posted</p>
-                          <p className="text-sm text-gray-600">Notify when dealers post new vehicles</p>
+                          <p className="text-sm text-slate-400">Notify when dealers post new vehicles</p>
                         </div>
                         <button
                           onClick={() => {
@@ -8147,11 +8139,11 @@ function AdminDashboardContent() {
                             updateSettings('notifications', 'emailNotifications', newEmailNotifications);
                           }}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.notifications.emailNotifications.newListing ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.notifications.emailNotifications.newListing ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.notifications.emailNotifications.newListing ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
@@ -8160,7 +8152,7 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Payment Received</p>
-                          <p className="text-sm text-gray-600">Notify when payments are processed</p>
+                          <p className="text-sm text-slate-400">Notify when payments are processed</p>
                         </div>
                         <button
                           onClick={() => {
@@ -8168,11 +8160,11 @@ function AdminDashboardContent() {
                             updateSettings('notifications', 'emailNotifications', newEmailNotifications);
                           }}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.notifications.emailNotifications.paymentReceived ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.notifications.emailNotifications.paymentReceived ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.notifications.emailNotifications.paymentReceived ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
@@ -8181,7 +8173,7 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Moderation Reports</p>
-                          <p className="text-sm text-gray-600">Notify when content is reported</p>
+                          <p className="text-sm text-slate-400">Notify when content is reported</p>
                         </div>
                         <button
                           onClick={() => {
@@ -8189,11 +8181,11 @@ function AdminDashboardContent() {
                             updateSettings('notifications', 'emailNotifications', newEmailNotifications);
                           }}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.notifications.emailNotifications.moderationReport ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.notifications.emailNotifications.moderationReport ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.notifications.emailNotifications.moderationReport ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
@@ -8211,7 +8203,7 @@ function AdminDashboardContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Firebase Server Key</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Firebase Server Key</label>
                         <input
                           type="password"
                           value={settingsData.notifications.pushNotifications.firebaseServerKey}
@@ -8219,13 +8211,13 @@ function AdminDashboardContent() {
                             const newPushNotifications = { ...settingsData.notifications.pushNotifications, firebaseServerKey: e.target.value };
                             updateSettings('notifications', 'pushNotifications', newPushNotifications);
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Enable Push Notifications</p>
-                          <p className="text-sm text-gray-600">Allow sending push notifications to users</p>
+                          <p className="text-sm text-slate-400">Allow sending push notifications to users</p>
                         </div>
                         <button
                           onClick={() => {
@@ -8233,25 +8225,25 @@ function AdminDashboardContent() {
                             updateSettings('notifications', 'pushNotifications', newPushNotifications);
                           }}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.notifications.pushNotifications.enabled ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.notifications.pushNotifications.enabled ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.notifications.pushNotifications.enabled ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
                         </button>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Default Notification Sound</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Default Notification Sound</label>
                         <select
                           value={settingsData.notifications.pushNotifications.defaultSound}
                           onChange={(e) => {
                             const newPushNotifications = { ...settingsData.notifications.pushNotifications, defaultSound: e.target.value };
                             updateSettings('notifications', 'pushNotifications', newPushNotifications);
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="default">Default</option>
                           <option value="chime">Chime</option>
@@ -8278,56 +8270,56 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Auto-approve Listings</p>
-                          <p className="text-sm text-gray-600">Automatically approve new listings without review</p>
+                          <p className="text-sm text-slate-400">Automatically approve new listings without review</p>
                         </div>
                         <button
                           onClick={() => toggleSetting('listings', 'autoApprove')}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.listings.autoApprove ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.listings.autoApprove ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.listings.autoApprove ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
                         </button>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Images per Listing</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Maximum Images per Listing</label>
                         <input
                           type="number"
                           min="1"
                           max="50"
                           value={settingsData.listings.maxImages}
                           onChange={(e) => updateSettings('listings', 'maxImages', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Listing Duration (days)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Listing Duration (days)</label>
                         <input
                           type="number"
                           min="1"
                           max="365"
                           value={settingsData.listings.defaultDuration}
                           onChange={(e) => updateSettings('listings', 'defaultDuration', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Allow Price Negotiation</p>
-                          <p className="text-sm text-gray-600">Enable price negotiation features</p>
+                          <p className="text-sm text-slate-400">Enable price negotiation features</p>
                         </div>
                         <button
                           onClick={() => toggleSetting('listings', 'allowNegotiation')}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.listings.allowNegotiation ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.listings.allowNegotiation ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.listings.allowNegotiation ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
@@ -8345,39 +8337,39 @@ function AdminDashboardContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Featured Slots</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Featured Slots</label>
                         <input
                           type="number"
                           min="1"
                           max="100"
                           value={settingsData.listings.featuredSlots}
                           onChange={(e) => updateSettings('listings', 'featuredSlots', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Featured Duration (days)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Featured Duration (days)</label>
                         <input
                           type="number"
                           min="1"
                           max="90"
                           value={settingsData.listings.featuredDuration}
                           onChange={(e) => updateSettings('listings', 'featuredDuration', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Auto-renew Featured</p>
-                          <p className="text-sm text-gray-600">Automatically renew featured listings</p>
+                          <p className="text-sm text-slate-400">Automatically renew featured listings</p>
                         </div>
                         <button
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.listings.autoRenewFeatured ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.listings.autoRenewFeatured ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.listings.autoRenewFeatured ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
@@ -8402,33 +8394,33 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Enable API Access</p>
-                          <p className="text-sm text-gray-600">Allow third-party API access</p>
+                          <p className="text-sm text-slate-400">Allow third-party API access</p>
                         </div>
                         <button
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.api.enabled ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.api.enabled ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.api.enabled ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
                         </button>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Rate Limit (requests/hour)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Rate Limit (requests/hour)</label>
                         <input
                           type="number"
                           min="100"
                           max="10000"
                           defaultValue={settingsData.api.rateLimit}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">API Version</label>
-                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label className="block text-sm font-medium text-slate-300 mb-1">API Version</label>
+                        <select className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                           <option value="v1">Version 1.0</option>
                           <option value="v2">Version 2.0</option>
                         </select>
@@ -8436,15 +8428,15 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Require API Keys</p>
-                          <p className="text-sm text-gray-600">Require authentication for API access</p>
+                          <p className="text-sm text-slate-400">Require authentication for API access</p>
                         </div>
                         <button
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.api.requireAuth ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.api.requireAuth ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.api.requireAuth ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
@@ -8462,19 +8454,19 @@ function AdminDashboardContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Master API Key</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Master API Key</label>
                         <input
                           type="password"
                           defaultValue={settingsData.api.masterKey}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Webhook Secret</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Webhook Secret</label>
                         <input
                           type="password"
                           defaultValue={settingsData.api.webhookSecret}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div className="flex gap-2">
@@ -8505,51 +8497,51 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Google Analytics</p>
-                          <p className="text-sm text-gray-600">Track website analytics with Google Analytics</p>
+                          <p className="text-sm text-slate-400">Track website analytics with Google Analytics</p>
                         </div>
                         <button
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.integrations.googleAnalytics.enabled ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.integrations.googleAnalytics.enabled ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.integrations.googleAnalytics.enabled ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
                         </button>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Google Analytics ID</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Google Analytics ID</label>
                         <input
                           type="text"
                           defaultValue={settingsData.integrations.googleAnalytics.trackingId}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Facebook Pixel</p>
-                          <p className="text-sm text-gray-600">Track conversions with Facebook Pixel</p>
+                          <p className="text-sm text-slate-400">Track conversions with Facebook Pixel</p>
                         </div>
                         <button
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.integrations.facebookPixel.enabled ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.integrations.facebookPixel.enabled ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.integrations.facebookPixel.enabled ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
                         </button>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Facebook Pixel ID</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Facebook Pixel ID</label>
                         <input
                           type="text"
                           defaultValue={settingsData.integrations.facebookPixel.pixelId}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </CardContent>
@@ -8566,31 +8558,31 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">AWS S3 Storage</p>
-                          <p className="text-sm text-gray-600">Store images and files on Amazon S3</p>
+                          <p className="text-sm text-slate-400">Store images and files on Amazon S3</p>
                         </div>
                         <button
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.integrations.awsS3.enabled ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.integrations.awsS3.enabled ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.integrations.awsS3.enabled ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
                         </button>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">S3 Bucket Name</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">S3 Bucket Name</label>
                         <input
                           type="text"
                           defaultValue={settingsData.integrations.awsS3.bucketName}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">AWS Region</label>
-                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label className="block text-sm font-medium text-slate-300 mb-1">AWS Region</label>
+                        <select className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                           <option value="us-east-1">US East (N. Virginia)</option>
                           <option value="us-west-2">US West (Oregon)</option>
                           <option value="eu-west-1">Europe (Ireland)</option>
@@ -8616,41 +8608,41 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Auto Backup</p>
-                          <p className="text-sm text-gray-600">Automatically create system backups</p>
+                          <p className="text-sm text-slate-400">Automatically create system backups</p>
                         </div>
                         <button
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.backup.autoBackup ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.backup.autoBackup ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.backup.autoBackup ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
                         </button>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Backup Frequency</label>
-                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Backup Frequency</label>
+                        <select className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                           <option value="daily">Daily</option>
                           <option value="weekly">Weekly</option>
                           <option value="monthly">Monthly</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Retention Period (days)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Retention Period (days)</label>
                         <input
                           type="number"
                           min="1"
                           max="365"
                           defaultValue={settingsData.backup.retentionDays}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Storage Location</label>
-                        <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Storage Location</label>
+                        <select className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                           <option value="local">Local Storage</option>
                           <option value="s3">Amazon S3</option>
                           <option value="gcs">Google Cloud Storage</option>
@@ -8668,20 +8660,20 @@ function AdminDashboardContent() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <p className="text-sm text-gray-600 mb-4">Last backup: {settingsData.backup.lastBackup}</p>
+                        <p className="text-sm text-slate-400 mb-4">Last backup: {settingsData.backup.lastBackup}</p>
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Include User Data</p>
-                          <p className="text-sm text-gray-600">Backup user profiles and preferences</p>
+                          <p className="text-sm text-slate-400">Backup user profiles and preferences</p>
                         </div>
                         <button
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.backup.includeUserData ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.backup.includeUserData ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.backup.includeUserData ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
@@ -8690,15 +8682,15 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">Include Media Files</p>
-                          <p className="text-sm text-gray-600">Backup uploaded images and documents</p>
+                          <p className="text-sm text-slate-400">Backup uploaded images and documents</p>
                         </div>
                         <button
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settingsData.backup.includeMedia ? 'bg-blue-600' : 'bg-gray-200'
+                            settingsData.backup.includeMedia ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                           }`}
                         >
                           <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                               settingsData.backup.includeMedia ? 'translate-x-6' : 'translate-x-1'
                             }`}
                           />
@@ -8731,20 +8723,20 @@ function AdminDashboardContent() {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Banners</label>
+                          <label className="block text-sm font-medium text-slate-300 mb-1">Maximum Banners</label>
                           <input
                             type="number"
                             min="1"
                             max="50"
                             defaultValue={settingsData.banners.maxBanners}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Default Position</label>
+                          <label className="block text-sm font-medium text-slate-300 mb-1">Default Position</label>
                           <select
                             defaultValue={settingsData.banners.defaultPosition}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
                             {settingsData.banners.positions.map(position => (
                               <option key={position} value={position}>{position}</option>
@@ -8752,23 +8744,23 @@ function AdminDashboardContent() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Max File Size (MB)</label>
+                          <label className="block text-sm font-medium text-slate-300 mb-1">Max File Size (MB)</label>
                           <input
                             type="number"
                             min="1"
                             max="20"
                             defaultValue={settingsData.banners.maxFileSize}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Default Duration (days)</label>
+                          <label className="block text-sm font-medium text-slate-300 mb-1">Default Duration (days)</label>
                           <input
                             type="number"
                             min="1"
                             max="365"
                             defaultValue={settingsData.banners.defaultDuration}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
                       </CardContent>
@@ -8785,42 +8777,42 @@ function AdminDashboardContent() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">Auto Rotation</p>
-                            <p className="text-sm text-gray-600">Automatically rotate banners</p>
+                            <p className="text-sm text-slate-400">Automatically rotate banners</p>
                           </div>
                           <button
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settingsData.banners.autoRotation ? 'bg-blue-600' : 'bg-gray-200'
+                              settingsData.banners.autoRotation ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                             }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                                 settingsData.banners.autoRotation ? 'translate-x-6' : 'translate-x-1'
                               }`}
                             />
                           </button>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Rotation Interval (seconds)</label>
+                          <label className="block text-sm font-medium text-slate-300 mb-1">Rotation Interval (seconds)</label>
                           <input
                             type="number"
                             min="5"
                             max="300"
                             defaultValue={settingsData.banners.rotationInterval}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">Click Tracking</p>
-                            <p className="text-sm text-gray-600">Track banner click events</p>
+                            <p className="text-sm text-slate-400">Track banner click events</p>
                           </div>
                           <button
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settingsData.banners.clickTracking ? 'bg-blue-600' : 'bg-gray-200'
+                              settingsData.banners.clickTracking ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                             }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                                 settingsData.banners.clickTracking ? 'translate-x-6' : 'translate-x-1'
                               }`}
                             />
@@ -8829,15 +8821,15 @@ function AdminDashboardContent() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">Impression Tracking</p>
-                            <p className="text-sm text-gray-600">Track banner view events</p>
+                            <p className="text-sm text-slate-400">Track banner view events</p>
                           </div>
                           <button
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settingsData.banners.impressionTracking ? 'bg-blue-600' : 'bg-gray-200'
+                              settingsData.banners.impressionTracking ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                             }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                                 settingsData.banners.impressionTracking ? 'translate-x-6' : 'translate-x-1'
                               }`}
                             />
@@ -8860,15 +8852,15 @@ function AdminDashboardContent() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">Require Approval</p>
-                            <p className="text-sm text-gray-600">New banners need admin approval</p>
+                            <p className="text-sm text-slate-400">New banners need admin approval</p>
                           </div>
                           <button
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settingsData.banners.requireApproval ? 'bg-blue-600' : 'bg-gray-200'
+                              settingsData.banners.requireApproval ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                             }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                                 settingsData.banners.requireApproval ? 'translate-x-6' : 'translate-x-1'
                               }`}
                             />
@@ -8877,15 +8869,15 @@ function AdminDashboardContent() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">Allow External Links</p>
-                            <p className="text-sm text-gray-600">Enable links to external websites</p>
+                            <p className="text-sm text-slate-400">Enable links to external websites</p>
                           </div>
                           <button
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settingsData.banners.allowExternalLinks ? 'bg-blue-600' : 'bg-gray-200'
+                              settingsData.banners.allowExternalLinks ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                             }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                                 settingsData.banners.allowExternalLinks ? 'translate-x-6' : 'translate-x-1'
                               }`}
                             />
@@ -8894,15 +8886,15 @@ function AdminDashboardContent() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">Enable Scheduling</p>
-                            <p className="text-sm text-gray-600">Allow scheduled banner campaigns</p>
+                            <p className="text-sm text-slate-400">Allow scheduled banner campaigns</p>
                           </div>
                           <button
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settingsData.banners.enableScheduling ? 'bg-blue-600' : 'bg-gray-200'
+                              settingsData.banners.enableScheduling ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                             }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                                 settingsData.banners.enableScheduling ? 'translate-x-6' : 'translate-x-1'
                               }`}
                             />
@@ -8922,52 +8914,52 @@ function AdminDashboardContent() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">Auto Compression</p>
-                            <p className="text-sm text-gray-600">Automatically compress banner images</p>
+                            <p className="text-sm text-slate-400">Automatically compress banner images</p>
                           </div>
                           <button
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settingsData.banners.compressionEnabled ? 'bg-blue-600' : 'bg-gray-200'
+                              settingsData.banners.compressionEnabled ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                             }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                                 settingsData.banners.compressionEnabled ? 'translate-x-6' : 'translate-x-1'
                               }`}
                             />
                           </button>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Compression Quality (%)</label>
+                          <label className="block text-sm font-medium text-slate-300 mb-1">Compression Quality (%)</label>
                           <input
                             type="number"
                             min="10"
                             max="100"
                             defaultValue={settingsData.banners.compressionQuality}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-white/[0.1] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">Watermark</p>
-                            <p className="text-sm text-gray-600">Add watermark to banner images</p>
+                            <p className="text-sm text-slate-400">Add watermark to banner images</p>
                           </div>
                           <button
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              settingsData.banners.watermarkEnabled ? 'bg-blue-600' : 'bg-gray-200'
+                              settingsData.banners.watermarkEnabled ? 'bg-[#1F3469]' : 'bg-white/[0.06]'
                             }`}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
                                 settingsData.banners.watermarkEnabled ? 'translate-x-6' : 'translate-x-1'
                               }`}
                             />
                           </button>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Allowed File Types</label>
+                          <label className="block text-sm font-medium text-slate-300 mb-1">Allowed File Types</label>
                           <div className="flex flex-wrap gap-2 mt-2">
                             {settingsData.banners.allowedFileTypes.map(type => (
-                              <span key={type} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                              <span key={type} className="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs rounded">
                                 .{type}
                               </span>
                             ))}
@@ -9032,15 +9024,15 @@ function AdminDashboardContent() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-600">{settingsData.general.siteName}</div>
-                      <p className="text-sm text-gray-600">Platform Name</p>
+                      <p className="text-sm text-slate-400">Platform Name</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-600">{settingsData.payment.paymentProvider}</div>
-                      <p className="text-sm text-gray-600">Payment Provider</p>
+                      <p className="text-sm text-slate-400">Payment Provider</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-purple-600">{settingsData.general.timezone}</div>
-                      <p className="text-sm text-gray-600">Timezone</p>
+                      <p className="text-sm text-slate-400">Timezone</p>
                     </div>
                   </div>
                 </CardContent>
@@ -9056,10 +9048,10 @@ function AdminDashboardContent() {
           {/* Other tabs content */}
           {activeTab !== 'overview' && activeTab !== 'users' && activeTab !== 'dealers' && activeTab !== 'listings' && activeTab !== 'subscriptions' && activeTab !== 'moderation' && activeTab !== 'analytics' && activeTab !== 'settings' && activeTab !== 'featured-requests' && activeTab !== 'invoices' && activeTab !== 'sell-your-car' && activeTab !== 'advertisements' && activeTab !== 'messages' && activeTab !== 'events' && (
             <div className="text-center py-12">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-white mb-2">
                 {navigation.find(nav => nav.id === activeTab)?.name} Section
               </h3>
-              <p className="text-gray-600 mb-4">This section is under development.</p>
+              <p className="text-slate-400 mb-4">This section is under development.</p>
               <Button onClick={() => setActiveTab('overview')}>Back to Overview</Button>
             </div>
           )}
@@ -9068,10 +9060,10 @@ function AdminDashboardContent() {
 
       {/* Dealer Details Modal */}
       {dealerModalOpen && selectedDealer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setDealerModalOpen(false)}>
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setDealerModalOpen(false)}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Dealer Details</h2>
+              <h2 className="text-2xl font-bold text-white">Dealer Details</h2>
               <Button variant="ghost" size="sm" onClick={() => setDealerModalOpen(false)}>
                 <X className="h-5 w-5" />
               </Button>
@@ -9088,29 +9080,29 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Dealer Name</label>
+                    <label className="text-sm font-medium text-slate-500">Dealer Name</label>
                     <p className="text-lg font-semibold">{selectedDealer.name}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Contact Person</label>
+                    <label className="text-sm font-medium text-slate-500">Contact Person</label>
                     <p>{selectedDealer.contactPerson}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <label className="text-sm font-medium text-slate-500">Email</label>
                     <p>{selectedDealer.email}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Phone</label>
+                    <label className="text-sm font-medium text-slate-500">Phone</label>
                     <p>{selectedDealer.phone}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Address</label>
+                    <label className="text-sm font-medium text-slate-500">Address</label>
                     <p>{selectedDealer.address}</p>
-                    <p className="text-sm text-gray-500">{selectedDealer.city}, {selectedDealer.region}</p>
+                    <p className="text-sm text-slate-500">{selectedDealer.city}, {selectedDealer.region}</p>
                   </div>
                   {selectedDealer.website && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Website</label>
+                      <label className="text-sm font-medium text-slate-500">Website</label>
                       <p className="text-blue-600">{selectedDealer.website}</p>
                     </div>
                   )}
@@ -9127,39 +9119,39 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Business License</label>
+                    <label className="text-sm font-medium text-slate-500">Business License</label>
                     <p>{selectedDealer.businessLicense}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Tax Number</label>
+                    <label className="text-sm font-medium text-slate-500">Tax Number</label>
                     <p>{selectedDealer.taxNumber}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Verification Status</label>
+                    <label className="text-sm font-medium text-slate-500">Verification Status</label>
                     <Badge className={
-                      selectedDealer.verificationStatus === 'Verified' ? 'bg-green-100 text-green-800' :
-                      selectedDealer.verificationStatus === 'Flagged' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
+                      selectedDealer.verificationStatus === 'Verified' ? 'bg-emerald-500/10 text-emerald-400' :
+                      selectedDealer.verificationStatus === 'Flagged' ? 'bg-red-500/10 text-red-400' :
+                      'bg-amber-500/10 text-amber-400'
                     }>
                       {selectedDealer.verificationStatus}
                     </Badge>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Account Status</label>
+                    <label className="text-sm font-medium text-slate-500">Account Status</label>
                     <Badge className={
-                      selectedDealer.status === 'Active' ? 'bg-green-100 text-green-800' :
-                      selectedDealer.status === 'Suspended' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
+                      selectedDealer.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400' :
+                      selectedDealer.status === 'Suspended' ? 'bg-red-500/10 text-red-400' :
+                      'bg-amber-500/10 text-amber-400'
                     }>
                       {selectedDealer.status}
                     </Badge>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Joined Date</label>
+                    <label className="text-sm font-medium text-slate-500">Joined Date</label>
                     <p>{new Date(selectedDealer.joinedAt).toLocaleDateString()}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Last Login</label>
+                    <label className="text-sm font-medium text-slate-500">Last Login</label>
                     <p>{new Date(selectedDealer.lastLogin).toLocaleString()}</p>
                   </div>
                 </CardContent>
@@ -9175,25 +9167,25 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Plan</label>
+                    <label className="text-sm font-medium text-slate-500">Plan</label>
                     <p className="text-lg font-semibold">{selectedDealer.subscriptionPlan}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Monthly Fee</label>
+                    <label className="text-sm font-medium text-slate-500">Monthly Fee</label>
                     <p className="text-lg font-semibold">N${(selectedDealer.monthlyFee / 100).toFixed(2)}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Payment Status</label>
+                    <label className="text-sm font-medium text-slate-500">Payment Status</label>
                     <Badge className={
-                      selectedDealer.subscriptionStatus === 'Active' ? 'bg-green-100 text-green-800' :
-                      selectedDealer.subscriptionStatus === 'Overdue' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
+                      selectedDealer.subscriptionStatus === 'Active' ? 'bg-emerald-500/10 text-emerald-400' :
+                      selectedDealer.subscriptionStatus === 'Overdue' ? 'bg-red-500/10 text-red-400' :
+                      'bg-amber-500/10 text-amber-400'
                     }>
                       {selectedDealer.subscriptionStatus}
                     </Badge>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Monthly Revenue</label>
+                    <label className="text-sm font-medium text-slate-500">Monthly Revenue</label>
                     <p>N${(selectedDealer.monthlyRevenue || 0).toLocaleString()}</p>
                   </div>
                 </CardContent>
@@ -9209,19 +9201,19 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Active Listings</label>
+                    <label className="text-sm font-medium text-slate-500">Active Listings</label>
                     <p className="text-lg font-semibold">{selectedDealer.activeListings}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Total Listings</label>
+                    <label className="text-sm font-medium text-slate-500">Total Listings</label>
                     <p>{selectedDealer.totalListings}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Total Sales</label>
+                    <label className="text-sm font-medium text-slate-500">Total Sales</label>
                     <p className="text-lg font-semibold">{selectedDealer.totalSales}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Rating</label>
+                    <label className="text-sm font-medium text-slate-500">Rating</label>
                     <p className="text-lg">⭐ {selectedDealer.rating.toFixed(1)}</p>
                   </div>
                 </CardContent>
@@ -9293,10 +9285,10 @@ function AdminDashboardContent() {
 
       {/* Listing Details Modal */}
       {listingModalOpen && selectedListing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setListingModalOpen(false)}>
-          <div className="bg-white rounded-lg p-6 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setListingModalOpen(false)}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Listing Details</h2>
+              <h2 className="text-2xl font-bold text-white">Listing Details</h2>
               <Button variant="ghost" size="sm" onClick={() => setListingModalOpen(false)}>
                 <X className="h-5 w-5" />
               </Button>
@@ -9313,56 +9305,56 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Title</label>
+                    <label className="text-sm font-medium text-slate-500">Title</label>
                     <p className="text-lg font-semibold">{selectedListing.title}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Make</label>
+                      <label className="text-sm font-medium text-slate-500">Make</label>
                       <p>{selectedListing.make}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Model</label>
+                      <label className="text-sm font-medium text-slate-500">Model</label>
                       <p>{selectedListing.model}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Year</label>
+                      <label className="text-sm font-medium text-slate-500">Year</label>
                       <p>{selectedListing.year}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Price</label>
+                      <label className="text-sm font-medium text-slate-500">Price</label>
                       <p className="text-lg font-semibold">N${(selectedListing.price || 0).toLocaleString()}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Mileage</label>
+                      <label className="text-sm font-medium text-slate-500">Mileage</label>
                       <p>{(selectedListing.mileage || 0).toLocaleString()} km</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Condition</label>
+                      <label className="text-sm font-medium text-slate-500">Condition</label>
                       <p>{selectedListing.condition}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Fuel Type</label>
+                      <label className="text-sm font-medium text-slate-500">Fuel Type</label>
                       <p>{selectedListing.fuelType}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Transmission</label>
+                      <label className="text-sm font-medium text-slate-500">Transmission</label>
                       <p>{selectedListing.transmission}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Body Type</label>
+                      <label className="text-sm font-medium text-slate-500">Body Type</label>
                       <p>{selectedListing.bodyType}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Color</label>
+                      <label className="text-sm font-medium text-slate-500">Color</label>
                       <p>{selectedListing.color}</p>
                     </div>
                   </div>
@@ -9379,42 +9371,42 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">VIN</label>
+                    <label className="text-sm font-medium text-slate-500">VIN</label>
                     <p className="font-mono text-sm">{selectedListing.vin}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Engine Size</label>
+                      <label className="text-sm font-medium text-slate-500">Engine Size</label>
                       <p>{selectedListing.engineSize}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Drivetrain</label>
+                      <label className="text-sm font-medium text-slate-500">Drivetrain</label>
                       <p>{selectedListing.drivetrain}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Doors</label>
+                      <label className="text-sm font-medium text-slate-500">Doors</label>
                       <p>{selectedListing.doors}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Seats</label>
+                      <label className="text-sm font-medium text-slate-500">Seats</label>
                       <p>{selectedListing.seats}</p>
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Registration</label>
+                    <label className="text-sm font-medium text-slate-500">Registration</label>
                     <p>{selectedListing.registration}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Warranty</label>
-                      <Badge className={selectedListing.warranty === 'Yes' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                      <label className="text-sm font-medium text-slate-500">Warranty</label>
+                      <Badge className={selectedListing.warranty === 'Yes' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-200'}>
                         {selectedListing.warranty}
                       </Badge>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Service History</label>
+                      <label className="text-sm font-medium text-slate-500">Service History</label>
                       <p className="text-sm">{selectedListing.serviceHistory}</p>
                     </div>
                   </div>
@@ -9431,15 +9423,15 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Dealer</label>
+                    <label className="text-sm font-medium text-slate-500">Dealer</label>
                     <p className="text-lg font-semibold">{selectedListing.dealerName}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Contact</label>
+                    <label className="text-sm font-medium text-slate-500">Contact</label>
                     <p>{selectedListing.dealerContact}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Location</label>
+                    <label className="text-sm font-medium text-slate-500">Location</label>
                     <p>{selectedListing.location}, {selectedListing.region}</p>
                   </div>
                 </CardContent>
@@ -9456,30 +9448,30 @@ function AdminDashboardContent() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Listing Status</label>
+                      <label className="text-sm font-medium text-slate-500">Listing Status</label>
                       <Badge className={
-                        selectedListing.listingStatus === 'Approved' ? 'bg-green-100 text-green-800' :
-                        selectedListing.listingStatus === 'Rejected' ? 'bg-red-100 text-red-800' :
-                        selectedListing.listingStatus === 'Under Review' ? 'bg-orange-100 text-orange-800' :
-                        'bg-yellow-100 text-yellow-800'
+                        selectedListing.listingStatus === 'Approved' ? 'bg-emerald-500/10 text-emerald-400' :
+                        selectedListing.listingStatus === 'Rejected' ? 'bg-red-500/10 text-red-400' :
+                        selectedListing.listingStatus === 'Under Review' ? 'bg-orange-500/10 text-orange-400' :
+                        'bg-amber-500/10 text-amber-400'
                       }>
                         {selectedListing.listingStatus}
                       </Badge>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Status</label>
+                      <label className="text-sm font-medium text-slate-500">Status</label>
                       <Badge className={
-                        selectedListing.status === 'Active' ? 'bg-green-100 text-green-800' :
-                        'bg-red-100 text-red-800'
+                        selectedListing.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400' :
+                        'bg-red-500/10 text-red-400'
                       }>
                         {selectedListing.status}
                       </Badge>
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Featured</label>
+                    <label className="text-sm font-medium text-slate-500">Featured</label>
                     <div className="flex items-center gap-2">
-                      <Badge className={selectedListing.featured ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}>
+                      <Badge className={selectedListing.featured ? 'bg-amber-500/10 text-amber-400' : 'bg-[#111827]/[0.04] text-slate-200'}>
                         {selectedListing.featured ? 'Yes' : 'No'}
                       </Badge>
                       {selectedListing.featured && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
@@ -9487,21 +9479,21 @@ function AdminDashboardContent() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Views</label>
+                      <label className="text-sm font-medium text-slate-500">Views</label>
                       <p className="text-lg font-semibold">{(selectedListing.views || 0).toLocaleString()}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Inquiries</label>
+                      <label className="text-sm font-medium text-slate-500">Inquiries</label>
                       <p className="text-lg font-semibold">{selectedListing.inquiries}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Posted</label>
+                      <label className="text-sm font-medium text-slate-500">Posted</label>
                       <p>{new Date(selectedListing.datePosted).toLocaleDateString()}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Last Updated</label>
+                      <label className="text-sm font-medium text-slate-500">Last Updated</label>
                       <p>{new Date(selectedListing.lastUpdated).toLocaleDateString()}</p>
                     </div>
                   </div>
@@ -9515,7 +9507,7 @@ function AdminDashboardContent() {
                 <CardTitle>Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700">{selectedListing.description}</p>
+                <p className="text-slate-300">{selectedListing.description}</p>
               </CardContent>
             </Card>
 
@@ -9569,7 +9561,7 @@ function AdminDashboardContent() {
                     handleFeatureListing(selectedListing.id);
                     setListingModalOpen(false);
                   }}
-                  className={selectedListing.featured ? "border-yellow-300 text-yellow-600 hover:bg-yellow-50" : "border-gray-300 text-gray-600 hover:bg-gray-50"}
+                  className={selectedListing.featured ? "border-yellow-300 text-yellow-600 hover:bg-yellow-50" : "border-white/[0.1] text-slate-400 hover:bg-[#0D1117]"}
                 >
                   <Star className="h-4 w-4 mr-2" />
                   {selectedListing.featured ? 'Remove Feature' : 'Feature Listing'}
@@ -9586,18 +9578,18 @@ function AdminDashboardContent() {
       {/* Report Details Modal */}
       {reportModalOpen && selectedReport && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 overflow-y-auto pt-20 pb-8"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center z-50 overflow-y-auto pt-20 pb-8"
           onClick={() => {
             console.log('Closing modal');
             setReportModalOpen(false);
           }}
         >
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 mb-8" onClick={(e) => {
+          <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-4xl w-full mx-4 mb-8" onClick={(e) => {
             console.log('Modal content clicked');
             e.stopPropagation();
           }}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Report Details</h2>
+              <h2 className="text-2xl font-bold text-white">Report Details</h2>
               <Button variant="ghost" size="sm" onClick={() => {
                 console.log('Close button clicked');
                 setReportModalOpen(false);
@@ -9617,42 +9609,42 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Report ID</label>
+                    <label className="text-sm font-medium text-slate-500">Report ID</label>
                     <p className="font-mono text-sm">{selectedReport.id}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Target</label>
+                    <label className="text-sm font-medium text-slate-500">Target</label>
                     <p className="text-lg font-semibold">{selectedReport.targetTitle}</p>
-                    <p className="text-sm text-gray-500">{selectedReport.targetType}</p>
+                    <p className="text-sm text-slate-500">{selectedReport.targetType}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Report Reason</label>
+                      <label className="text-sm font-medium text-slate-500">Report Reason</label>
                       <p>{selectedReport.reportReason}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Category</label>
+                      <label className="text-sm font-medium text-slate-500">Category</label>
                       <p>{selectedReport.reportCategory}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Severity</label>
+                      <label className="text-sm font-medium text-slate-500">Severity</label>
                       <Badge className={
-                        selectedReport.severity === 'Critical' ? 'bg-red-100 text-red-800' :
-                        selectedReport.severity === 'High' ? 'bg-orange-100 text-orange-800' :
-                        selectedReport.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-blue-100 text-blue-800'
+                        selectedReport.severity === 'Critical' ? 'bg-red-500/10 text-red-400' :
+                        selectedReport.severity === 'High' ? 'bg-orange-500/10 text-orange-400' :
+                        selectedReport.severity === 'Medium' ? 'bg-amber-500/10 text-amber-400' :
+                        'bg-blue-500/10 text-blue-400'
                       }>
                         {selectedReport.severity}
                       </Badge>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Status</label>
+                      <label className="text-sm font-medium text-slate-500">Status</label>
                       <Badge className={
-                        selectedReport.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                        selectedReport.status === 'Under Review' ? 'bg-blue-100 text-blue-800' :
-                        'bg-green-100 text-green-800'
+                        selectedReport.status === 'Pending' ? 'bg-amber-500/10 text-amber-400' :
+                        selectedReport.status === 'Under Review' ? 'bg-blue-500/10 text-blue-400' :
+                        'bg-emerald-500/10 text-emerald-400'
                       }>
                         {selectedReport.status}
                       </Badge>
@@ -9660,11 +9652,11 @@ function AdminDashboardContent() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Date Reported</label>
+                      <label className="text-sm font-medium text-slate-500">Date Reported</label>
                       <p>{new Date(selectedReport.dateReported).toLocaleString()}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Last Updated</label>
+                      <label className="text-sm font-medium text-slate-500">Last Updated</label>
                       <p>{new Date(selectedReport.lastUpdated).toLocaleString()}</p>
                     </div>
                   </div>
@@ -9681,20 +9673,20 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Reporter Name</label>
+                    <label className="text-sm font-medium text-slate-500">Reporter Name</label>
                     <p className="text-lg font-semibold">{selectedReport.reporterName}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <label className="text-sm font-medium text-slate-500">Email</label>
                     <p>{selectedReport.reporterEmail}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Reporter ID</label>
+                    <label className="text-sm font-medium text-slate-500">Reporter ID</label>
                     <p className="font-mono text-sm">{selectedReport.reportedBy}</p>
                   </div>
                   {selectedReport.dealerName && (
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Associated Dealer</label>
+                      <label className="text-sm font-medium text-slate-500">Associated Dealer</label>
                       <p>{selectedReport.dealerName}</p>
                     </div>
                   )}
@@ -9711,19 +9703,19 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Assigned To</label>
+                    <label className="text-sm font-medium text-slate-500">Assigned To</label>
                     <p>{selectedReport.assignedTo || 'Unassigned'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Action Taken</label>
+                    <label className="text-sm font-medium text-slate-500">Action Taken</label>
                     <p>{selectedReport.actionTaken || 'No action yet'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Resolution</label>
+                    <label className="text-sm font-medium text-slate-500">Resolution</label>
                     <p>{selectedReport.resolution || 'Pending review'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Evidence Files</label>
+                    <label className="text-sm font-medium text-slate-500">Evidence Files</label>
                     <div className="flex flex-wrap gap-2">
                       {selectedReport.evidence.map((file: string, index: number) => (
                         <Badge key={index} variant="outline" className="text-sm">
@@ -9746,15 +9738,15 @@ function AdminDashboardContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Admin Notes</label>
-                    <p className="text-sm bg-gray-50 p-3 rounded">
+                    <label className="text-sm font-medium text-slate-500">Admin Notes</label>
+                    <p className="text-sm bg-[#0D1117] p-3 rounded">
                       {selectedReport.reviewNotes || 'No review notes yet.'}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Add Note</label>
+                    <label className="text-sm font-medium text-slate-500">Add Note</label>
                     <textarea
-                      className="w-full p-3 border border-gray-300 rounded-lg resize-none"
+                      className="w-full p-3 border border-white/[0.1] rounded-lg resize-none"
                       rows={3}
                       placeholder="Add your review notes here..."
                     />
@@ -9769,7 +9761,7 @@ function AdminDashboardContent() {
                 <CardTitle>Report Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700">{selectedReport.description}</p>
+                <p className="text-slate-300">{selectedReport.description}</p>
               </CardContent>
             </Card>
 
@@ -9817,7 +9809,7 @@ function AdminDashboardContent() {
                 <div className="relative">
                   <Button
                     variant="outline"
-                    className="border-gray-300 text-gray-600 hover:bg-gray-50"
+                    className="border-white/[0.1] text-slate-400 hover:bg-[#0D1117]"
                     onClick={() => setModerateMenuOpen(!moderateMenuOpen)}
                   >
                     <Ban className="h-4 w-4 mr-2" />
@@ -9825,12 +9817,12 @@ function AdminDashboardContent() {
                     <ChevronDown className="h-4 w-4 ml-2" />
                   </Button>
                   {moderateMenuOpen && (
-                    <div className="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                    <div className="absolute left-0 mt-2 w-64 bg-[#111827] rounded-lg shadow-lg border border-white/[0.06] z-10">
                       <div className="py-2">
                         {selectedReport.type === 'listing' && (
                           <>
                             <button
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm flex items-center gap-2"
+                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
                               onClick={() => {
                                 handleApproveReport(selectedReport.id);
                                 showToast({
@@ -9846,7 +9838,7 @@ function AdminDashboardContent() {
                               <span className="text-red-600">Remove Listing</span>
                             </button>
                             <button
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm flex items-center gap-2"
+                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
                               onClick={() => {
                                 handleApproveReport(selectedReport.id);
                                 showToast({
@@ -9866,7 +9858,7 @@ function AdminDashboardContent() {
                         {selectedReport.type === 'user' && (
                           <>
                             <button
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm flex items-center gap-2"
+                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
                               onClick={() => {
                                 handleApproveReport(selectedReport.id);
                                 showToast({
@@ -9882,7 +9874,7 @@ function AdminDashboardContent() {
                               <span className="text-red-600">Suspend User</span>
                             </button>
                             <button
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm flex items-center gap-2"
+                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
                               onClick={() => {
                                 handleApproveReport(selectedReport.id);
                                 showToast({
@@ -9898,7 +9890,7 @@ function AdminDashboardContent() {
                               <span className="text-red-600">Ban User Permanently</span>
                             </button>
                             <button
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm flex items-center gap-2"
+                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
                               onClick={() => {
                                 handleApproveReport(selectedReport.id);
                                 showToast({
@@ -9918,7 +9910,7 @@ function AdminDashboardContent() {
                         {selectedReport.type === 'comment' && (
                           <>
                             <button
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm flex items-center gap-2"
+                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
                               onClick={() => {
                                 handleApproveReport(selectedReport.id);
                                 showToast({
@@ -9934,7 +9926,7 @@ function AdminDashboardContent() {
                               <span className="text-red-600">Remove Comment</span>
                             </button>
                             <button
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm flex items-center gap-2"
+                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
                               onClick={() => {
                                 handleApproveReport(selectedReport.id);
                                 showToast({
@@ -9951,15 +9943,15 @@ function AdminDashboardContent() {
                             </button>
                           </>
                         )}
-                        <div className="border-t border-gray-200 my-2"></div>
+                        <div className="border-t border-white/[0.06] my-2"></div>
                         <button
-                          className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm flex items-center gap-2"
+                          className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
                           onClick={() => {
                             setModerateMenuOpen(false);
                           }}
                         >
-                          <X className="h-4 w-4 text-gray-600" />
-                          <span className="text-gray-600">Cancel</span>
+                          <X className="h-4 w-4 text-slate-400" />
+                          <span className="text-slate-400">Cancel</span>
                         </button>
                       </div>
                     </div>
@@ -10027,7 +10019,7 @@ function AdminDashboardContent() {
                   className={`px-4 py-3 border rounded-lg text-center transition-colors ${
                     reportFormat === 'pdf'
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 hover:border-gray-400'
+                      : 'border-white/[0.1] hover:border-gray-400'
                   }`}
                 >
                   <div className="flex flex-col items-center gap-1">
@@ -10040,7 +10032,7 @@ function AdminDashboardContent() {
                   className={`px-4 py-3 border rounded-lg text-center transition-colors ${
                     reportFormat === 'csv'
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 hover:border-gray-400'
+                      : 'border-white/[0.1] hover:border-gray-400'
                   }`}
                 >
                   <div className="flex flex-col items-center gap-1">
@@ -10053,7 +10045,7 @@ function AdminDashboardContent() {
                   className={`px-4 py-3 border rounded-lg text-center transition-colors ${
                     reportFormat === 'excel'
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 hover:border-gray-400'
+                      : 'border-white/[0.1] hover:border-gray-400'
                   }`}
                 >
                   <div className="flex flex-col items-center gap-1">
@@ -10092,9 +10084,9 @@ function AdminDashboardContent() {
             </div>
 
             {/* Report Contents based on type */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">Report will include:</h4>
-              <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
+            <div className="bg-[#0D1117] border border-white/[0.06] rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-white mb-2">Report will include:</h4>
+              <ul className="text-sm text-slate-300 space-y-1 list-disc list-inside">
                 {reportType === 'dealer-performance' && (
                   <>
                     <li>Dealer listing statistics</li>
@@ -10152,7 +10144,7 @@ function AdminDashboardContent() {
             <Button
               onClick={generateReport}
               disabled={isGeneratingReport}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex items-center gap-2 bg-[#CB2030] hover:bg-[#B01C2A] text-white"
             >
               {isGeneratingReport ? (
                 <>
@@ -10196,7 +10188,7 @@ function AdminDashboardContent() {
                   <option value="pending">Pending Payments</option>
                   <option value="overdue">Overdue Payments</option>
                 </select>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-slate-400">
                   {selectedPayments.length} selected
                 </div>
               </div>
@@ -10213,26 +10205,26 @@ function AdminDashboardContent() {
             {/* Payment List */}
             <div className="border rounded-lg overflow-hidden">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[#0D1117]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Select
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Dealer
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Plan
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Amount
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
                   {dealers
                     .filter(dealer => {
                       if (paymentFilter === 'pending') return dealer.subscriptionStatus === 'Pending';
@@ -10242,7 +10234,7 @@ function AdminDashboardContent() {
                     .map((dealer) => (
                       <tr
                         key={dealer.id}
-                        className={`hover:bg-gray-50 ${
+                        className={`hover:bg-[#0D1117] ${
                           selectedPayments.includes(dealer.id) ? 'bg-blue-50' : ''
                         }`}
                       >
@@ -10251,17 +10243,17 @@ function AdminDashboardContent() {
                             type="checkbox"
                             checked={selectedPayments.includes(dealer.id)}
                             onChange={() => togglePaymentSelection(dealer.id)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-white/[0.1] rounded"
                           />
                         </td>
                         <td className="px-4 py-3">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{dealer.name}</div>
-                            <div className="text-sm text-gray-500">{dealer.email}</div>
+                            <div className="text-sm font-medium text-white">{dealer.name}</div>
+                            <div className="text-sm text-slate-500">{dealer.email}</div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{dealer.subscriptionPlan}</td>
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                        <td className="px-4 py-3 text-sm text-white">{dealer.subscriptionPlan}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-white">
                           N${(dealer.monthlyFee / 100).toFixed(2)}
                         </td>
                         <td className="px-4 py-3">
@@ -10316,7 +10308,7 @@ function AdminDashboardContent() {
             <Button
               onClick={processSelectedPayments}
               disabled={isProcessingPayments || selectedPayments.length === 0}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-[#CB2030] hover:bg-[#B01C2A] text-white"
             >
               {isProcessingPayments ? 'Processing...' : `Process ${selectedPayments.length} Payment(s)`}
             </Button>
@@ -10337,7 +10329,7 @@ function AdminDashboardContent() {
           <div className="space-y-4 py-4">
             {/* Plan Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Plan Name
               </label>
               <Input
@@ -10349,14 +10341,14 @@ function AdminDashboardContent() {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Description
               </label>
               <textarea
                 value={planFormData.description || ''}
                 onChange={(e) => setPlanFormData({...planFormData, description: e.target.value})}
                 placeholder="Plan description"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={3}
               />
             </div>
@@ -10364,7 +10356,7 @@ function AdminDashboardContent() {
             {/* Price and Duration */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Price (NAD)
                 </label>
                 <Input
@@ -10376,7 +10368,7 @@ function AdminDashboardContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Duration (days)
                 </label>
                 <Input
@@ -10391,7 +10383,7 @@ function AdminDashboardContent() {
             {/* Max Listings and Photos */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Max Listings
                 </label>
                 <Input
@@ -10402,7 +10394,7 @@ function AdminDashboardContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Max Photos per Listing
                 </label>
                 <Input
@@ -10416,13 +10408,13 @@ function AdminDashboardContent() {
 
             {/* Status */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Status
               </label>
               <select
                 value={planFormData.isActive ? 'active' : 'inactive'}
                 onChange={(e) => setPlanFormData({...planFormData, isActive: e.target.value === 'active'})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -10431,7 +10423,7 @@ function AdminDashboardContent() {
 
             {/* Features */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Features
               </label>
               <div className="space-y-2 mb-2">
@@ -10478,7 +10470,7 @@ function AdminDashboardContent() {
             </Button>
             <Button
               onClick={handleUpdatePlan}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-[#CB2030] hover:bg-[#B01C2A] text-white"
             >
               Save Changes
             </Button>
@@ -10498,7 +10490,7 @@ function AdminDashboardContent() {
 
           <div className="space-y-4 py-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Code</label>
               <Input
                 value={promoFormData.code}
                 onChange={(e) => setPromoFormData({ ...promoFormData, code: e.target.value.toUpperCase() })}
@@ -10509,18 +10501,18 @@ function AdminDashboardContent() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Discount Type</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Discount Type</label>
                 <select
                   value={promoFormData.discountType}
                   onChange={(e) => setPromoFormData({ ...promoFormData, discountType: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="PERCENTAGE">Percentage</option>
                   <option value="FIXED_AMOUNT">Fixed Amount</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Discount Value</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Discount Value</label>
                 <Input
                   type="number"
                   value={promoFormData.discountValue}
@@ -10532,7 +10524,7 @@ function AdminDashboardContent() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Start Date</label>
                 <Input
                   type="date"
                   value={promoFormData.startDate}
@@ -10540,7 +10532,7 @@ function AdminDashboardContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">End Date</label>
                 <Input
                   type="date"
                   value={promoFormData.endDate}
@@ -10550,7 +10542,7 @@ function AdminDashboardContent() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Usage Limit</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Usage Limit</label>
               <Input
                 type="number"
                 value={promoFormData.usageLimit}
@@ -10560,7 +10552,7 @@ function AdminDashboardContent() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Applicable Plans</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Applicable Plans</label>
               <div className="space-y-2">
                 {subscriptionPlans.map((plan) => (
                   <label key={plan.id} className="flex items-center">
@@ -10581,7 +10573,7 @@ function AdminDashboardContent() {
             <Button variant="outline" onClick={() => setEditPromoModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdatePromo} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handleUpdatePromo} className="bg-[#CB2030] hover:bg-[#B01C2A] text-white">
               Save Changes
             </Button>
           </DialogFooter>
@@ -10600,7 +10592,7 @@ function AdminDashboardContent() {
 
           {promoToDelete && (
             <div className="py-4">
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="bg-[#0D1117] rounded-lg p-4 border border-white/[0.06]">
                 <div className="flex items-center justify-between mb-2">
                   <code className="px-2 py-1 bg-blue-50 text-blue-700 rounded font-mono text-sm font-bold">
                     {promoToDelete.code}
@@ -10611,12 +10603,12 @@ function AdminDashboardContent() {
                       : `N$${(promoToDelete.discountValue / 100).toFixed(2)}`}
                   </span>
                 </div>
-                <div className="text-xs text-gray-600">
+                <div className="text-xs text-slate-400">
                   <div>Used: {promoToDelete.usageCount}{promoToDelete.usageLimit && ` / ${promoToDelete.usageLimit}`}</div>
                   <div>Expires: {promoToDelete.endDate ? new Date(promoToDelete.endDate).toLocaleDateString() : 'Never'}</div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mt-4">
+              <p className="text-sm text-slate-400 mt-4">
                 This action cannot be undone. The promo code will be permanently deleted.
               </p>
             </div>
@@ -10652,25 +10644,25 @@ function AdminDashboardContent() {
           <div className="space-y-4 py-4">
             <div className="border rounded-lg overflow-hidden">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[#0D1117]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Select
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Vehicle
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Dealer
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
                   {listings.map((listing) => (
-                    <tr key={listing.id} className="hover:bg-gray-50">
+                    <tr key={listing.id} className="hover:bg-[#0D1117]">
                       <td className="px-4 py-3">
                         <input
                           type="checkbox"
@@ -10682,11 +10674,11 @@ function AdminDashboardContent() {
                                 : [...prev, listing.id]
                             );
                           }}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-white/[0.1] rounded"
                         />
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{listing.title}</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">{listing.dealer}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-white">{listing.title}</td>
+                      <td className="px-4 py-3 text-sm text-slate-500">{listing.dealer}</td>
                       <td className="px-4 py-3">
                         <Badge
                           variant={listing.status === 'Active' ? 'default' : 'secondary'}
@@ -10717,7 +10709,7 @@ function AdminDashboardContent() {
                 setFeaturedModalOpen(false);
                 setSelectedListings([]);
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-[#CB2030] hover:bg-[#B01C2A] text-white"
               disabled={selectedListings.length === 0}
             >
               Set as Featured ({selectedListings.length})
@@ -10776,7 +10768,7 @@ function AdminDashboardContent() {
                 alert('Bulk settings applied successfully!');
                 setBulkSettingsModalOpen(false);
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-[#CB2030] hover:bg-[#B01C2A] text-white"
             >
               Apply Settings
             </Button>
@@ -10863,7 +10855,7 @@ function AdminDashboardContent() {
             <Button
               onClick={sendNewsletter}
               disabled={isSendingNewsletter || !newsletterSubject.trim() || !newsletterMessage.trim()}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-[#CB2030] hover:bg-[#B01C2A] text-white"
             >
               {isSendingNewsletter ? 'Sending...' : 'Send Newsletter'}
             </Button>
@@ -10873,13 +10865,13 @@ function AdminDashboardContent() {
 
       {/* Banner Preview Modal */}
       {previewBanner && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setPreviewBanner(null)}>
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setPreviewBanner(null)}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Banner Preview</h2>
+              <h2 className="text-2xl font-bold text-white">Banner Preview</h2>
               <button
                 onClick={() => setPreviewBanner(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-slate-500 hover:text-slate-400"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -10888,13 +10880,13 @@ function AdminDashboardContent() {
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold mb-2">{previewBanner.title}</h3>
-                <Badge className={previewBanner.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                <Badge className={previewBanner.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-200'}>
                   {previewBanner.isActive ? 'Active' : 'Inactive'}
                 </Badge>
               </div>
 
               {/* Banner Image Preview */}
-              <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+              <div className="aspect-video bg-[#111827]/[0.04] rounded-lg overflow-hidden">
                 {previewBanner.imageUrl ? (
                   <img
                     src={previewBanner.imageUrl}
@@ -10902,7 +10894,7 @@ function AdminDashboardContent() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full text-center text-gray-400">
+                  <div className="flex items-center justify-center h-full text-center text-slate-500">
                     <div>
                       <Image className="h-12 w-12 mx-auto mb-2" />
                       <p className="text-sm">No image available</p>
@@ -10912,37 +10904,37 @@ function AdminDashboardContent() {
               </div>
 
               {/* Banner Details */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-[#0D1117] rounded-lg">
                 <div>
-                  <p className="text-sm text-gray-500">Position</p>
+                  <p className="text-sm text-slate-500">Position</p>
                   <p className="font-medium">{previewBanner.position}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Priority</p>
+                  <p className="text-sm text-slate-500">Priority</p>
                   <p className="font-medium">{previewBanner.priority || 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Link URL</p>
+                  <p className="text-sm text-slate-500">Link URL</p>
                   <p className="font-medium text-blue-600 truncate">{previewBanner.linkUrl || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="text-sm text-slate-500">Status</p>
                   <p className="font-medium">{previewBanner.isActive ? 'Active' : 'Inactive'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Start Date</p>
+                  <p className="text-sm text-slate-500">Start Date</p>
                   <p className="font-medium">{previewBanner.startDate ? new Date(previewBanner.startDate).toLocaleDateString() : 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">End Date</p>
+                  <p className="text-sm text-slate-500">End Date</p>
                   <p className="font-medium">{previewBanner.endDate ? new Date(previewBanner.endDate).toLocaleDateString() : 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Clicks</p>
+                  <p className="text-sm text-slate-500">Clicks</p>
                   <p className="font-medium text-blue-600">{(previewBanner.clicks || 0).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Impressions</p>
+                  <p className="text-sm text-slate-500">Impressions</p>
                   <p className="font-medium text-green-600">{(previewBanner.impressions || 0).toLocaleString()}</p>
                 </div>
               </div>
@@ -10959,7 +10951,7 @@ function AdminDashboardContent() {
                     setEditingBanner(previewBanner);
                     setPreviewBanner(null);
                   }}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-[#CB2030] hover:bg-[#B01C2A]"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Banner
@@ -10972,13 +10964,13 @@ function AdminDashboardContent() {
 
       {/* Banner Edit Modal */}
       {editingBanner && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setEditingBanner(null)}>
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setEditingBanner(null)}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Edit Banner</h2>
+              <h2 className="text-2xl font-bold text-white">Edit Banner</h2>
               <button
                 onClick={() => setEditingBanner(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-slate-500 hover:text-slate-400"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -10986,7 +10978,7 @@ function AdminDashboardContent() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Banner Title</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Banner Title</label>
                 <Input
                   value={editingBanner.title}
                   onChange={(e) => setEditingBanner({...editingBanner, title: e.target.value})}
@@ -10995,15 +10987,15 @@ function AdminDashboardContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Position</label>
-                <div className="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2 text-gray-600">
+                <label className="block text-sm font-medium text-slate-300 mb-2">Position</label>
+                <div className="w-full border border-white/[0.1] bg-[#0D1117] rounded-lg px-3 py-2 text-slate-400">
                   {editingBanner.position} (Fixed)
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Banner position cannot be changed. This slot is fixed on the website.</p>
+                <p className="text-xs text-slate-500 mt-1">Banner position cannot be changed. This slot is fixed on the website.</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Image URL</label>
                 <Input
                   value={editingBanner.imageUrl}
                   onChange={(e) => setEditingBanner({...editingBanner, imageUrl: e.target.value})}
@@ -11012,7 +11004,7 @@ function AdminDashboardContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Link URL</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Link URL</label>
                 <Input
                   value={editingBanner.linkUrl || ''}
                   onChange={(e) => setEditingBanner({...editingBanner, linkUrl: e.target.value})}
@@ -11022,7 +11014,7 @@ function AdminDashboardContent() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Priority</label>
                   <Input
                     type="number"
                     value={editingBanner.priority || 0}
@@ -11030,9 +11022,9 @@ function AdminDashboardContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Status</label>
                   <select
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    className="w-full border border-white/[0.1] rounded-lg px-3 py-2"
                     value={editingBanner.isActive ? 'active' : 'inactive'}
                     onChange={(e) => setEditingBanner({...editingBanner, isActive: e.target.value === 'active'})}
                   >
@@ -11101,7 +11093,7 @@ function AdminDashboardContent() {
                       alert('An error occurred while updating the banner.');
                     }
                   }}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-[#CB2030] hover:bg-[#B01C2A]"
                 >
                   Save Changes
                 </Button>
@@ -11122,7 +11114,7 @@ function AdminDashboardContent() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Reason for suspension (optional)
               </label>
               <Textarea
@@ -11175,7 +11167,7 @@ function AdminDashboardContent() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Reason for deletion (REQUIRED) <span className="text-red-600">*</span>
               </label>
               <Textarea
@@ -11236,7 +11228,7 @@ function AdminDashboardContent() {
                       className={`relative p-4 border-2 rounded-lg cursor-pointer transition-all ${
                         isSelected
                           ? 'border-blue-600 bg-blue-50 shadow-md'
-                          : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
+                          : 'border-white/[0.06] hover:border-blue-300 hover:shadow-none'
                       }`}
                     >
                       {isCurrent && (
@@ -11247,27 +11239,27 @@ function AdminDashboardContent() {
 
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          <h4 className="text-lg font-bold text-gray-900">{plan.name}</h4>
-                          <p className="text-sm text-gray-600">{plan.description}</p>
+                          <h4 className="text-lg font-bold text-white">{plan.name}</h4>
+                          <p className="text-sm text-slate-400">{plan.description}</p>
                         </div>
                         <div className="text-right ml-4">
                           <div className="text-2xl font-bold text-blue-600">
                             N${(plan.price / 100).toFixed(2)}
                           </div>
-                          <div className="text-xs text-gray-500">/month</div>
+                          <div className="text-xs text-slate-500">/month</div>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="flex items-center gap-1">
                           <CheckCircle className="w-3 h-3 text-green-600" />
-                          <span className="text-gray-700">
+                          <span className="text-slate-300">
                             {plan.maxListings === 0 ? 'Unlimited' : plan.maxListings} listings
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <CheckCircle className="w-3 h-3 text-green-600" />
-                          <span className="text-gray-700">{plan.maxPhotos} photos/listing</span>
+                          <span className="text-slate-300">{plan.maxPhotos} photos/listing</span>
                         </div>
                       </div>
 
@@ -11301,7 +11293,7 @@ function AdminDashboardContent() {
             <Button
               onClick={handleUpdateSubscription}
               disabled={!selectedPlanId || selectedPlanId === selectedDealer?.subscriptionPlanId}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#CB2030] hover:bg-[#B01C2A] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Update Subscription
             </Button>
@@ -11320,7 +11312,7 @@ function AdminDashboardContent() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Reason for rejection <span className="text-red-600">*</span>
               </label>
               <Textarea
@@ -11375,7 +11367,7 @@ function AdminDashboardContent() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Reason for ban (REQUIRED) <span className="text-red-600">*</span>
               </label>
               <Textarea
@@ -11423,10 +11415,10 @@ function AdminDashboardContent() {
             <div className="space-y-6 py-4">
               {/* Business Information */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900">Business Information</h3>
+                <h3 className="text-sm font-semibold text-white">Business Information</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Business Name
                     </label>
                     <Input
@@ -11436,7 +11428,7 @@ function AdminDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Contact Person
                     </label>
                     <Input
@@ -11446,7 +11438,7 @@ function AdminDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Email
                     </label>
                     <Input
@@ -11457,7 +11449,7 @@ function AdminDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Phone
                     </label>
                     <Input
@@ -11471,10 +11463,10 @@ function AdminDashboardContent() {
 
               {/* Location Information */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900">Location</h3>
+                <h3 className="text-sm font-semibold text-white">Location</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Street Address
                     </label>
                     <Input
@@ -11484,7 +11476,7 @@ function AdminDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       City
                     </label>
                     <Input
@@ -11494,7 +11486,7 @@ function AdminDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Region
                     </label>
                     <Input
@@ -11504,7 +11496,7 @@ function AdminDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Postal Code
                     </label>
                     <Input
@@ -11518,10 +11510,10 @@ function AdminDashboardContent() {
 
               {/* Business Registration */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900">Business Registration</h3>
+                <h3 className="text-sm font-semibold text-white">Business Registration</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Business License Number
                     </label>
                     <Input
@@ -11531,7 +11523,7 @@ function AdminDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Tax Number
                     </label>
                     <Input
@@ -11541,7 +11533,7 @@ function AdminDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Business Type
                     </label>
                     <Input
@@ -11551,7 +11543,7 @@ function AdminDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-1">
                       Website
                     </label>
                     <Input
@@ -11585,7 +11577,7 @@ function AdminDashboardContent() {
                 setEditDialogOpen(false);
                 setEditingDealer(null);
               }}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-[#CB2030] hover:bg-[#B01C2A]"
             >
               Save Changes
             </Button>
@@ -11603,13 +11595,13 @@ function AdminDashboardContent() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-4">
-            <ul className="list-disc list-inside space-y-2 text-sm text-gray-600">
+            <ul className="list-disc list-inside space-y-2 text-sm text-slate-400">
               <li>Set all pending listings to &quot;Approved&quot; status</li>
               <li>Make them visible to the public</li>
               <li>Send approval notification emails to all affected dealers</li>
               <li>
                 Approve{' '}
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-white">
                   {listings.filter(l => l.listingStatus === 'Pending').length}
                 </span>
                 {' '}pending listing(s)
@@ -11650,47 +11642,47 @@ function AdminDashboardContent() {
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reporter</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <tr className="bg-[#0D1117] border-b border-white/[0.06]">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Report</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Reporter</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Severity</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
                   {reports
                     .filter(r =>
                       (r.severity === 'High' || r.severity === 'Critical') &&
                       (r.status === 'Pending' || r.status === 'Under Review')
                     )
                     .map((report) => (
-                      <tr key={report.id} className="hover:bg-gray-50">
+                      <tr key={report.id} className="hover:bg-[#0D1117]">
                         <td className="px-4 py-3">
-                          <div className="text-sm font-medium text-gray-900">{report.targetTitle}</div>
-                          <div className="text-xs text-gray-500">{report.reportReason}</div>
+                          <div className="text-sm font-medium text-white">{report.targetTitle}</div>
+                          <div className="text-xs text-slate-500">{report.reportReason}</div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="text-sm text-gray-900">{report.targetType}</div>
-                          <div className="text-xs text-gray-500">{report.reportCategory}</div>
+                          <div className="text-sm text-white">{report.targetType}</div>
+                          <div className="text-xs text-slate-500">{report.reportCategory}</div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="text-sm text-gray-900">{report.reporterName}</div>
-                          <div className="text-xs text-gray-500">{report.reporterEmail}</div>
+                          <div className="text-sm text-white">{report.reporterName}</div>
+                          <div className="text-xs text-slate-500">{report.reporterEmail}</div>
                         </td>
                         <td className="px-4 py-3">
                           <Badge className={
-                            report.severity === 'Critical' ? 'bg-red-100 text-red-800' :
-                            'bg-orange-100 text-orange-800'
+                            report.severity === 'Critical' ? 'bg-red-500/10 text-red-400' :
+                            'bg-orange-500/10 text-orange-400'
                           }>
                             {report.severity}
                           </Badge>
                         </td>
                         <td className="px-4 py-3">
                           <Badge className={
-                            report.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-blue-100 text-blue-800'
+                            report.status === 'Pending' ? 'bg-amber-500/10 text-amber-400' :
+                            'bg-blue-500/10 text-blue-400'
                           }>
                             {report.status}
                           </Badge>
@@ -11744,8 +11736,8 @@ function AdminDashboardContent() {
               (r.severity === 'High' || r.severity === 'Critical') &&
               (r.status === 'Pending' || r.status === 'Under Review')
             ).length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+              <div className="text-center py-8 text-slate-500">
+                <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-slate-500" />
                 <p>No high priority reports found</p>
               </div>
             )}
@@ -11786,21 +11778,21 @@ function AdminDashboardContent() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Report Type Selection */}
               <div className="space-y-3">
-                <label className="text-sm font-semibold text-gray-700">Report Type</label>
+                <label className="text-sm font-semibold text-slate-300">Report Type</label>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-[#0D1117] cursor-pointer">
                     <input type="radio" name="reportType" id="traffic" className="h-4 w-4" defaultChecked />
                     <label htmlFor="traffic" className="text-sm cursor-pointer flex-1">Traffic & User Behavior</label>
                   </div>
-                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-[#0D1117] cursor-pointer">
                     <input type="radio" name="reportType" id="revenue" className="h-4 w-4" />
                     <label htmlFor="revenue" className="text-sm cursor-pointer flex-1">Revenue & Subscriptions</label>
                   </div>
-                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-[#0D1117] cursor-pointer">
                     <input type="radio" name="reportType" id="listings" className="h-4 w-4" />
                     <label htmlFor="listings" className="text-sm cursor-pointer flex-1">Listing Performance</label>
                   </div>
-                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-[#0D1117] cursor-pointer">
                     <input type="radio" name="reportType" id="geographic" className="h-4 w-4" />
                     <label htmlFor="geographic" className="text-sm cursor-pointer flex-1">Geographic Distribution</label>
                   </div>
@@ -11809,21 +11801,21 @@ function AdminDashboardContent() {
 
               {/* Date Range */}
               <div className="space-y-3">
-                <label className="text-sm font-semibold text-gray-700">Date Range</label>
+                <label className="text-sm font-semibold text-slate-300">Date Range</label>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-[#0D1117] cursor-pointer">
                     <input type="radio" name="dateRange" id="last7" className="h-4 w-4" defaultChecked />
                     <label htmlFor="last7" className="text-sm cursor-pointer flex-1">Last 7 Days</label>
                   </div>
-                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-[#0D1117] cursor-pointer">
                     <input type="radio" name="dateRange" id="last30" className="h-4 w-4" />
                     <label htmlFor="last30" className="text-sm cursor-pointer flex-1">Last 30 Days</label>
                   </div>
-                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-[#0D1117] cursor-pointer">
                     <input type="radio" name="dateRange" id="last90" className="h-4 w-4" />
                     <label htmlFor="last90" className="text-sm cursor-pointer flex-1">Last 90 Days</label>
                   </div>
-                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <div className="flex items-center gap-2 p-3 border rounded-lg hover:bg-[#0D1117] cursor-pointer">
                     <input type="radio" name="dateRange" id="custom" className="h-4 w-4" />
                     <label htmlFor="custom" className="text-sm cursor-pointer flex-1">Custom Range</label>
                   </div>
@@ -11832,29 +11824,29 @@ function AdminDashboardContent() {
             </div>
 
             {/* Report Preview */}
-            <div className="border rounded-lg p-4 bg-gray-50">
+            <div className="border rounded-lg p-4 bg-[#0D1117]">
               <h4 className="text-sm font-semibold mb-3">Report Preview</h4>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-slate-400 mb-4">
                 Traffic & User Behavior report for the last 7 days
               </p>
               <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="bg-white p-3 rounded border">
+                <div className="bg-[#111827] p-3 rounded border">
                   <div className="text-2xl font-bold text-blue-600">
                     {((analyticsData.traffic.daily || []).slice(-7).reduce((sum, day) => sum + (day.views || 0), 0)).toLocaleString()}
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">Total Views</p>
+                  <p className="text-xs text-slate-400 mt-1">Total Views</p>
                 </div>
-                <div className="bg-white p-3 rounded border">
+                <div className="bg-[#111827] p-3 rounded border">
                   <div className="text-2xl font-bold text-green-600">
                     {((analyticsData.traffic.daily || []).slice(-7).reduce((sum, day) => sum + (day.visitors || 0), 0)).toLocaleString()}
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">Unique Visitors</p>
+                  <p className="text-xs text-slate-400 mt-1">Unique Visitors</p>
                 </div>
-                <div className="bg-white p-3 rounded border">
+                <div className="bg-[#111827] p-3 rounded border">
                   <div className="text-2xl font-bold text-purple-600">
                     {(analyticsData.traffic.daily || []).slice(-7).reduce((sum, day) => sum + (day.conversions || 0), 0)}
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">Conversions</p>
+                  <p className="text-xs text-slate-400 mt-1">Conversions</p>
                 </div>
               </div>
             </div>
@@ -11869,7 +11861,7 @@ function AdminDashboardContent() {
                 handleExportAnalyticsData();
                 setCustomReportModalOpen(false);
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-[#CB2030] hover:bg-[#B01C2A] text-white"
             >
               <Download className="h-4 w-4 mr-2" />
               Generate Report
@@ -11899,14 +11891,14 @@ function AdminDashboardContent() {
                 {(analyticsData.traffic.sources || []).map((source, index) => (
                   <div key={index}>
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-700">{source.name}</span>
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm text-slate-300">{source.name}</span>
+                      <span className="text-sm font-semibold text-white">
                         {source.visitors.toLocaleString()} ({source.percentage}%)
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div className="w-full bg-white/[0.06] rounded-full h-2.5">
                       <div
-                        className="bg-blue-600 h-2.5 rounded-full"
+                        className="bg-[#1F3469] h-2.5 rounded-full"
                         style={{ width: `${source.percentage}%` }}
                       ></div>
                     </div>
@@ -11951,15 +11943,15 @@ function AdminDashboardContent() {
               <h4 className="text-sm font-semibold mb-4">Revenue by Region</h4>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {(analyticsData.geographic || []).map((region, index) => (
-                  <div key={index} className="bg-gray-50 p-3 rounded border">
-                    <div className="text-lg font-bold text-gray-900">{region.region}</div>
-                    <div className="text-sm text-gray-600 mt-1">
+                  <div key={index} className="bg-[#0D1117] p-3 rounded border">
+                    <div className="text-lg font-bold text-white">{region.region}</div>
+                    <div className="text-sm text-slate-400 mt-1">
                       {region.users.toLocaleString()} users
                     </div>
                     <div className="text-sm font-semibold text-green-600 mt-1">
                       N${(region.revenue / 100).toFixed(2)}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-slate-500 mt-1">
                       {region.percentage.toFixed(1)}% of total
                     </div>
                   </div>
@@ -11995,7 +11987,7 @@ function AdminDashboardContent() {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Settings2 className="h-5 w-5 text-gray-600" />
+              <Settings2 className="h-5 w-5 text-slate-400" />
               Configure Analytics
             </DialogTitle>
             <DialogDescription>
@@ -12011,28 +12003,28 @@ function AdminDashboardContent() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Page View Tracking</p>
-                    <p className="text-xs text-gray-500">Track page views across the platform</p>
+                    <p className="text-xs text-slate-500">Track page views across the platform</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">User Event Tracking</p>
-                    <p className="text-xs text-gray-500">Track user interactions and events</p>
+                    <p className="text-xs text-slate-500">Track user interactions and events</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Conversion Tracking</p>
-                    <p className="text-xs text-gray-500">Track lead generation and sales conversions</p>
+                    <p className="text-xs text-slate-500">Track lead generation and sales conversions</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Revenue Tracking</p>
-                    <p className="text-xs text-gray-500">Track subscription and payment revenue</p>
+                    <p className="text-xs text-slate-500">Track subscription and payment revenue</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
                 </div>
@@ -12084,7 +12076,7 @@ function AdminDashboardContent() {
                     <option>5 Years</option>
                     <option>Indefinite</option>
                   </select>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     How long to keep historical analytics data
                   </p>
                 </div>
@@ -12098,21 +12090,21 @@ function AdminDashboardContent() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Daily Summary Email</p>
-                    <p className="text-xs text-gray-500">Receive daily analytics summary</p>
+                    <p className="text-xs text-slate-500">Receive daily analytics summary</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Weekly Performance Report</p>
-                    <p className="text-xs text-gray-500">Receive weekly performance insights</p>
+                    <p className="text-xs text-slate-500">Receive weekly performance insights</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Monthly Executive Summary</p>
-                    <p className="text-xs text-gray-500">Comprehensive monthly report</p>
+                    <p className="text-xs text-slate-500">Comprehensive monthly report</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
                 </div>
@@ -12133,7 +12125,7 @@ function AdminDashboardContent() {
                 });
                 setConfigureAnalyticsModalOpen(false);
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-[#CB2030] hover:bg-[#B01C2A] text-white"
             >
               <Check className="h-4 w-4 mr-2" />
               Save Settings
@@ -12156,24 +12148,24 @@ function AdminDashboardContent() {
           </DialogHeader>
           {selectedFeaturedRequest && (
             <div className="space-y-4 py-4">
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              <div className="bg-[#0D1117] rounded-lg p-4 space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium text-gray-700">Dealership:</span>
-                  <span className="text-sm text-gray-900">{selectedFeaturedRequest.dealership.name}</span>
+                  <span className="text-sm font-medium text-slate-300">Dealership:</span>
+                  <span className="text-sm text-white">{selectedFeaturedRequest.dealership.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium text-gray-700">Duration:</span>
-                  <span className="text-sm text-gray-900">{selectedFeaturedRequest.duration} days</span>
+                  <span className="text-sm font-medium text-slate-300">Duration:</span>
+                  <span className="text-sm text-white">{selectedFeaturedRequest.duration} days</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium text-gray-700">Amount:</span>
+                  <span className="text-sm font-medium text-slate-300">Amount:</span>
                   <span className="text-sm font-bold text-green-600">N${selectedFeaturedRequest.amount}</span>
                 </div>
               </div>
               {selectedFeaturedRequest.notes && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Notes:</label>
-                  <p className="text-sm text-gray-600 bg-gray-50 rounded p-3">{selectedFeaturedRequest.notes}</p>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Notes:</label>
+                  <p className="text-sm text-slate-400 bg-[#0D1117] rounded p-3">{selectedFeaturedRequest.notes}</p>
                 </div>
               )}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -12215,22 +12207,22 @@ function AdminDashboardContent() {
           </DialogHeader>
           {selectedFeaturedRequest && (
             <div className="space-y-4 py-4">
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              <div className="bg-[#0D1117] rounded-lg p-4 space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium text-gray-700">Dealership:</span>
-                  <span className="text-sm text-gray-900">{selectedFeaturedRequest.dealership.name}</span>
+                  <span className="text-sm font-medium text-slate-300">Dealership:</span>
+                  <span className="text-sm text-white">{selectedFeaturedRequest.dealership.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium text-gray-700">Duration:</span>
-                  <span className="text-sm text-gray-900">{selectedFeaturedRequest.duration} days</span>
+                  <span className="text-sm font-medium text-slate-300">Duration:</span>
+                  <span className="text-sm text-white">{selectedFeaturedRequest.duration} days</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium text-gray-700">Amount:</span>
-                  <span className="text-sm text-gray-900">N${selectedFeaturedRequest.amount}</span>
+                  <span className="text-sm font-medium text-slate-300">Amount:</span>
+                  <span className="text-sm text-white">N${selectedFeaturedRequest.amount}</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   Reason for rejection
                 </label>
                 <Textarea
@@ -12282,28 +12274,28 @@ function AdminDashboardContent() {
             <div className="space-y-4 py-4">
               {/* Dealership Information */}
               <div className="bg-blue-50 rounded-lg p-4 space-y-3">
-                <h3 className="font-semibold text-gray-900 mb-2">Dealership Information</h3>
+                <h3 className="font-semibold text-white mb-2">Dealership Information</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-700">Name:</span>
-                    <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.dealership.name}</p>
+                    <span className="text-sm font-medium text-slate-300">Name:</span>
+                    <p className="text-sm text-white mt-1">{selectedFeaturedRequest.dealership.name}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-700">Location:</span>
-                    <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.dealership.city}</p>
+                    <span className="text-sm font-medium text-slate-300">Location:</span>
+                    <p className="text-sm text-white mt-1">{selectedFeaturedRequest.dealership.city}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-700">Email:</span>
-                    <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.dealership.email}</p>
+                    <span className="text-sm font-medium text-slate-300">Email:</span>
+                    <p className="text-sm text-white mt-1">{selectedFeaturedRequest.dealership.email}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-700">Status:</span>
+                    <span className="text-sm font-medium text-slate-300">Status:</span>
                     <Badge className={`mt-1 ${
-                      selectedFeaturedRequest.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                      selectedFeaturedRequest.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                      selectedFeaturedRequest.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
-                      selectedFeaturedRequest.status === 'EXPIRED' ? 'bg-gray-100 text-gray-800' :
-                      'bg-red-100 text-red-800'
+                      selectedFeaturedRequest.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400' :
+                      selectedFeaturedRequest.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
+                      selectedFeaturedRequest.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400' :
+                      selectedFeaturedRequest.status === 'EXPIRED' ? 'bg-[#111827]/[0.04] text-slate-200' :
+                      'bg-red-500/10 text-red-400'
                     }`}>
                       {selectedFeaturedRequest.status}
                     </Badge>
@@ -12312,29 +12304,29 @@ function AdminDashboardContent() {
               </div>
 
               {/* Request Details */}
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                <h3 className="font-semibold text-gray-900 mb-2">Request Details</h3>
+              <div className="bg-[#0D1117] rounded-lg p-4 space-y-3">
+                <h3 className="font-semibold text-white mb-2">Request Details</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-700">Duration:</span>
-                    <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.duration} days</p>
+                    <span className="text-sm font-medium text-slate-300">Duration:</span>
+                    <p className="text-sm text-white mt-1">{selectedFeaturedRequest.duration} days</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-700">Amount:</span>
+                    <span className="text-sm font-medium text-slate-300">Amount:</span>
                     <p className="text-sm font-bold text-green-600 mt-1">N${selectedFeaturedRequest.amount}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-700">Requested:</span>
-                    <p className="text-sm text-gray-900 mt-1">
+                    <span className="text-sm font-medium text-slate-300">Requested:</span>
+                    <p className="text-sm text-white mt-1">
                       {new Date(selectedFeaturedRequest.requestedAt).toLocaleDateString()}
                     </p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-gray-700">Payment Status:</span>
+                    <span className="text-sm font-medium text-slate-300">Payment Status:</span>
                     <Badge className={`mt-1 ${
-                      selectedFeaturedRequest.paymentStatus === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                      selectedFeaturedRequest.paymentStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
+                      selectedFeaturedRequest.paymentStatus === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400' :
+                      selectedFeaturedRequest.paymentStatus === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
+                      'bg-red-500/10 text-red-400'
                     }`}>
                       {selectedFeaturedRequest.paymentStatus}
                     </Badge>
@@ -12345,17 +12337,17 @@ function AdminDashboardContent() {
               {/* Active Period (if approved) */}
               {selectedFeaturedRequest.startDate && selectedFeaturedRequest.endDate && (
                 <div className="bg-green-50 rounded-lg p-4 space-y-2">
-                  <h3 className="font-semibold text-gray-900 mb-2">Featured Period</h3>
+                  <h3 className="font-semibold text-white mb-2">Featured Period</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <span className="text-sm font-medium text-gray-700">Start Date:</span>
-                      <p className="text-sm text-gray-900 mt-1">
+                      <span className="text-sm font-medium text-slate-300">Start Date:</span>
+                      <p className="text-sm text-white mt-1">
                         {new Date(selectedFeaturedRequest.startDate).toLocaleDateString()}
                       </p>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-700">End Date:</span>
-                      <p className="text-sm text-gray-900 mt-1">
+                      <span className="text-sm font-medium text-slate-300">End Date:</span>
+                      <p className="text-sm text-white mt-1">
                         {new Date(selectedFeaturedRequest.endDate).toLocaleDateString()}
                       </p>
                     </div>
@@ -12366,15 +12358,15 @@ function AdminDashboardContent() {
               {/* Approval/Rejection Details */}
               {selectedFeaturedRequest.approvedAt && (
                 <div className="bg-blue-50 rounded-lg p-4 space-y-2">
-                  <h3 className="font-semibold text-gray-900 mb-2">Approval Details</h3>
+                  <h3 className="font-semibold text-white mb-2">Approval Details</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <span className="text-sm font-medium text-gray-700">Approved By:</span>
-                      <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.approvedBy || 'N/A'}</p>
+                      <span className="text-sm font-medium text-slate-300">Approved By:</span>
+                      <p className="text-sm text-white mt-1">{selectedFeaturedRequest.approvedBy || 'N/A'}</p>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-700">Approved At:</span>
-                      <p className="text-sm text-gray-900 mt-1">
+                      <span className="text-sm font-medium text-slate-300">Approved At:</span>
+                      <p className="text-sm text-white mt-1">
                         {new Date(selectedFeaturedRequest.approvedAt).toLocaleString()}
                       </p>
                     </div>
@@ -12384,22 +12376,22 @@ function AdminDashboardContent() {
 
               {selectedFeaturedRequest.rejectedAt && (
                 <div className="bg-red-50 rounded-lg p-4 space-y-2">
-                  <h3 className="font-semibold text-gray-900 mb-2">Rejection Details</h3>
+                  <h3 className="font-semibold text-white mb-2">Rejection Details</h3>
                   <div className="space-y-2">
                     <div>
-                      <span className="text-sm font-medium text-gray-700">Rejected By:</span>
-                      <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.rejectedBy || 'N/A'}</p>
+                      <span className="text-sm font-medium text-slate-300">Rejected By:</span>
+                      <p className="text-sm text-white mt-1">{selectedFeaturedRequest.rejectedBy || 'N/A'}</p>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-700">Rejected At:</span>
-                      <p className="text-sm text-gray-900 mt-1">
+                      <span className="text-sm font-medium text-slate-300">Rejected At:</span>
+                      <p className="text-sm text-white mt-1">
                         {new Date(selectedFeaturedRequest.rejectedAt).toLocaleString()}
                       </p>
                     </div>
                     {selectedFeaturedRequest.rejectionReason && (
                       <div>
-                        <span className="text-sm font-medium text-gray-700">Reason:</span>
-                        <p className="text-sm text-gray-900 mt-1">{selectedFeaturedRequest.rejectionReason}</p>
+                        <span className="text-sm font-medium text-slate-300">Reason:</span>
+                        <p className="text-sm text-white mt-1">{selectedFeaturedRequest.rejectionReason}</p>
                       </div>
                     )}
                   </div>
@@ -12409,8 +12401,8 @@ function AdminDashboardContent() {
               {/* Notes */}
               {selectedFeaturedRequest.notes && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Notes from Dealership:</label>
-                  <p className="text-sm text-gray-600 bg-gray-50 rounded p-3 border border-gray-200">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Notes from Dealership:</label>
+                  <p className="text-sm text-slate-400 bg-[#0D1117] rounded p-3 border border-white/[0.06]">
                     {selectedFeaturedRequest.notes}
                   </p>
                 </div>
@@ -12450,6 +12442,13 @@ function EventsAdminPanel() {
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
+  // Sub-panel tabs
+  const [subTab, setSubTab] = useState<'events' | 'inquiries'>('events');
+  const [inquiries, setInquiries] = useState<any[]>([]);
+  const [inquiriesLoading, setInquiriesLoading] = useState(false);
+  const [expandedInquiry, setExpandedInquiry] = useState<string | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+
   const CATEGORIES = ['Car Show', 'Auction', 'Expo', 'Track Day', 'Other'];
 
   const fetchEvents = async () => {
@@ -12463,6 +12462,31 @@ function EventsAdminPanel() {
   };
 
   useEffect(() => { fetchEvents(); }, []);
+
+  const fetchInquiries = async () => {
+    setInquiriesLoading(true);
+    try {
+      const res = await fetch('/api/events/advertise');
+      const data = await res.json();
+      setInquiries(Array.isArray(data) ? data : []);
+    } catch { setInquiries([]); }
+    finally { setInquiriesLoading(false); }
+  };
+
+  useEffect(() => { if (subTab === 'inquiries') fetchInquiries(); }, [subTab]);
+
+  const updateInquiryStatus = async (id: string, status: string) => {
+    setUpdatingStatus(id);
+    try {
+      await fetch('/api/events/advertise', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      });
+      await fetchInquiries();
+    } catch { alert('Failed to update status.'); }
+    finally { setUpdatingStatus(null); }
+  };
 
   const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setShowForm(true); };
   const openEdit = (ev: any) => {
@@ -12512,11 +12536,178 @@ function EventsAdminPanel() {
   const publishedCount = events.filter(e => e.isPublished).length;
   const featuredCount = events.filter(e => e.isFeatured).length;
 
-  const inputCls = 'w-full h-9 px-3 rounded-md border border-gray-300 text-sm text-gray-900 focus:outline-none focus:border-[#CB2030] focus:ring-2 focus:ring-[#CB2030]/10 bg-white';
-  const labelCls = 'block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1';
+  const inputCls = 'w-full h-9 px-3 rounded-md border border-white/[0.1] text-sm text-white focus:outline-none focus:border-[#CB2030] focus:ring-2 focus:ring-[#CB2030]/10 bg-[#111827]';
+  const labelCls = 'block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1';
+
+  const INQUIRY_STATUS_COLORS: Record<string, string> = {
+    PENDING: 'bg-amber-500/10 text-amber-400',
+    REVIEWED: 'bg-blue-500/10 text-blue-400',
+    APPROVED: 'bg-emerald-500/10 text-emerald-400',
+    REJECTED: 'bg-red-100 text-red-700',
+  };
+
+  const pendingCount = inquiries.filter(i => i.status === 'PENDING').length;
 
   return (
     <div className="space-y-6">
+      {/* Sub-tab navigation */}
+      <div className="flex items-center gap-1 border-b border-white/[0.06]">
+        <button
+          onClick={() => setSubTab('events')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
+            subTab === 'events'
+              ? 'border-[#CB2030] text-[#CB2030]'
+              : 'border-transparent text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          Manage Events
+        </button>
+        <button
+          onClick={() => setSubTab('inquiries')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
+            subTab === 'inquiries'
+              ? 'border-[#CB2030] text-[#CB2030]'
+              : 'border-transparent text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          <Megaphone className="w-4 h-4" />
+          Advertising Inquiries
+          {pendingCount > 0 && (
+            <span className="ml-1 bg-[#CB2030] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+              {pendingCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* ── Inquiries panel ── */}
+      {subTab === 'inquiries' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-white">Event Advertising Inquiries</h3>
+              <p className="text-sm text-slate-500 mt-0.5">
+                Companies requesting to list or promote their events on Cars.na
+              </p>
+            </div>
+            <Button size="sm" variant="outline" onClick={fetchInquiries} disabled={inquiriesLoading}>
+              {inquiriesLoading ? 'Refreshing…' : 'Refresh'}
+            </Button>
+          </div>
+
+          {inquiriesLoading ? (
+            <div className="text-center py-10 text-slate-500 text-sm">Loading inquiries…</div>
+          ) : inquiries.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Megaphone className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+                <p className="text-slate-500 font-medium">No inquiries yet</p>
+                <p className="text-sm text-slate-500 mt-1">
+                  Inquiries submitted via <strong>/events/advertise</strong> will appear here.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {inquiries.map((inq: any) => {
+                const isExpanded = expandedInquiry === inq.id;
+                return (
+                  <Card key={inq.id} className="overflow-hidden">
+                    <CardContent className="p-0">
+                      {/* Summary row */}
+                      <div className="flex items-center gap-4 p-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-white text-sm">{inq.eventName}</span>
+                            {inq.eventCategory && (
+                              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">
+                                {inq.eventCategory}
+                              </span>
+                            )}
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${INQUIRY_STATUS_COLORS[inq.status] ?? 'bg-[#111827]/[0.04] text-slate-400'}`}>
+                              {inq.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {inq.companyName} · {inq.contactName} · {inq.email}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {inq.eventDate} · {inq.eventLocation}
+                            {inq.expectedAttendees && ` · ${inq.expectedAttendees} expected`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => setExpandedInquiry(isExpanded ? null : inq.id)}
+                            className="text-xs text-[#1F3469] font-semibold hover:underline"
+                          >
+                            {isExpanded ? 'Collapse' : 'Details'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Expanded details */}
+                      {isExpanded && (
+                        <div className="border-t border-gray-100 p-4 bg-slate-50 space-y-4">
+                          <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Contact</p>
+                              <p className="text-slate-200">{inq.contactName}</p>
+                              <p className="text-slate-400">{inq.email}</p>
+                              <p className="text-slate-400">{inq.phone}</p>
+                              {inq.website && <p className="text-blue-600 text-xs mt-0.5">{inq.website}</p>}
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Event Info</p>
+                              <p className="text-slate-200 font-medium">{inq.eventName}</p>
+                              <p className="text-slate-400">{inq.eventDate} · {inq.eventLocation}</p>
+                              {inq.expectedAttendees && <p className="text-slate-400">Attendance: {inq.expectedAttendees}</p>}
+                              {inq.budget && <p className="text-slate-400">Budget: {inq.budget}</p>}
+                            </div>
+                          </div>
+                          {inq.description && (
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Description</p>
+                              <p className="text-sm text-slate-300 whitespace-pre-wrap">{inq.description}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Update Status</p>
+                            <div className="flex flex-wrap gap-2">
+                              {(['PENDING', 'REVIEWED', 'APPROVED', 'REJECTED'] as const).map(s => (
+                                <button
+                                  key={s}
+                                  disabled={inq.status === s || updatingStatus === inq.id}
+                                  onClick={() => updateInquiryStatus(inq.id, s)}
+                                  className={`text-xs px-3 py-1.5 rounded-md font-semibold border transition-all disabled:opacity-50 ${
+                                    inq.status === s
+                                      ? `${INQUIRY_STATUS_COLORS[s]} border-current`
+                                      : 'bg-[#111827] border-white/[0.1] text-slate-400 hover:border-gray-400'
+                                  }`}
+                                >
+                                  {s}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-500">
+                            Submitted {new Date(inq.createdAt).toLocaleDateString('en-NA', { dateStyle: 'medium' })}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Manage Events panel ── */}
+      {subTab === 'events' && <>
+
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
@@ -12531,8 +12722,8 @@ function EventsAdminPanel() {
                 <Icon className="w-4 h-4 text-white" />
               </div>
               <div>
-                <p className="text-xl font-extrabold text-gray-900">{value}</p>
-                <p className="text-xs text-gray-500">{label}</p>
+                <p className="text-xl font-extrabold text-white">{value}</p>
+                <p className="text-xs text-slate-500">{label}</p>
               </div>
             </CardContent>
           </Card>
@@ -12551,12 +12742,12 @@ function EventsAdminPanel() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center text-sm text-gray-400">Loading events…</div>
+            <div className="p-8 text-center text-sm text-slate-500">Loading events…</div>
           ) : events.length === 0 ? (
             <div className="p-12 text-center">
               <Calendar className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-500 mb-1">No events yet</p>
-              <p className="text-xs text-gray-400 mb-4">Create your first event to display it in the nav and events page.</p>
+              <p className="text-sm font-semibold text-slate-500 mb-1">No events yet</p>
+              <p className="text-xs text-slate-500 mb-4">Create your first event to display it in the nav and events page.</p>
               <Button size="sm" style={{ background: '#CB2030' }} className="text-white hover:opacity-90" onClick={openCreate}>
                 <Plus className="w-4 h-4 mr-1.5" /> Create Event
               </Button>
@@ -12565,12 +12756,12 @@ function EventsAdminPanel() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Event</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <tr className="border-b border-gray-100 bg-[#0D1117]">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Event</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Location</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Category</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -12578,34 +12769,34 @@ function EventsAdminPanel() {
                   {events.map(ev => {
                     const isPast = new Date(ev.date) < new Date();
                     return (
-                      <tr key={ev.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={ev.id} className="hover:bg-[#0D1117] transition-colors">
                         <td className="px-4 py-3">
-                          <div className="font-semibold text-gray-900 truncate max-w-[200px]">{ev.title}</div>
+                          <div className="font-semibold text-white truncate max-w-[200px]">{ev.title}</div>
                           {ev.isFeatured && (
                             <span className="text-[10px] font-bold text-amber-600 uppercase">Featured</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                        <td className="px-4 py-3 text-slate-400 whitespace-nowrap">
                           {new Date(ev.date).toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          {isPast && <span className="ml-1.5 text-[10px] text-gray-400 font-semibold uppercase">Past</span>}
+                          {isPast && <span className="ml-1.5 text-[10px] text-slate-500 font-semibold uppercase">Past</span>}
                         </td>
-                        <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate">{ev.location || '—'}</td>
+                        <td className="px-4 py-3 text-slate-500 max-w-[140px] truncate">{ev.location || '—'}</td>
                         <td className="px-4 py-3">
                           {ev.category ? (
-                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{ev.category}</span>
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#111827]/[0.04] text-slate-400">{ev.category}</span>
                           ) : '—'}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${ev.isPublished ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${ev.isPublished ? 'bg-green-50 text-green-700' : 'bg-[#111827]/[0.04] text-slate-500'}`}>
                             {ev.isPublished ? 'Published' : 'Draft'}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => openEdit(ev)} className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                            <button onClick={() => openEdit(ev)} className="p-1.5 rounded-md text-slate-500 hover:text-slate-300 hover:bg-[#111827]/[0.04] transition-colors">
                               <Edit className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={() => setDeleting(ev)} className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                            <button onClick={() => setDeleting(ev)} className="p-1.5 rounded-md text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors">
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -12678,11 +12869,11 @@ function EventsAdminPanel() {
               <input className={inputCls} value={form.externalUrl} onChange={e => setForm((f: any) => ({ ...f, externalUrl: e.target.value }))} placeholder="https://..." />
             </div>
             <div className="flex items-center gap-6 pt-1">
-              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+              <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer select-none">
                 <input type="checkbox" checked={form.isPublished} onChange={e => setForm((f: any) => ({ ...f, isPublished: e.target.checked }))} className="accent-[#CB2030] w-4 h-4" />
                 Published (visible on site)
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+              <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer select-none">
                 <input type="checkbox" checked={form.isFeatured} onChange={e => setForm((f: any) => ({ ...f, isFeatured: e.target.checked }))} className="accent-[#CB2030] w-4 h-4" />
                 Featured (highlighted)
               </label>
@@ -12696,6 +12887,8 @@ function EventsAdminPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      </> }
 
       {/* Delete confirmation */}
       <Dialog open={!!deleting} onOpenChange={open => { if (!open) setDeleting(null); }}>

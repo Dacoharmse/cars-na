@@ -4,6 +4,7 @@
 import { z } from "zod";
 import { router, publicProcedure, protectedProcedure, dealerProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
+import { sendCustomNotificationEmail } from "@/lib/email-helpers";
 
 export const leadRouter = router({
   // Create a new lead (public procedure for contact forms)
@@ -61,6 +62,47 @@ export const leadRouter = router({
           },
         },
       });
+
+      // Notify all dealership users about the new lead
+      try {
+        const dealershipUsers = await ctx.prisma.user.findMany({
+          where: {
+            dealershipId: vehicle.dealershipId,
+            role: { in: ['DEALER_PRINCIPAL', 'SALES_EXECUTIVE'] },
+          },
+          select: { id: true, name: true, email: true },
+        });
+
+        const vehicleLabel = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+
+        // Create system notifications for all dealership users
+        if (dealershipUsers.length > 0) {
+          await ctx.prisma.notification.createMany({
+            data: dealershipUsers.map((u) => ({
+              userId: u.id,
+              type: 'NEW_LEAD' as const,
+              title: 'New Customer Inquiry',
+              message: `${input.customerName} inquired about ${vehicleLabel}`,
+              link: '/dealer/dashboard?tab=leads',
+              metadata: { leadId: lead.id, vehicleId: input.vehicleId },
+            })),
+          });
+
+          // Send email notifications (fire-and-forget)
+          for (const u of dealershipUsers) {
+            sendCustomNotificationEmail(
+              u.email,
+              u.name || 'Team Member',
+              `New Inquiry: ${vehicleLabel}`,
+              `${input.customerName} has sent an inquiry about the ${vehicleLabel}.\n\n` +
+              (input.message ? `Message: "${input.message}"\n\n` : '') +
+              `Log in to your Cars.na dashboard to respond.`
+            ).catch(() => {});
+          }
+        }
+      } catch (notifError) {
+        console.error('Failed to send new lead notifications:', notifError);
+      }
 
       return lead;
     }),

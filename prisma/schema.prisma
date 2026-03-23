@@ -171,9 +171,10 @@ model Vehicle {
   comfortFeatures String[] @default([]) // Array of comfort feature names
   safetyFeatures  String[] @default([]) // Array of safety feature names
 
-  isPrivate  Boolean       @default(false)
-  status     VehicleStatus @default(AVAILABLE)
-  isNew      Boolean       @default(false) // Whether the vehicle is brand new or used
+  isPrivate   Boolean       @default(false)
+  financing   Boolean       @default(true)  // Whether financing is available on this vehicle
+  status      VehicleStatus @default(AVAILABLE)
+  isNew       Boolean       @default(false) // Whether the vehicle is brand new or used
   dealerPick Boolean       @default(false) // Whether this is a dealer-selected premium vehicle
   featured   Boolean       @default(false) // Whether this is a featured vehicle
   viewCount  Int           @default(0) // Number of times the vehicle listing was viewed
@@ -580,6 +581,8 @@ enum NotificationType {
   INVOICE_OVERDUE
   INVOICE_PAID
   ACCESS_RESTRICTED
+  NEW_LEAD
+  LEAD_MENTION
 }
 
 enum InvoiceStatus {
@@ -1040,4 +1043,27 @@ model Event {
 
   @@index([date])
   @@index([isPublished])
+}
+
+model EventAdvertiseInquiry {
+  id                String  @id @default(cuid())
+  companyName       String
+  contactName       String
+  email             String
+  phone             String
+  website           String?
+  eventName         String
+  eventDate         String
+  eventCategory     String?
+  eventLocation     String
+  expectedAttendees String?
+  description       String? @db.Text
+  budget            String?
+  status            String  @default("PENDING") // PENDING, REVIEWED, APPROVED, REJECTED
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
 }

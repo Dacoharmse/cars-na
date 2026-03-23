@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -10,16 +11,21 @@ import {
   Crown,
   Zap,
   Phone,
-  Mail,
-  MessageSquare,
-  TrendingUp,
-  Camera,
   Search,
   BarChart3,
+  Camera,
   Shield,
   Headphones,
-  Sparkles
+  TrendingUp,
+  ArrowRight,
+  MessageSquare,
 } from 'lucide-react';
+
+/* ── Brand palette ─────────────────────────────────── */
+const BRAND = {
+  navy: '#1F3469',
+  red: '#CB2030',
+};
 
 interface PricingPlan {
   id: string;
@@ -31,8 +37,11 @@ interface PricingPlan {
   period: string;
   popular: boolean;
   features: string[];
-  limitations?: string[];
-  color: string;
+  color: {
+    gradient: string;
+    ring: string;
+    badge: string;
+  };
   buttonText: string;
 }
 
@@ -45,7 +54,11 @@ const pricingPlans: PricingPlan[] = [
     price: 899,
     period: 'month',
     popular: false,
-    color: 'border-blue-200 hover:border-blue-300',
+    color: {
+      gradient: 'from-blue-500 to-blue-600',
+      ring: 'hover:border-blue-300',
+      badge: 'bg-blue-50 text-blue-700',
+    },
     buttonText: 'Start Free Trial',
     features: [
       'Up to 25 vehicle listings',
@@ -57,13 +70,8 @@ const pricingPlans: PricingPlan[] = [
       'Mobile-responsive listings',
       'Email support',
       'Dealership profile page',
-      'Basic listing promotion'
+      'Basic listing promotion',
     ],
-    limitations: [
-      'Limited to 25 listings',
-      'Basic analytics only',
-      'Email support only'
-    ]
   },
   {
     id: 'professional',
@@ -74,7 +82,11 @@ const pricingPlans: PricingPlan[] = [
     originalPrice: 2999,
     period: 'month',
     popular: true,
-    color: 'border-purple-300 hover:border-purple-400 ring-2 ring-purple-500',
+    color: {
+      gradient: 'from-violet-500 to-purple-600',
+      ring: 'ring-2 ring-[#CB2030]/20 border-[#CB2030]/40',
+      badge: 'bg-violet-50 text-violet-700',
+    },
     buttonText: 'Start Professional',
     features: [
       'Up to 100 vehicle listings',
@@ -91,8 +103,8 @@ const pricingPlans: PricingPlan[] = [
       'Performance insights dashboard',
       'Inventory management tools',
       'Phone & email support',
-      'CRM integration ready'
-    ]
+      'CRM integration ready',
+    ],
   },
   {
     id: 'enterprise',
@@ -102,7 +114,11 @@ const pricingPlans: PricingPlan[] = [
     price: 4999,
     period: 'month',
     popular: false,
-    color: 'border-yellow-200 hover:border-yellow-300',
+    color: {
+      gradient: 'from-amber-500 to-yellow-500',
+      ring: 'hover:border-amber-300',
+      badge: 'bg-amber-50 text-amber-700',
+    },
     buttonText: 'Contact Sales',
     features: [
       'Unlimited vehicle listings',
@@ -124,259 +140,278 @@ const pricingPlans: PricingPlan[] = [
       'Exclusive dealer badge',
       'First-to-market new arrivals',
       'Custom marketing campaigns',
-      'Priority customer support'
-    ]
-  }
+      'Priority customer support',
+    ],
+  },
 ];
 
 const features = [
   {
     icon: Search,
     title: 'Enhanced Visibility',
-    description: 'Get your vehicles seen by thousands of potential buyers across Namibia'
+    description: 'Get your vehicles seen by thousands of potential buyers across Namibia',
   },
   {
     icon: BarChart3,
     title: 'Advanced Analytics',
-    description: 'Track performance, leads, and conversions with detailed insights'
+    description: 'Track performance, leads, and conversions with detailed insights',
   },
   {
     icon: Camera,
     title: 'Professional Listings',
-    description: 'Showcase vehicles with high-quality photos and 360° virtual tours'
+    description: 'Showcase vehicles with high-quality photos and 360° virtual tours',
   },
   {
     icon: Shield,
     title: 'Trusted Platform',
-    description: 'Join Namibia\'s most trusted automotive marketplace'
+    description: "Join Namibia's most trusted automotive marketplace",
   },
   {
     icon: Headphones,
     title: 'Dedicated Support',
-    description: 'Get expert help when you need it with our support team'
+    description: 'Get expert help when you need it with our support team',
   },
   {
     icon: TrendingUp,
     title: 'Grow Your Business',
-    description: 'Increase sales and reach more customers than ever before'
-  }
+    description: 'Increase sales and reach more customers than ever before',
+  },
 ];
 
 const testimonials = [
   {
-    name: 'Johannes Müller',
+    name: 'Johannes Muller',
     company: 'Premium Motors Windhoek',
-    quote: 'Cars.na has transformed our business. We\'ve seen a 300% increase in leads since joining.',
-    plan: 'Enterprise'
+    quote: "Cars.na has transformed our business. We've seen a 300% increase in leads since joining.",
+    plan: 'Enterprise',
   },
   {
     name: 'Maria Silva',
     company: 'City Auto Traders',
     quote: 'The Professional plan gives us everything we need. Excellent value for money.',
-    plan: 'Professional'
+    plan: 'Professional',
   },
   {
     name: 'David Shikongo',
     company: 'Desert Wheels',
     quote: 'Started with Starter plan and quickly upgraded. The platform is easy to use and effective.',
-    plan: 'Starter'
-  }
+    plan: 'Starter',
+  },
 ];
 
 export default function PricingPage() {
+  const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   const getDiscountedPrice = (price: number) => {
     return billingPeriod === 'annual' ? Math.round(price * 0.85) : price;
   };
 
+  const formatNAD = (amount: number) => {
+    return `N$ ${amount.toLocaleString()}`;
+  };
+
   const handleSelectPlan = (planId: string) => {
-    setSelectedPlan(planId);
-    // Implementation would redirect to signup/checkout
-    console.log('Selected plan:', planId);
+    // Redirect to dealer login / signup with plan context
+    router.push(`/dealer/login?plan=${planId}`);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-700 text-white">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 py-16 sm:py-24">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Choose Your <span className="text-yellow-300">Success</span> Plan
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto opacity-90">
-              Join Namibia's leading automotive marketplace and grow your dealership with our powerful platform
-            </p>
-            <div className="flex justify-center items-center space-x-4">
-              <Badge className="bg-green-500 text-white px-4 py-2">
-                <Sparkles className="w-4 h-4 mr-2" />
-                30-Day Free Trial
-              </Badge>
-              <Badge className="bg-blue-500 text-white px-4 py-2">
-                No Setup Fees
-              </Badge>
-            </div>
-          </div>
+    <div className="min-h-screen bg-white">
+      {/* ── Hero Section ────────────────────────────── */}
+      <div className="relative overflow-hidden" style={{ background: BRAND.navy }}>
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+          backgroundSize: '24px 24px',
+        }} />
+        <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-20 text-center">
+          <Badge className="bg-white/10 text-white border-white/20 backdrop-blur-sm mb-6 px-4 py-1.5 text-sm">
+            30-Day Free Trial &middot; No Setup Fees
+          </Badge>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-5 tracking-tight leading-tight">
+            Grow Your Dealership<br />
+            <span style={{ color: '#F59E0B' }}>With the Right Plan</span>
+          </h1>
+          <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+            Join Namibia's leading automotive marketplace. Powerful tools, real leads, measurable results.
+          </p>
         </div>
       </div>
 
-      {/* Billing Toggle */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center bg-gray-100 rounded-lg p-1">
+      <div className="max-w-6xl mx-auto px-4">
+        {/* ── Billing Toggle ────────────────────────── */}
+        <div className="flex justify-center -mt-6 mb-12">
+          <div className="inline-flex items-center bg-white rounded-xl shadow-lg border border-slate-100 p-1.5">
             <button
               onClick={() => setBillingPeriod('monthly')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                 billingPeriod === 'monthly'
-                  ? 'bg-white text-gray-900 shadow'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               Monthly
             </button>
             <button
               onClick={() => setBillingPeriod('annual')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
                 billingPeriod === 'annual'
-                  ? 'bg-white text-gray-900 shadow'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               Annual
-              <Badge className="ml-2 bg-green-500 text-white text-xs">
-                Save 15%
-              </Badge>
+              <span className="text-[10px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">
+                -15%
+              </span>
             </button>
           </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+        {/* ── Pricing Cards ─────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-20">
           {pricingPlans.map((plan) => {
             const Icon = plan.icon;
             const discountedPrice = getDiscountedPrice(plan.price);
 
             return (
-              <Card key={plan.id} className={`relative ${plan.color} transition-all duration-300 hover:shadow-xl`}>
+              <div
+                key={plan.id}
+                className={`relative rounded-2xl border-2 bg-white transition-all duration-300 hover:shadow-xl ${
+                  plan.popular
+                    ? plan.color.ring
+                    : 'border-slate-200 ' + plan.color.ring
+                }`}
+              >
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-purple-500 text-white px-6 py-2">
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                    <Badge className="text-white px-5 py-1 text-xs font-bold shadow-md" style={{ background: BRAND.red }}>
                       Most Popular
                     </Badge>
                   </div>
                 )}
 
-                <CardHeader className="text-center pb-2">
-                  <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-                      <Icon className="w-8 h-8 text-white" />
+                <div className="p-6 pb-0">
+                  {/* Plan icon + name */}
+                  <div className="flex items-center gap-3 mb-4 pt-2">
+                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${plan.color.gradient} flex items-center justify-center shadow-sm`}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
+                      <p className="text-xs text-slate-500">{plan.description}</p>
                     </div>
                   </div>
-                  <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-                  <p className="text-gray-600 text-sm">{plan.description}</p>
 
-                  <div className="mt-4">
-                    <div className="flex items-center justify-center">
+                  {/* Price */}
+                  <div className="mb-5">
+                    <div className="flex items-baseline gap-2">
                       {plan.originalPrice && billingPeriod === 'monthly' && (
-                        <span className="text-lg text-gray-400 line-through mr-2">
-                          NAD {plan.originalPrice.toLocaleString()}
+                        <span className="text-base text-slate-300 line-through tabular-nums">
+                          {formatNAD(plan.originalPrice)}
                         </span>
                       )}
-                      <span className="text-4xl font-bold text-gray-900">
-                        NAD {discountedPrice.toLocaleString()}
+                      <span className="text-4xl font-bold text-slate-900 tabular-nums tracking-tight">
+                        {formatNAD(discountedPrice)}
                       </span>
                     </div>
-                    <p className="text-gray-600 text-sm mt-1">
-                      per {billingPeriod === 'annual' ? 'month (billed annually)' : 'month'}
+                    <p className="text-sm text-slate-500 mt-1">
+                      per {billingPeriod === 'annual' ? 'month, billed annually' : 'month'}
                     </p>
                     {billingPeriod === 'annual' && (
-                      <p className="text-green-600 text-xs font-medium mt-1">
-                        Save NAD {((plan.price - discountedPrice) * 12).toLocaleString()} annually
+                      <p className="text-xs font-semibold text-emerald-600 mt-1">
+                        Save {formatNAD((plan.price - discountedPrice) * 12)} per year
                       </p>
                     )}
                   </div>
-                </CardHeader>
 
-                <CardContent className="px-6 pb-6">
+                  {/* CTA */}
                   <Button
                     onClick={() => handleSelectPlan(plan.id)}
-                    className={`w-full mb-6 ${
+                    className={`w-full mb-5 h-11 font-semibold ${
                       plan.popular
-                        ? 'bg-purple-600 hover:bg-purple-700'
-                        : 'bg-blue-600 hover:bg-blue-700'
+                        ? 'text-white hover:opacity-90 shadow-sm'
+                        : 'text-white'
                     }`}
+                    style={{ background: plan.popular ? BRAND.red : BRAND.navy }}
                   >
                     {plan.buttonText}
+                    <ArrowRight className="w-4 h-4 ml-1.5" />
                   </Button>
+                </div>
 
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-gray-900 text-sm">What's included:</h4>
-                    <ul className="space-y-2">
-                      {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-start text-sm text-gray-600">
-                          <Check className="w-4 h-4 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
+                {/* Features list */}
+                <div className="border-t border-slate-100 px-6 py-5">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">What's included</p>
+                  <ul className="space-y-2.5">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start text-sm text-slate-600 gap-2.5">
+                        <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             );
           })}
         </div>
 
-        {/* Features Section */}
-        <div className="bg-gray-50 rounded-2xl p-8 mb-16">
+        {/* ── Why Choose Us ─────────────────────────── */}
+        <div className="mb-20">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight mb-3">
               Why Choose Cars.na?
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Join thousands of successful dealerships already growing their business with our platform
+            <p className="text-slate-500 max-w-lg mx-auto">
+              Join successful dealerships already growing their business with our platform
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <div key={index} className="text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <Icon className="w-6 h-6 text-blue-600" />
+                <div key={index} className="group rounded-xl border border-slate-100 p-5 hover:shadow-md hover:border-slate-200 transition-all">
+                  <div className="w-10 h-10 rounded-lg bg-slate-50 group-hover:bg-[#E8EDF5] flex items-center justify-center mb-4 transition-colors">
+                    <Icon className="w-5 h-5 text-slate-500 group-hover:text-[#1F3469] transition-colors" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 text-sm">{feature.description}</p>
+                  <h3 className="font-semibold text-slate-900 mb-1.5">{feature.title}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">{feature.description}</p>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Testimonials */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Trusted by Leading Dealerships
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+        {/* ── Testimonials ──────────────────────────── */}
+        <div className="mb-20">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight mb-3">
+              Trusted by Leading Dealerships
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 shadow-lg">
+              <Card key={index} className="border-slate-100 hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                  <div className="flex items-center gap-0.5 mb-4">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
                     ))}
                   </div>
-                  <p className="text-gray-600 mb-4 italic">"{testimonial.quote}"</p>
-                  <div>
-                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                    <p className="text-sm text-gray-600">{testimonial.company}</p>
-                    <Badge className="mt-2 bg-blue-100 text-blue-800">
-                      {testimonial.plan} Plan
-                    </Badge>
+                  <p className="text-slate-600 mb-5 text-sm leading-relaxed italic">
+                    "{testimonial.quote}"
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">
+                      {testimonial.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900 text-sm">{testimonial.name}</p>
+                      <p className="text-xs text-slate-500">{testimonial.company}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -384,22 +419,38 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-700 rounded-2xl text-white text-center p-8">
-          <h2 className="text-3xl font-bold mb-4">
-            Ready to Grow Your Dealership?
-          </h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join Cars.na today and start reaching more customers than ever before
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3">
-              Start Free Trial
-            </Button>
-            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3">
-              <Phone className="w-4 h-4 mr-2" />
-              Call Sales: +264 81 449 4433
-            </Button>
+        {/* ── CTA Section ───────────────────────────── */}
+        <div className="mb-16 rounded-2xl overflow-hidden" style={{ background: BRAND.navy }}>
+          <div className="relative px-8 py-14 text-center">
+            <div className="absolute inset-0 opacity-[0.03]" style={{
+              backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+              backgroundSize: '20px 20px',
+            }} />
+            <div className="relative">
+              <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">
+                Ready to Grow Your Dealership?
+              </h2>
+              <p className="text-lg text-white/60 mb-8 max-w-lg mx-auto">
+                Start your free trial today and reach more customers than ever before
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
+                <Button
+                  className="bg-white hover:bg-slate-50 px-7 h-12 font-semibold shadow-lg"
+                  style={{ color: BRAND.navy }}
+                  onClick={() => handleSelectPlan('professional')}
+                >
+                  Start Free Trial
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-white/30 text-white hover:bg-white/10 px-7 h-12 font-semibold"
+                >
+                  <Phone className="w-4 h-4 mr-2" />
+                  +264 81 449 4433
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

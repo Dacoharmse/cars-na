@@ -73,6 +73,7 @@ export async function GET(
         length: vehicle.length,
         weight: vehicle.weight,
         isNew: vehicle.isNew,
+        financing: vehicle.financing,
         status: vehicle.status,
         comfort: vehicle.comfortFeatures,
         safety: vehicle.safetyFeatures,
@@ -161,6 +162,7 @@ export async function PUT(
         length: vehicleData.length ? parseFloat(vehicleData.length) : null,
         weight: vehicleData.weight ? parseFloat(vehicleData.weight) : null,
         isNew: vehicleData.isNew || false,
+        financing: vehicleData.financing !== undefined ? vehicleData.financing : true,
         status: vehicleData.status || 'AVAILABLE',
         comfortFeatures: vehicleData.comfort || [],
         safetyFeatures: vehicleData.safety || []

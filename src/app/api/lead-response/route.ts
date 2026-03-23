@@ -3,6 +3,12 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import nodemailer from 'nodemailer';
+import { sendCustomNotificationEmail } from '@/lib/email-helpers';
+
+// Strip @mention markup for customer-facing content: @[Name](userId) → @Name
+function stripMentionMarkup(text: string): string {
+  return text.replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1');
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -87,7 +93,7 @@ export async function POST(request: NextRequest) {
                 ${vehicleInfo}
 
                 <div style="background: #f8f9fa; border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <p style="color: #374151; margin: 0; white-space: pre-wrap; line-height: 1.6;">${message}</p>
+                  <p style="color: #374151; margin: 0; white-space: pre-wrap; line-height: 1.6;">${stripMentionMarkup(message)}</p>
                 </div>
 
                 <div style="margin-top: 25px; text-align: center;">
@@ -115,7 +121,7 @@ Thank you for your inquiry. Here is our response:
 
 ${lead.vehicle ? `Regarding: ${lead.vehicle.year} ${lead.vehicle.make} ${lead.vehicle.model}` : ''}
 
-${message}
+${stripMentionMarkup(message)}
 
 ---
 If you have any further questions, feel free to reply to this email or contact us directly.
@@ -162,14 +168,84 @@ ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Windhoek', dateStyle: '
       },
     });
 
-    // Update lead status to CONTACTED
+    // Update lead status to CONTACTED if still NEW
     await prisma.lead.update({
       where: { id: leadId },
       data: {
-        status: 'CONTACTED',
+        status: lead.status === 'NEW' ? 'CONTACTED' : lead.status,
         updatedAt: new Date(),
       },
     });
+
+    // --- @mention notifications ---
+    // Parse @mentions from message content (format: @[Name](userId))
+    const mentionRegex = /@\[([^\]]+)\]\(([^)]+)\)/g;
+    const mentions: { name: string; userId: string }[] = [];
+    let match;
+    while ((match = mentionRegex.exec(message)) !== null) {
+      mentions.push({ name: match[1], userId: match[2] });
+    }
+
+    // Get all dealership team members for notifications
+    try {
+      const dealershipUsers = await prisma.user.findMany({
+        where: {
+          dealershipId: lead.dealershipId,
+          role: { in: ['DEALER_PRINCIPAL', 'SALES_EXECUTIVE'] },
+          id: { not: user?.id }, // Exclude the sender
+        },
+        select: { id: true, name: true, email: true },
+      });
+
+      const mentionedUserIds = new Set(mentions.map(m => m.userId));
+      const senderName = user?.name || session.user.name || 'A team member';
+      const vehicleLabel = lead.vehicle
+        ? `${lead.vehicle.year} ${lead.vehicle.make} ${lead.vehicle.model}`
+        : 'General Inquiry';
+
+      // Create notifications
+      const notifications = [];
+
+      for (const teamUser of dealershipUsers) {
+        if (mentionedUserIds.has(teamUser.id)) {
+          // @mentioned user gets a LEAD_MENTION notification + email
+          notifications.push({
+            userId: teamUser.id,
+            type: 'LEAD_MENTION' as const,
+            title: `${senderName} mentioned you`,
+            message: `You were mentioned in a response to ${lead.customerName} about ${vehicleLabel}`,
+            link: '/dealer/dashboard?tab=leads',
+            metadata: { leadId, mentionedBy: user?.id },
+          });
+
+          // Send email to mentioned user
+          sendCustomNotificationEmail(
+            teamUser.email,
+            teamUser.name || 'Team Member',
+            `${senderName} mentioned you in a lead response`,
+            `${senderName} mentioned you in a response to ${lead.customerName} regarding ${vehicleLabel}.\n\n` +
+            `Message: "${stripMentionMarkup(message)}"\n\n` +
+            `Log in to your Cars.na dashboard to view the full conversation.`
+          ).catch(() => {});
+        } else {
+          // Other team members get a MESSAGE_RECEIVED notification (no email)
+          notifications.push({
+            userId: teamUser.id,
+            type: 'MESSAGE_RECEIVED' as const,
+            title: 'New response in lead conversation',
+            message: `${senderName} responded to ${lead.customerName} about ${vehicleLabel}`,
+            link: '/dealer/dashboard?tab=leads',
+            metadata: { leadId },
+          });
+        }
+      }
+
+      if (notifications.length > 0) {
+        await prisma.notification.createMany({ data: notifications });
+      }
+    } catch (notifError) {
+      console.error('Failed to send lead response notifications:', notifError);
+    }
 
     return NextResponse.json({
       success: true,

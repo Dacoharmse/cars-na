@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import nodemailer from 'nodemailer';
+
+// HTML escape helper to prevent XSS in email templates
+function esc(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 // Create a transporter for sending emails
 // In production, use your actual SMTP credentials
@@ -23,6 +35,12 @@ const createTransporter = () => {
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth guard — admin only
+    const session = await getServerSession(authOptions);
+    if (!session?.user || (session.user as any).role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { subject, message, recipients } = body;
 
@@ -114,9 +132,9 @@ export async function POST(request: NextRequest) {
                   <h1>Cars.na Newsletter</h1>
                 </div>
                 <div class="content">
-                  <p>Hello ${recipient.name},</p>
+                  <p>Hello ${esc(recipient.name)},</p>
                   <div class="message">
-                    ${message.replace(/\n/g, '<br>')}
+                    ${esc(message).replace(/\n/g, '<br>')}
                   </div>
                   <div class="footer">
                     <p>This email was sent to you as a registered dealer on Cars.na platform.</p>
