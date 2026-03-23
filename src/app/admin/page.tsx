@@ -1135,9 +1135,9 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { bg: string; text: string; label: string }> = {
-      PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pending' },
-      APPROVED: { bg: 'bg-green-100', text: 'text-green-800', label: 'Approved' },
-      REJECTED: { bg: 'bg-red-100', text: 'text-red-800', label: 'Rejected' },
+      PENDING: { bg: 'bg-amber-500/10', text: 'text-amber-400', label: 'Pending' },
+      APPROVED: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', label: 'Approved' },
+      REJECTED: { bg: 'bg-red-500/10', text: 'text-red-400', label: 'Rejected' },
     };
     const variant = variants[status] || variants.PENDING;
     return (
@@ -1202,7 +1202,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="bg-[#111827] border-white/[0.06]">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -1213,7 +1213,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-[#111827] border-white/[0.06]">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -1224,7 +1224,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-[#111827] border-white/[0.06]">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -1235,7 +1235,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-[#111827] border-white/[0.06]">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -1249,7 +1249,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 border-b">
+      <div className="flex gap-2 border-b border-white/[0.06]">
         {['all', 'pending', 'approved', 'rejected'].map((status) => (
           <button
             key={status}
@@ -1266,7 +1266,7 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
       </div>
 
       {/* Listings Table */}
-      <Card>
+      <Card className="bg-[#111827] border-white/[0.06]">
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
@@ -3818,7 +3818,7 @@ function AdminDashboardContent() {
         <div className="p-3 border-t border-white/[0.06]">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+            className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/100/10 rounded-lg transition-colors cursor-pointer"
           >
             <LogOut className="h-[18px] w-[18px] text-red-400" />
             {!sidebarCollapsed && <span className="ml-3">Logout</span>}
@@ -4023,60 +4023,60 @@ function AdminDashboardContent() {
               {/* Alerts and Activity */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Pending Approvals */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Pending Approvals</CardTitle>
+                      <CardTitle className="text-lg text-white">Pending Approvals</CardTitle>
                       <AlertTriangle className="h-5 w-5 text-yellow-500" />
                     </div>
-                    <CardDescription>Items requiring immediate admin attention</CardDescription>
+                    <CardDescription className="text-slate-400">Items requiring immediate admin attention</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
                       <div>
-                        <p className="font-medium">New Dealer Applications</p>
+                        <p className="font-medium text-white">New Dealer Applications</p>
                         <p className="text-sm text-slate-400">Awaiting verification</p>
                       </div>
-                      <Badge className="bg-amber-500/10 text-amber-400">{adminStats.pendingDealers}</Badge>
+                      <Badge className="bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20">{adminStats.pendingDealers}</Badge>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
                       <div>
-                        <p className="font-medium">Flagged Listings</p>
+                        <p className="font-medium text-white">Flagged Listings</p>
                         <p className="text-sm text-slate-400">Reported content</p>
                       </div>
-                      <Badge className="bg-orange-500/10 text-orange-400">0</Badge>
+                      <Badge className="bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20">0</Badge>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-red-500/10 rounded-lg border border-red-500/20">
                       <div>
-                        <p className="font-medium">User Reports</p>
+                        <p className="font-medium text-white">User Reports</p>
                         <p className="text-sm text-slate-400">Moderation queue</p>
                       </div>
-                      <Badge className="bg-red-500/10 text-red-400">0</Badge>
+                      <Badge className="bg-red-500/10 text-red-400 ring-1 ring-red-500/20">0</Badge>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* System Health */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">System Health</CardTitle>
+                      <CardTitle className="text-lg text-white">System Health</CardTitle>
                       <Activity className="h-5 w-5 text-green-500" />
                     </div>
-                    <CardDescription>Real-time platform performance</CardDescription>
+                    <CardDescription className="text-slate-400">Real-time platform performance</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Server Status</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-400">Healthy</Badge>
+                      <span className="text-sm font-medium text-slate-300">Server Status</span>
+                      <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">Healthy</Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Database</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-400">Online</Badge>
+                      <span className="text-sm font-medium text-slate-300">Database</span>
+                      <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">Online</Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">API Response</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-400">Fast</Badge>
+                      <span className="text-sm font-medium text-slate-300">API Response</span>
+                      <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">Fast</Badge>
                     </div>
                     <div className="mt-4">
                       <p className="text-xs text-slate-500">99.9% uptime</p>
@@ -4086,10 +4086,10 @@ function AdminDashboardContent() {
                 </Card>
 
                 {/* Recent Activity */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
-                    <CardTitle className="text-lg">Recent Activity</CardTitle>
-                    <CardDescription>Latest 24-hour platform events</CardDescription>
+                    <CardTitle className="text-lg text-white">Recent Activity</CardTitle>
+                    <CardDescription className="text-slate-400">Latest 24-hour platform events</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {users.length === 0 && listings.length === 0 ? (
@@ -4109,7 +4109,7 @@ function AdminDashboardContent() {
                         ))}
                         {listings.slice(0, 2).map((listing, idx) => (
                           <div key={listing.id} className="flex items-center gap-3">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <div className="w-2 h-2 bg-blue-500/100 rounded-full"></div>
                             <div>
                               <p className="text-sm font-medium">New listing: {listing.title}</p>
                               <p className="text-xs text-slate-500">{listing.dealer}</p>
@@ -4125,56 +4125,56 @@ function AdminDashboardContent() {
               {/* Revenue & Performance Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Revenue Trend */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
+                    <CardTitle className="flex items-center justify-between text-white">
                       <span>Revenue Trend (Last 6 Months)</span>
                       <BarChart3 className="h-5 w-5 text-slate-500" />
                     </CardTitle>
-                    <CardDescription>Monthly revenue comparison</CardDescription>
+                    <CardDescription className="text-slate-400">Monthly revenue comparison</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="text-center py-12 text-slate-500">
-                      <BarChart3 className="h-12 w-12 mx-auto mb-3 text-slate-500" />
-                      <p className="text-sm font-medium mb-1">No revenue data yet</p>
+                      <BarChart3 className="h-12 w-12 mx-auto mb-3 text-slate-600" />
+                      <p className="text-sm font-medium mb-1 text-slate-400">No revenue data yet</p>
                       <p className="text-xs">Revenue trends will appear once payments are processed</p>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Top Performing Dealers */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
+                    <CardTitle className="flex items-center justify-between text-white">
                       <span>Top Performing Dealers</span>
                       <Star className="h-5 w-5 text-amber-500" />
                     </CardTitle>
-                    <CardDescription>Based on listings and revenue</CardDescription>
+                    <CardDescription className="text-slate-400">Based on listings and revenue</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {topDealers.length === 0 ? (
                       <div className="text-center py-12 text-slate-500">
-                        <Star className="h-12 w-12 mx-auto mb-3 text-slate-500" />
-                        <p className="text-sm font-medium mb-1">No dealers yet</p>
+                        <Star className="h-12 w-12 mx-auto mb-3 text-slate-600" />
+                        <p className="text-sm font-medium mb-1 text-slate-400">No dealers yet</p>
                         <p className="text-xs">Top dealers will appear once dealerships are approved</p>
                       </div>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {topDealers.map((dealer, idx) => (
                           <div
                             key={dealer.id}
                             className={`flex items-center gap-3 p-3 rounded-lg border ${
-                              idx === 0 ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200' :
-                              idx === 1 ? 'bg-gradient-to-r from-gray-50 to-slate-50 border-white/[0.06]' :
-                              idx === 2 ? 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200' :
-                              ''
+                              idx === 0 ? 'bg-amber-500/10 border-amber-500/20' :
+                              idx === 1 ? 'bg-white/[0.04] border-white/[0.06]' :
+                              idx === 2 ? 'bg-orange-500/10 border-orange-500/20' :
+                              'bg-white/[0.02] border-white/[0.06]'
                             }`}
                           >
                             <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold ${
                               idx === 0 ? 'bg-amber-500 text-white' :
-                              idx === 1 ? 'bg-gray-400 text-white' :
+                              idx === 1 ? 'bg-slate-500 text-white' :
                               idx === 2 ? 'bg-orange-600 text-white' :
-                              'bg-blue-100 text-blue-700 font-semibold'
+                              'bg-white/[0.1] text-slate-300 font-semibold'
                             }`}>
                               {idx + 1}
                             </div>
@@ -4200,13 +4200,13 @@ function AdminDashboardContent() {
               {/* Recent Transactions & Platform Stats */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Recent Transactions */}
-                <Card className="lg:col-span-2">
+                <Card className="lg:col-span-2 bg-[#111827] border-white/[0.06]">
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
+                    <CardTitle className="flex items-center justify-between text-white">
                       <span>Recent Transactions</span>
-                      <Button variant="outline" size="sm">View All</Button>
+                      <Button variant="outline" size="sm" className="border-white/[0.1] text-slate-300 hover:bg-white/[0.04]">View All</Button>
                     </CardTitle>
-                    <CardDescription>Latest payment activities</CardDescription>
+                    <CardDescription className="text-slate-400">Latest payment activities</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {recentPayments.length === 0 ? (
@@ -4225,11 +4225,11 @@ function AdminDashboardContent() {
                           return (
                             <div key={payment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-[#0D1117]">
                               <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${isCompleted ? 'bg-green-100' : isPending ? 'bg-blue-100' : 'bg-[#111827]/[0.04]'}`}>
+                                <div className={`p-2 rounded-lg ${isCompleted ? 'bg-emerald-500/10' : isPending ? 'bg-blue-500/10' : 'bg-white/[0.04]'}`}>
                                   {isCompleted ? (
-                                    <CheckCircle className="h-5 w-5 text-green-600" />
+                                    <CheckCircle className="h-5 w-5 text-emerald-400" />
                                   ) : isPending ? (
-                                    <Clock className="h-5 w-5 text-blue-600" />
+                                    <Clock className="h-5 w-5 text-blue-400" />
                                   ) : (
                                     <XCircle className="h-5 w-5 text-slate-400" />
                                   )}
@@ -4241,7 +4241,7 @@ function AdminDashboardContent() {
                                   </p>
                                 </div>
                               </div>
-                              <span className={`font-semibold ${isCompleted ? 'text-green-600' : isPending ? 'text-blue-600' : 'text-slate-400'}`}>
+                              <span className={`font-semibold ${isCompleted ? 'text-emerald-400' : isPending ? 'text-blue-400' : 'text-slate-400'}`}>
                                 {isCompleted ? '+' : ''}N${(payment.amount / 100).toFixed(2)}
                               </span>
                             </div>
@@ -4253,42 +4253,42 @@ function AdminDashboardContent() {
                 </Card>
 
                 {/* Platform Statistics */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
-                    <CardTitle>Platform Stats</CardTitle>
-                    <CardDescription>Today's snapshot</CardDescription>
+                    <CardTitle className="text-white">Platform Stats</CardTitle>
+                    <CardDescription className="text-slate-400">Today's snapshot</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
                       <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-medium">New Users</span>
+                        <Users className="h-4 w-4 text-blue-400" />
+                        <span className="text-sm font-medium text-slate-300">New Users</span>
                       </div>
-                      <span className="text-lg font-bold text-blue-600">{todayStats.newUsers}</span>
+                      <span className="text-lg font-bold text-blue-400">{todayStats.newUsers}</span>
                     </div>
 
-                    <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
                       <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-purple-600" />
-                        <span className="text-sm font-medium">New Dealers</span>
+                        <Building2 className="h-4 w-4 text-purple-400" />
+                        <span className="text-sm font-medium text-slate-300">New Dealers</span>
                       </div>
-                      <span className="text-lg font-bold text-purple-600">{todayStats.newDealers}</span>
+                      <span className="text-lg font-bold text-purple-400">{todayStats.newDealers}</span>
                     </div>
 
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
                       <div className="flex items-center gap-2">
-                        <Car className="h-4 w-4 text-green-600" />
-                        <span className="text-sm font-medium">New Listings</span>
+                        <Car className="h-4 w-4 text-emerald-400" />
+                        <span className="text-sm font-medium text-slate-300">New Listings</span>
                       </div>
-                      <span className="text-lg font-bold text-green-600">{todayStats.newListings}</span>
+                      <span className="text-lg font-bold text-emerald-400">{todayStats.newListings}</span>
                     </div>
 
-                    <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
                       <div className="flex items-center gap-2">
-                        <MessageSquare className="h-4 w-4 text-orange-600" />
-                        <span className="text-sm font-medium">New Leads</span>
+                        <MessageSquare className="h-4 w-4 text-orange-400" />
+                        <span className="text-sm font-medium text-slate-300">New Leads</span>
                       </div>
-                      <span className="text-lg font-bold text-orange-600">{todayStats.newLeads}</span>
+                      <span className="text-lg font-bold text-orange-400">{todayStats.newLeads}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -4332,7 +4332,7 @@ function AdminDashboardContent() {
 
               {/* Filter Panel */}
               {userFilterOpen && (
-                <Card className="border-blue-200 bg-blue-50">
+                <Card className="border-white/[0.06] bg-[#111827]">
                   <CardContent className="pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
@@ -4340,7 +4340,7 @@ function AdminDashboardContent() {
                         <select
                           value={userRoleFilter}
                           onChange={(e) => setUserRoleFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="all">All Roles</option>
                           <option value="User">User</option>
@@ -4353,7 +4353,7 @@ function AdminDashboardContent() {
                         <select
                           value={userStatusFilter}
                           onChange={(e) => setUserStatusFilter(e.target.value)}
-                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="all">All Statuses</option>
                           <option value="Active">Active</option>
@@ -4374,7 +4374,7 @@ function AdminDashboardContent() {
                 </Card>
               )}
 
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -4429,15 +4429,15 @@ function AdminDashboardContent() {
           {/* Add User Modal */}
           {addUserModalOpen && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setAddUserModalOpen(false)}>
-              <Card className="w-full max-w-md m-4" onClick={(e) => e.stopPropagation()}>
+              <Card className="w-full max-w-md m-4 bg-[#111827] border-white/[0.08]" onClick={(e) => e.stopPropagation()}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>Add New User</CardTitle>
+                    <CardTitle className="text-white">Add New User</CardTitle>
                     <Button variant="ghost" size="sm" onClick={() => setAddUserModalOpen(false)}>
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
-                  <CardDescription>Create a new user account</CardDescription>
+                  <CardDescription className="text-slate-400">Create a new user account</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -4445,7 +4445,7 @@ function AdminDashboardContent() {
                     <input
                       type="text"
                       placeholder="John Doe"
-                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -4453,12 +4453,12 @@ function AdminDashboardContent() {
                     <input
                       type="email"
                       placeholder="john@example.com"
-                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-1">Role</label>
-                    <select className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                       <option value="Dealer">Dealer</option>
                       <option value="Admin">Admin</option>
                       <option value="Sales Executive">Sales Executive</option>
@@ -4469,7 +4469,7 @@ function AdminDashboardContent() {
                       Dealership <span className="text-red-500">*</span>
                     </label>
                     <select
-                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
                       <option value="">Select a dealership</option>
@@ -4484,7 +4484,7 @@ function AdminDashboardContent() {
                     <input
                       type="password"
                       placeholder="••••••••"
-                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div className="flex gap-3 pt-4">
@@ -4531,7 +4531,7 @@ function AdminDashboardContent() {
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-1">Role</label>
                     <select
-                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
                       value={editingUser.role}
                       onChange={(e) => setEditingUser({...editingUser, role: e.target.value})}
                     >
@@ -4545,7 +4545,7 @@ function AdminDashboardContent() {
                       Dealership <span className="text-red-500">*</span>
                     </label>
                     <select
-                      className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
                       value={editingUser.dealershipId || ''}
                       onChange={(e) => setEditingUser({...editingUser, dealershipId: e.target.value})}
                       required
@@ -4697,9 +4697,9 @@ function AdminDashboardContent() {
 
               {/* Dealers Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Dealers</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Total Dealers</CardTitle>
                     <Users className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -4711,9 +4711,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Dealers</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Active Dealers</CardTitle>
                     <CheckCircle className="h-4 w-4 text-green-500" />
                   </CardHeader>
                   <CardContent>
@@ -4726,9 +4726,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Pending Approval</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Pending Approval</CardTitle>
                     <Clock className="h-4 w-4 text-yellow-500" />
                   </CardHeader>
                   <CardContent>
@@ -4739,9 +4739,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Monthly Revenue</CardTitle>
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -4757,7 +4757,7 @@ function AdminDashboardContent() {
               </div>
 
               {/* Dealers Table */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -4944,10 +4944,10 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Quick Actions Panel */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="text-lg">Quick Actions</CardTitle>
-                  <CardDescription>Batch operations and dealer management tools</CardDescription>
+                  <CardTitle className="text-lg text-white">Quick Actions</CardTitle>
+                  <CardDescription className="text-slate-400">Batch operations and dealer management tools</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -5010,9 +5010,9 @@ function AdminDashboardContent() {
 
               {/* Listings Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Listings</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Total Listings</CardTitle>
                     <Car className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -5024,9 +5024,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Active Listings</CardTitle>
                     <CheckCircle className="h-4 w-4 text-green-500" />
                   </CardHeader>
                   <CardContent>
@@ -5039,9 +5039,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Pending Review</CardTitle>
                     <Clock className="h-4 w-4 text-yellow-500" />
                   </CardHeader>
                   <CardContent>
@@ -5052,9 +5052,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Featured</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Featured</CardTitle>
                     <Star className="h-4 w-4 text-yellow-500" />
                   </CardHeader>
                   <CardContent>
@@ -5067,7 +5067,7 @@ function AdminDashboardContent() {
               </div>
 
               {/* Listings Table */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -5150,7 +5150,7 @@ function AdminDashboardContent() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="text-blue-600 hover:text-blue-800"
+                                  className="text-blue-400 hover:text-blue-300"
                                   onClick={() => handleViewListing(listing)}
                                   title="View Details"
                                 >
@@ -5160,7 +5160,7 @@ function AdminDashboardContent() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-green-600 hover:text-green-800"
+                                    className="text-emerald-400 hover:text-emerald-300"
                                     onClick={() => handleApproveListing(listing.id)}
                                     title="Approve Listing"
                                   >
@@ -5172,7 +5172,7 @@ function AdminDashboardContent() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="text-green-600 hover:text-green-800"
+                                      className="text-emerald-400 hover:text-emerald-300"
                                       onClick={() => handleApproveListing(listing.id)}
                                       title="Approve Listing"
                                     >
@@ -5181,7 +5181,7 @@ function AdminDashboardContent() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="text-red-600 hover:text-red-800"
+                                      className="text-red-400 hover:text-red-300"
                                       onClick={() => handleRemoveListing(listing.id)}
                                       title="Delete Listing"
                                     >
@@ -5203,7 +5203,7 @@ function AdminDashboardContent() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="text-purple-600 hover:text-purple-800"
+                                      className="text-purple-400 hover:text-purple-300"
                                       onClick={() => handlePutUnderReview(listing.id)}
                                       title="Put Under Review"
                                     >
@@ -5215,7 +5215,7 @@ function AdminDashboardContent() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-orange-600 hover:text-orange-800"
+                                    className="text-orange-400 hover:text-orange-300"
                                     onClick={() => handleSuspendListing(listing.id)}
                                     title="Suspend Listing"
                                   >
@@ -5226,7 +5226,7 @@ function AdminDashboardContent() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-green-600 hover:text-green-800"
+                                    className="text-emerald-400 hover:text-emerald-300"
                                     onClick={() => handleReactivateListing(listing.id)}
                                     title="Reactivate Listing"
                                   >
@@ -5237,7 +5237,7 @@ function AdminDashboardContent() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-red-600 hover:text-red-800"
+                                    className="text-red-400 hover:text-red-300"
                                     onClick={() => handleRemoveListing(listing.id)}
                                     title="Remove Listing"
                                   >
@@ -5255,10 +5255,10 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Quick Actions Panel */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="text-lg">Bulk Actions</CardTitle>
-                  <CardDescription>Manage multiple listings at once</CardDescription>
+                  <CardTitle className="text-lg text-white">Bulk Actions</CardTitle>
+                  <CardDescription className="text-slate-400">Manage multiple listings at once</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -5373,9 +5373,9 @@ function AdminDashboardContent() {
                 <>
                   {/* Banner Stats Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Banners</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Total Banners</CardTitle>
                     <Image className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -5386,9 +5386,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Total Clicks</CardTitle>
                     <Activity className="h-4 w-4 text-blue-500" />
                   </CardHeader>
                   <CardContent>
@@ -5397,9 +5397,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Impressions</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Impressions</CardTitle>
                     <TrendingUp className="h-4 w-4 text-green-500" />
                   </CardHeader>
                   <CardContent>
@@ -5408,9 +5408,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Avg CTR</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Avg CTR</CardTitle>
                     <BarChart3 className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -5455,12 +5455,12 @@ function AdminDashboardContent() {
                   <Card key={banner.id}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">{banner.title}</CardTitle>
+                        <CardTitle className="text-lg text-white">{banner.title}</CardTitle>
                         <Badge className={banner.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-200'}>
                           {banner.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </div>
-                      <CardDescription>
+                      <CardDescription className="text-slate-400">
                         Fixed Position: {banner.position} •
                         <span className="text-blue-600"> Change image/content only</span>
                       </CardDescription>
@@ -5542,7 +5542,7 @@ function AdminDashboardContent() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-500/10"
                           onClick={() => handleDeleteBanner(banner)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
@@ -5561,20 +5561,20 @@ function AdminDashboardContent() {
               </div>
 
               {/* Banner Management Help */}
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-[#1F3469]/20 border-[#1F3469]/40">
                 <CardHeader>
-                  <CardTitle className="flex items-center text-blue-900">
+                  <CardTitle className="flex items-center text-blue-400">
                     <Image className="h-5 w-5 mr-2" />
                     How to Manage Banners
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="text-sm text-blue-800 space-y-2">
-                  <p><strong>1. Edit Existing Banners:</strong> Click the "Edit" button on any banner card above to change its image, title, or link.</p>
-                  <p><strong>2. Preview Changes:</strong> Use the "Preview" button to see how the banner looks before making changes.</p>
-                  <p><strong>3. Toggle Active/Inactive:</strong> Use the status dropdown in edit mode to enable or disable banners.</p>
-                  <p><strong>4. Banner Positions are Fixed:</strong> Each banner slot is tied to a specific location on the website and cannot be moved.</p>
-                  <p className="mt-4 p-3 bg-[#111827] rounded border border-blue-300">
-                    <strong>💡 Tip:</strong> Changes take effect immediately on the live site. Always preview your changes before saving!
+                <CardContent className="text-sm text-slate-300 space-y-2">
+                  <p><strong className="text-blue-400">1. Edit Existing Banners:</strong> Click the "Edit" button on any banner card above to change its image, title, or link.</p>
+                  <p><strong className="text-blue-400">2. Preview Changes:</strong> Use the "Preview" button to see how the banner looks before making changes.</p>
+                  <p><strong className="text-blue-400">3. Toggle Active/Inactive:</strong> Use the status dropdown in edit mode to enable or disable banners.</p>
+                  <p><strong className="text-blue-400">4. Banner Positions are Fixed:</strong> Each banner slot is tied to a specific location on the website and cannot be moved.</p>
+                  <p className="mt-4 p-3 bg-[#0B0F1A] rounded border border-[#1F3469]/40">
+                    <strong>Tip:</strong> Changes take effect immediately on the live site. Always preview your changes before saving!
                   </p>
                 </CardContent>
               </Card>
@@ -5586,9 +5586,9 @@ function AdminDashboardContent() {
                 <div className="space-y-6">
                   {/* Payment Stats */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-400">Total Revenue</CardTitle>
                         <CreditCard className="h-4 w-4 text-green-500" />
                       </CardHeader>
                       <CardContent>
@@ -5597,9 +5597,9 @@ function AdminDashboardContent() {
                       </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Subscriptions</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-400">Active Subscriptions</CardTitle>
                         <Users className="h-4 w-4 text-blue-500" />
                       </CardHeader>
                       <CardContent>
@@ -5608,9 +5608,9 @@ function AdminDashboardContent() {
                       </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-400">Pending Payments</CardTitle>
                         <Clock className="h-4 w-4 text-orange-500" />
                       </CardHeader>
                       <CardContent>
@@ -5619,9 +5619,9 @@ function AdminDashboardContent() {
                       </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-400">Expiring Soon</CardTitle>
                         <AlertCircle className="h-4 w-4 text-red-500" />
                       </CardHeader>
                       <CardContent>
@@ -5632,15 +5632,15 @@ function AdminDashboardContent() {
                   </div>
 
                   {/* Active Subscriptions Table */}
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle>Active Advertisement Subscriptions</CardTitle>
-                      <CardDescription>Manage advertiser subscriptions and payments</CardDescription>
+                      <CardTitle className="text-white">Active Advertisement Subscriptions</CardTitle>
+                      <CardDescription className="text-slate-400">Manage advertiser subscriptions and payments</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="overflow-x-auto">
                         <table className="w-full">
-                          <thead className="bg-[#0D1117] border-b">
+                          <thead className="bg-[#0D1117] border-b border-white/[0.06]">
                             <tr>
                               <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Advertiser</th>
                               <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Banner Position</th>
@@ -5732,10 +5732,10 @@ function AdminDashboardContent() {
                   </Card>
 
                   {/* Pricing Plans */}
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle>Advertisement Pricing Plans</CardTitle>
-                      <CardDescription>Manage subscription tiers and pricing</CardDescription>
+                      <CardTitle className="text-white">Advertisement Pricing Plans</CardTitle>
+                      <CardDescription className="text-slate-400">Manage subscription tiers and pricing</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -5765,7 +5765,7 @@ function AdminDashboardContent() {
                           <Button className="w-full">Edit Plan</Button>
                         </div>
 
-                        <div className="border rounded-lg p-6 bg-gradient-to-br from-purple-50 to-blue-50">
+                        <div className="border rounded-lg p-6 bg-[#1F3469]/20 border border-[#1F3469]/30">
                           <h3 className="font-semibold text-lg mb-2">Premium Plan</h3>
                           <p className="text-3xl font-bold mb-4">$600<span className="text-sm text-slate-500">/month</span></p>
                           <ul className="space-y-2 text-sm mb-4">
@@ -5788,9 +5788,9 @@ function AdminDashboardContent() {
                 <div className="space-y-6">
                   {/* Analytics Overview */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Impressions</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-400">Total Impressions</CardTitle>
                         <TrendingUp className="h-4 w-4 text-blue-500" />
                       </CardHeader>
                       <CardContent>
@@ -5799,9 +5799,9 @@ function AdminDashboardContent() {
                       </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-400">Total Clicks</CardTitle>
                         <Activity className="h-4 w-4 text-green-500" />
                       </CardHeader>
                       <CardContent>
@@ -5810,9 +5810,9 @@ function AdminDashboardContent() {
                       </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Average CTR</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-400">Average CTR</CardTitle>
                         <BarChart3 className="h-4 w-4 text-purple-500" />
                       </CardHeader>
                       <CardContent>
@@ -5821,9 +5821,9 @@ function AdminDashboardContent() {
                       </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">ROI</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-400">ROI</CardTitle>
                         <DollarSign className="h-4 w-4 text-green-500" />
                       </CardHeader>
                       <CardContent>
@@ -5834,10 +5834,10 @@ function AdminDashboardContent() {
                   </div>
 
                   {/* Performance by Position */}
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle>Performance by Banner Position</CardTitle>
-                      <CardDescription>Compare performance across different banner slots</CardDescription>
+                      <CardTitle className="text-white">Performance by Banner Position</CardTitle>
+                      <CardDescription className="text-slate-400">Compare performance across different banner slots</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
@@ -5915,10 +5915,10 @@ function AdminDashboardContent() {
                   </Card>
 
                   {/* Top Performing Banners */}
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle>Top Performing Banners</CardTitle>
-                      <CardDescription>Best performing advertisements this month</CardDescription>
+                      <CardTitle className="text-white">Top Performing Banners</CardTitle>
+                      <CardDescription className="text-slate-400">Best performing advertisements this month</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
@@ -5959,10 +5959,10 @@ function AdminDashboardContent() {
                   </Card>
 
                   {/* Monthly Trends Chart Placeholder */}
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle>Performance Trends</CardTitle>
-                      <CardDescription>Banner performance over the last 6 months</CardDescription>
+                      <CardTitle className="text-white">Performance Trends</CardTitle>
+                      <CardDescription className="text-slate-400">Banner performance over the last 6 months</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="h-64 flex items-center justify-center bg-[#0D1117] rounded-lg border-2 border-dashed border-white/[0.1]">
@@ -6008,9 +6008,9 @@ function AdminDashboardContent() {
 
               {/* Moderation Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Total Reports</CardTitle>
                     <FlagIcon className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -6021,9 +6021,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Pending Review</CardTitle>
                     <ClockIcon className="h-4 w-4 text-yellow-500" />
                   </CardHeader>
                   <CardContent>
@@ -6032,9 +6032,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Critical Reports</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Critical Reports</CardTitle>
                     <AlertTriangle className="h-4 w-4 text-red-500" />
                   </CardHeader>
                   <CardContent>
@@ -6043,9 +6043,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Avg Resolution</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Avg Resolution</CardTitle>
                     <Activity className="h-4 w-4 text-green-500" />
                   </CardHeader>
                   <CardContent>
@@ -6076,7 +6076,7 @@ function AdminDashboardContent() {
                       {tab.name}
                       <span className={`${
                         moderationFilter === tab.id
-                          ? 'bg-blue-100 text-blue-600'
+                          ? 'bg-blue-500/10 text-blue-400'
                           : 'bg-[#111827]/[0.04] text-slate-400'
                       } py-0.5 px-2.5 rounded-full text-xs font-medium`}>
                         {tab.count}
@@ -6087,7 +6087,7 @@ function AdminDashboardContent() {
               </div>
 
               {/* Reports Table */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -6183,7 +6183,7 @@ function AdminDashboardContent() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="text-blue-600 hover:text-blue-800"
+                                  className="text-blue-400 hover:text-blue-300"
                                   onClick={() => handleViewReport(report)}
                                   title="View Details"
                                 >
@@ -6194,7 +6194,7 @@ function AdminDashboardContent() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="text-green-600 hover:text-green-800"
+                                      className="text-emerald-400 hover:text-emerald-300"
                                       onClick={() => handleApproveReport(report.id)}
                                       title="Take Action"
                                     >
@@ -6203,7 +6203,7 @@ function AdminDashboardContent() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="text-red-600 hover:text-red-800"
+                                      className="text-red-400 hover:text-red-300"
                                       onClick={() => handleRejectReport(report.id)}
                                       title="Reject Report"
                                     >
@@ -6215,7 +6215,7 @@ function AdminDashboardContent() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-purple-600 hover:text-purple-800"
+                                    className="text-purple-400 hover:text-purple-300"
                                     onClick={() => handleAssignReport(report.id, 'admin-001')}
                                     title="Assign to Me"
                                   >
@@ -6233,10 +6233,10 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Quick Actions Panel */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="text-lg">Moderation Tools</CardTitle>
-                  <CardDescription>Quick actions and batch operations</CardDescription>
+                  <CardTitle className="text-lg text-white">Moderation Tools</CardTitle>
+                  <CardDescription className="text-slate-400">Quick actions and batch operations</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -6297,9 +6297,9 @@ function AdminDashboardContent() {
 
               {/* Overview Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Page Views</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Total Page Views</CardTitle>
                     <MousePointer className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -6311,9 +6311,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Unique Visitors</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Unique Visitors</CardTitle>
                     <Users className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -6324,9 +6324,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Conversion Rate</CardTitle>
                     <Percent className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -6337,9 +6337,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Total Revenue</CardTitle>
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -6355,20 +6355,20 @@ function AdminDashboardContent() {
               {/* Charts Row */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Traffic Sources */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-white">
                       <Globe className="h-5 w-5" />
                       Traffic Sources
                     </CardTitle>
-                    <CardDescription>Visitor acquisition channels</CardDescription>
+                    <CardDescription className="text-slate-400">Visitor acquisition channels</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       {analyticsData.traffic.sources.map((source, index) => (
                         <div key={index} className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            <div className="w-3 h-3 rounded-full bg-blue-500" style={{
+                            <div className="w-3 h-3 rounded-full bg-blue-500/100" style={{
                               backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'][index]
                             }}></div>
                             <div>
@@ -6389,19 +6389,19 @@ function AdminDashboardContent() {
                 </Card>
 
                 {/* Revenue Breakdown */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-white">
                       <DollarSign className="h-5 w-5" />
                       Revenue Breakdown
                     </CardTitle>
-                    <CardDescription>Monthly revenue by source</CardDescription>
+                    <CardDescription className="text-slate-400">Monthly revenue by source</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                          <div className="w-3 h-3 rounded-full bg-blue-500/100"></div>
                           <span className="text-sm font-medium">Subscription Fees</span>
                         </div>
                         <span className="text-sm font-medium">N${(analyticsData.revenue.breakdown.subscriptionRevenue / 100).toLocaleString()}</span>
@@ -6441,19 +6441,19 @@ function AdminDashboardContent() {
               {/* Performance Tables */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Top Performing Makes */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-white">
                       <BarChart className="h-5 w-5" />
                       Top Performing Makes
                     </CardTitle>
-                    <CardDescription>Vehicle brand performance metrics</CardDescription>
+                    <CardDescription className="text-slate-400">Vehicle brand performance metrics</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="border-b">
+                          <tr className="border-b border-white/[0.06]">
                             <th className="text-left py-2">Make</th>
                             <th className="text-right py-2">Views</th>
                             <th className="text-right py-2">Inquiries</th>
@@ -6462,7 +6462,7 @@ function AdminDashboardContent() {
                         </thead>
                         <tbody>
                           {analyticsData.listings.performance.map((make, index) => (
-                            <tr key={index} className="border-b">
+                            <tr key={index} className="border-b border-white/[0.06]">
                               <td className="py-2">
                                 <div>
                                   <p className="font-medium">{make.make}</p>
@@ -6481,13 +6481,13 @@ function AdminDashboardContent() {
                 </Card>
 
                 {/* Geographic Distribution */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-white">
                       <MapPin className="h-5 w-5" />
                       Geographic Distribution
                     </CardTitle>
-                    <CardDescription>User and revenue by region</CardDescription>
+                    <CardDescription className="text-slate-400">User and revenue by region</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -6509,13 +6509,13 @@ function AdminDashboardContent() {
               </div>
 
               {/* User Engagement Metrics */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <Activity className="h-5 w-5" />
                     User Engagement Metrics
                   </CardTitle>
-                  <CardDescription>Platform usage and engagement statistics</CardDescription>
+                  <CardDescription className="text-slate-400">Platform usage and engagement statistics</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -6540,10 +6540,10 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Quick Actions */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="text-lg">Analytics Tools</CardTitle>
-                  <CardDescription>Data analysis and reporting tools</CardDescription>
+                  <CardTitle className="text-lg text-white">Analytics Tools</CardTitle>
+                  <CardDescription className="text-slate-400">Data analysis and reporting tools</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -6597,9 +6597,9 @@ function AdminDashboardContent() {
 
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Total Requests</CardTitle>
                     <Crown className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -6608,9 +6608,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Pending</CardTitle>
                     <Clock className="h-4 w-4 text-yellow-600" />
                   </CardHeader>
                   <CardContent>
@@ -6621,9 +6621,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Active</CardTitle>
                     <CheckCircle className="h-4 w-4 text-green-600" />
                   </CardHeader>
                   <CardContent>
@@ -6634,9 +6634,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Revenue</CardTitle>
                     <DollarSign className="h-4 w-4 text-green-600" />
                   </CardHeader>
                   <CardContent>
@@ -6651,7 +6651,7 @@ function AdminDashboardContent() {
               </div>
 
               {/* Requests Table */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -6744,7 +6744,7 @@ function AdminDashboardContent() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      className="bg-green-50 text-green-700 hover:bg-green-100 border-green-300"
+                                      className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20"
                                       onClick={() => {
                                         setSelectedFeaturedRequest(request);
                                         setApproveDialogOpen(true);
@@ -6756,7 +6756,7 @@ function AdminDashboardContent() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      className="bg-red-50 text-red-700 hover:bg-red-100 border-red-300"
+                                      className="bg-red-500/10 text-red-400 hover:bg-red-500/100/20 border-red-500/20"
                                       onClick={() => {
                                         setSelectedFeaturedRequest(request);
                                         setRejectFeaturedDialogOpen(true);
@@ -6899,7 +6899,7 @@ function AdminDashboardContent() {
                 ))}
               </div>
 
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardContent className="p-0">
                   {invoicesLoading ? (
                     <div className="flex items-center justify-center py-16">
@@ -6911,7 +6911,7 @@ function AdminDashboardContent() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="bg-[#0D1117] border-b">
+                          <tr className="bg-[#0D1117] border-b border-white/[0.06]">
                             <th className="text-left px-4 py-3 font-semibold text-slate-400">Invoice #</th>
                             <th className="text-left px-4 py-3 font-semibold text-slate-400">Dealership</th>
                             <th className="text-left px-4 py-3 font-semibold text-slate-400">Period</th>
@@ -7177,9 +7177,9 @@ function AdminDashboardContent() {
 
               {/* Subscription Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Subscriptions</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Total Subscriptions</CardTitle>
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -7190,9 +7190,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Monthly Revenue</CardTitle>
                     <DollarSign className="h-4 w-4 text-green-500" />
                   </CardHeader>
                   <CardContent>
@@ -7201,9 +7201,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Overdue Payments</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Overdue Payments</CardTitle>
                     <AlertTriangle className="h-4 w-4 text-red-500" />
                   </CardHeader>
                   <CardContent>
@@ -7212,9 +7212,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Churn Rate</CardTitle>
+                    <CardTitle className="text-sm font-medium text-slate-400">Churn Rate</CardTitle>
                     <TrendingUp className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -7225,7 +7225,7 @@ function AdminDashboardContent() {
               </div>
 
               {/* Subscriptions Table */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -7311,10 +7311,10 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Plan Pricing Management */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle>Subscription Plans & Pricing</CardTitle>
-                  <CardDescription>Manage subscription plans and pricing tiers</CardDescription>
+                  <CardTitle className="text-white">Subscription Plans & Pricing</CardTitle>
+                  <CardDescription className="text-slate-400">Manage subscription plans and pricing tiers</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -7343,14 +7343,14 @@ function AdminDashboardContent() {
                               type="number"
                               defaultValue={plan.price / 100}
                               step="0.01"
-                              className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1">Billing Cycle</label>
                             <select
                               defaultValue={plan.billingCycle}
-                              className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                               <option value="Monthly">Monthly</option>
                               <option value="Quarterly">Quarterly</option>
@@ -7361,7 +7361,7 @@ function AdminDashboardContent() {
                             <label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
                             <select
                               defaultValue={plan.status}
-                              className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                               <option value="Active">Active</option>
                               <option value="Inactive">Inactive</option>
@@ -7403,10 +7403,10 @@ function AdminDashboardContent() {
               {/* Promo Codes Management */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Create Promo Code */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
-                    <CardTitle>Create Promo Code</CardTitle>
-                    <CardDescription>Generate new discount codes</CardDescription>
+                    <CardTitle className="text-white">Create Promo Code</CardTitle>
+                    <CardDescription className="text-slate-400">Generate new discount codes</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
@@ -7432,7 +7432,7 @@ function AdminDashboardContent() {
                         <select
                           value={promoFormData.discountType}
                           onChange={(e) => setPromoFormData({ ...promoFormData, discountType: e.target.value })}
-                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="PERCENTAGE">Percentage</option>
                           <option value="FIXED_AMOUNT">Fixed Amount</option>
@@ -7445,7 +7445,7 @@ function AdminDashboardContent() {
                           placeholder="20"
                           value={promoFormData.discountValue}
                           onChange={(e) => setPromoFormData({ ...promoFormData, discountValue: e.target.value })}
-                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -7457,7 +7457,7 @@ function AdminDashboardContent() {
                           type="date"
                           value={promoFormData.startDate}
                           onChange={(e) => setPromoFormData({ ...promoFormData, startDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -7466,7 +7466,7 @@ function AdminDashboardContent() {
                           type="date"
                           value={promoFormData.endDate}
                           onChange={(e) => setPromoFormData({ ...promoFormData, endDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -7478,7 +7478,7 @@ function AdminDashboardContent() {
                         placeholder="100 (leave empty for unlimited)"
                         value={promoFormData.usageLimit}
                         onChange={(e) => setPromoFormData({ ...promoFormData, usageLimit: e.target.value })}
-                        className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
 
@@ -7514,10 +7514,10 @@ function AdminDashboardContent() {
                 </Card>
 
                 {/* Recent Promo Codes */}
-                <Card>
+                <Card className="bg-[#111827] border-white/[0.06]">
                   <CardHeader>
-                    <CardTitle>Recent Promo Codes</CardTitle>
-                    <CardDescription>Manage existing discount codes</CardDescription>
+                    <CardTitle className="text-white">Recent Promo Codes</CardTitle>
+                    <CardDescription className="text-slate-400">Manage existing discount codes</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {promoCodesLoading ? (
@@ -7530,7 +7530,7 @@ function AdminDashboardContent() {
                           <div key={promo.id} className="border rounded-lg p-3">
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
-                                <code className="px-2 py-1 bg-blue-50 text-blue-700 rounded font-mono text-sm font-bold">
+                                <code className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded font-mono text-sm font-bold">
                                   {promo.code}
                                 </code>
                                 <Badge className={promo.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-400'}>
@@ -7569,19 +7569,19 @@ function AdminDashboardContent() {
 
                             <div className="flex gap-2">
                               <button
-                                className="text-xs text-blue-600 hover:text-blue-800"
+                                className="text-xs text-blue-400 hover:text-blue-300"
                                 onClick={() => handleEditPromo(promo)}
                               >
                                 Edit
                               </button>
                               <button
-                                className={`text-xs ${promo.isActive ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'}`}
+                                className={`text-xs ${promo.isActive ? 'text-orange-400 hover:text-orange-300' : 'text-emerald-400 hover:text-emerald-300'}`}
                                 onClick={() => handleDeactivatePromo(promo.id)}
                               >
                                 {promo.isActive ? 'Deactivate' : 'Activate'}
                               </button>
                               <button
-                                className="text-xs text-red-600 hover:text-red-800"
+                                className="text-xs text-red-400 hover:text-red-300"
                                 onClick={() => handleDeletePromoClick(promo)}
                               >
                                 Delete
@@ -7596,10 +7596,10 @@ function AdminDashboardContent() {
               </div>
 
               {/* All Promo Codes Table */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle>All Promo Codes</CardTitle>
-                  <CardDescription>Complete list of discount codes and their performance</CardDescription>
+                  <CardTitle className="text-white">All Promo Codes</CardTitle>
+                  <CardDescription className="text-slate-400">Complete list of discount codes and their performance</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
@@ -7632,7 +7632,7 @@ function AdminDashboardContent() {
                           promoCodes.map((promo) => (
                             <tr key={promo.id} className="hover:bg-[#0D1117]">
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <code className="px-2 py-1 bg-blue-50 text-blue-700 rounded font-mono text-sm font-bold">
+                                <code className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded font-mono text-sm font-bold">
                                   {promo.code}
                                 </code>
                               </td>
@@ -7759,9 +7759,9 @@ function AdminDashboardContent() {
               {/* General Settings */}
               {activeSettingsTab === 'general' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Settings className="h-5 w-5" />
                         Site Information
                       </CardTitle>
@@ -7806,9 +7806,9 @@ function AdminDashboardContent() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Globe className="h-5 w-5" />
                         Localization
                       </CardTitle>
@@ -7875,9 +7875,9 @@ function AdminDashboardContent() {
               {/* Security Settings */}
               {activeSettingsTab === 'security' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Lock className="h-5 w-5" />
                         Authentication
                       </CardTitle>
@@ -7933,9 +7933,9 @@ function AdminDashboardContent() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Shield className="h-5 w-5" />
                         Security Policies
                       </CardTitle>
@@ -7987,9 +7987,9 @@ function AdminDashboardContent() {
               {/* Payment Settings */}
               {activeSettingsTab === 'payment' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <CreditCard className="h-5 w-5" />
                         Payment Configuration
                       </CardTitle>
@@ -8038,9 +8038,9 @@ function AdminDashboardContent() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <DollarSign className="h-5 w-5" />
                         Pricing Structure
                       </CardTitle>
@@ -8099,9 +8099,9 @@ function AdminDashboardContent() {
               {/* Notifications Settings */}
               {activeSettingsTab === 'notifications' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Bell className="h-5 w-5" />
                         Email Notifications
                       </CardTitle>
@@ -8194,9 +8194,9 @@ function AdminDashboardContent() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Smartphone className="h-5 w-5" />
                         Push Notifications
                       </CardTitle>
@@ -8259,9 +8259,9 @@ function AdminDashboardContent() {
               {/* Listings Settings */}
               {activeSettingsTab === 'listings' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Car className="h-5 w-5" />
                         Listing Management
                       </CardTitle>
@@ -8328,9 +8328,9 @@ function AdminDashboardContent() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Monitor className="h-5 w-5" />
                         Featured Listings
                       </CardTitle>
@@ -8383,9 +8383,9 @@ function AdminDashboardContent() {
               {/* API Settings */}
               {activeSettingsTab === 'api' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Server className="h-5 w-5" />
                         API Configuration
                       </CardTitle>
@@ -8445,9 +8445,9 @@ function AdminDashboardContent() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Key className="h-5 w-5" />
                         API Keys
                       </CardTitle>
@@ -8486,9 +8486,9 @@ function AdminDashboardContent() {
               {/* Integrations Settings */}
               {activeSettingsTab === 'integrations' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Link className="h-5 w-5" />
                         Third-party Integrations
                       </CardTitle>
@@ -8547,9 +8547,9 @@ function AdminDashboardContent() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <Cloud className="h-5 w-5" />
                         Cloud Services
                       </CardTitle>
@@ -8597,9 +8597,9 @@ function AdminDashboardContent() {
               {/* Backup Settings */}
               {activeSettingsTab === 'backup' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <HardDrive className="h-5 w-5" />
                         Backup Configuration
                       </CardTitle>
@@ -8651,9 +8651,9 @@ function AdminDashboardContent() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <DatabaseIcon className="h-5 w-5" />
                         Database Backup
                       </CardTitle>
@@ -8714,9 +8714,9 @@ function AdminDashboardContent() {
                 <div className="space-y-6">
                   {/* Banner Configuration */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 text-white">
                           <Monitor className="h-5 w-5" />
                           Banner Configuration
                         </CardTitle>
@@ -8766,9 +8766,9 @@ function AdminDashboardContent() {
                       </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 text-white">
                           <Settings className="h-5 w-5" />
                           Display Settings
                         </CardTitle>
@@ -8841,9 +8841,9 @@ function AdminDashboardContent() {
 
                   {/* Banner Permissions */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 text-white">
                           <Lock className="h-5 w-5" />
                           Banner Permissions
                         </CardTitle>
@@ -8903,9 +8903,9 @@ function AdminDashboardContent() {
                       </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="bg-[#111827] border-white/[0.06]">
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 text-white">
                           <Cloud className="h-5 w-5" />
                           Image Processing
                         </CardTitle>
@@ -8970,13 +8970,13 @@ function AdminDashboardContent() {
                   </div>
 
                   {/* Quick Actions */}
-                  <Card>
+                  <Card className="bg-[#111827] border-white/[0.06]">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-white">
                         <BarChart3 className="h-5 w-5" />
                         Banner Management Actions
                       </CardTitle>
-                      <CardDescription>Quick actions for managing advertisement banners</CardDescription>
+                      <CardDescription className="text-slate-400">Quick actions for managing advertisement banners</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -9015,10 +9015,10 @@ function AdminDashboardContent() {
               )}
 
               {/* Quick Settings Summary */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="text-lg">Configuration Summary</CardTitle>
-                  <CardDescription>Current platform configuration overview</CardDescription>
+                  <CardTitle className="text-lg text-white">Configuration Summary</CardTitle>
+                  <CardDescription className="text-slate-400">Current platform configuration overview</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -9071,9 +9071,9 @@ function AdminDashboardContent() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Basic Information */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <Building className="h-5 w-5" />
                     Basic Information
                   </CardTitle>
@@ -9110,9 +9110,9 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Business Information */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <FileText className="h-5 w-5" />
                     Business Information
                   </CardTitle>
@@ -9158,9 +9158,9 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Subscription Information */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <CreditCard className="h-5 w-5" />
                     Subscription
                   </CardTitle>
@@ -9192,9 +9192,9 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Performance Metrics */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <BarChart3 className="h-5 w-5" />
                     Performance
                   </CardTitle>
@@ -9242,7 +9242,7 @@ function AdminDashboardContent() {
                       handleRejectDealer(selectedDealer.id);
                       setDealerModalOpen(false);
                     }}
-                    className="border-red-300 text-red-600 hover:bg-red-50"
+                    className="border-red-500/20 text-red-400 hover:bg-red-500/10"
                   >
                     <X className="h-4 w-4 mr-2" />
                     Reject
@@ -9255,7 +9255,7 @@ function AdminDashboardContent() {
                       handleSuspendDealer(selectedDealer.id);
                       setDealerModalOpen(false);
                     }}
-                    className="border-yellow-300 text-yellow-600 hover:bg-yellow-50"
+                    className="border-yellow-500/20 text-yellow-400 hover:bg-yellow-500/10"
                   >
                     <AlertTriangle className="h-4 w-4 mr-2" />
                     Suspend
@@ -9268,7 +9268,7 @@ function AdminDashboardContent() {
                       handleReactivateDealer(selectedDealer.id);
                       setDealerModalOpen(false);
                     }}
-                    className="border-green-300 text-green-600 hover:bg-green-50"
+                    className="border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10"
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Reactivate
@@ -9296,9 +9296,9 @@ function AdminDashboardContent() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Vehicle Information */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <Car className="h-5 w-5" />
                     Vehicle Information
                   </CardTitle>
@@ -9362,9 +9362,9 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Technical Details */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <Settings2 className="h-5 w-5" />
                     Technical Details
                   </CardTitle>
@@ -9414,9 +9414,9 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Dealer Information */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <Building className="h-5 w-5" />
                     Dealer Information
                   </CardTitle>
@@ -9438,9 +9438,9 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Listing Status & Performance */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <BarChart3 className="h-5 w-5" />
                     Status & Performance
                   </CardTitle>
@@ -9502,9 +9502,9 @@ function AdminDashboardContent() {
             </div>
 
             {/* Description */}
-            <Card className="mt-6">
+            <Card className="mt-6 bg-[#111827] border-white/[0.06]">
               <CardHeader>
-                <CardTitle>Description</CardTitle>
+                <CardTitle className="text-white">Description</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-slate-300">{selectedListing.description}</p>
@@ -9512,9 +9512,9 @@ function AdminDashboardContent() {
             </Card>
 
             {/* Features */}
-            <Card className="mt-6">
+            <Card className="mt-6 bg-[#111827] border-white/[0.06]">
               <CardHeader>
-                <CardTitle>Features</CardTitle>
+                <CardTitle className="text-white">Features</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -9549,7 +9549,7 @@ function AdminDashboardContent() {
                       handleRejectListing(selectedListing.id);
                       setListingModalOpen(false);
                     }}
-                    className="border-red-300 text-red-600 hover:bg-red-50"
+                    className="border-red-500/20 text-red-400 hover:bg-red-500/10"
                   >
                     <X className="h-4 w-4 mr-2" />
                     Reject
@@ -9561,7 +9561,7 @@ function AdminDashboardContent() {
                     handleFeatureListing(selectedListing.id);
                     setListingModalOpen(false);
                   }}
-                  className={selectedListing.featured ? "border-yellow-300 text-yellow-600 hover:bg-yellow-50" : "border-white/[0.1] text-slate-400 hover:bg-[#0D1117]"}
+                  className={selectedListing.featured ? "border-yellow-500/20 text-yellow-400 hover:bg-yellow-500/10" : "border-white/[0.1] text-slate-400 hover:bg-[#0D1117]"}
                 >
                   <Star className="h-4 w-4 mr-2" />
                   {selectedListing.featured ? 'Remove Feature' : 'Feature Listing'}
@@ -9600,9 +9600,9 @@ function AdminDashboardContent() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Report Information */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <FlagIcon className="h-5 w-5" />
                     Report Information
                   </CardTitle>
@@ -9664,9 +9664,9 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Reporter Information */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <Users className="h-5 w-5" />
                     Reporter Information
                   </CardTitle>
@@ -9694,9 +9694,9 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Moderation Status */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <ShieldCheck className="h-5 w-5" />
                     Moderation Status
                   </CardTitle>
@@ -9729,9 +9729,9 @@ function AdminDashboardContent() {
               </Card>
 
               {/* Review Notes */}
-              <Card>
+              <Card className="bg-[#111827] border-white/[0.06]">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
                     <MessageSquare className="h-5 w-5" />
                     Review Notes
                   </CardTitle>
@@ -9756,9 +9756,9 @@ function AdminDashboardContent() {
             </div>
 
             {/* Description */}
-            <Card className="mt-6">
+            <Card className="mt-6 bg-[#111827] border-white/[0.06]">
               <CardHeader>
-                <CardTitle>Report Description</CardTitle>
+                <CardTitle className="text-white">Report Description</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-slate-300">{selectedReport.description}</p>
@@ -9786,7 +9786,7 @@ function AdminDashboardContent() {
                         handleRejectReport(selectedReport.id);
                         setReportModalOpen(false);
                       }}
-                      className="border-red-300 text-red-600 hover:bg-red-50"
+                      className="border-red-500/20 text-red-400 hover:bg-red-500/10"
                     >
                       <XCircle className="h-4 w-4 mr-2" />
                       Reject Report
@@ -9800,7 +9800,7 @@ function AdminDashboardContent() {
                       handleAssignReport(selectedReport.id, 'admin-001');
                       setReportModalOpen(false);
                     }}
-                    className="border-purple-300 text-purple-600 hover:bg-purple-50"
+                    className="border-purple-500/20 text-purple-400 hover:bg-purple-500/10"
                   >
                     <UserCheck2 className="h-4 w-4 mr-2" />
                     Assign to Me
@@ -10018,7 +10018,7 @@ function AdminDashboardContent() {
                   onClick={() => setReportFormat('pdf')}
                   className={`px-4 py-3 border rounded-lg text-center transition-colors ${
                     reportFormat === 'pdf'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-400'
                       : 'border-white/[0.1] hover:border-gray-400'
                   }`}
                 >
@@ -10031,7 +10031,7 @@ function AdminDashboardContent() {
                   onClick={() => setReportFormat('csv')}
                   className={`px-4 py-3 border rounded-lg text-center transition-colors ${
                     reportFormat === 'csv'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-400'
                       : 'border-white/[0.1] hover:border-gray-400'
                   }`}
                 >
@@ -10044,7 +10044,7 @@ function AdminDashboardContent() {
                   onClick={() => setReportFormat('excel')}
                   className={`px-4 py-3 border rounded-lg text-center transition-colors ${
                     reportFormat === 'excel'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-400'
                       : 'border-white/[0.1] hover:border-gray-400'
                   }`}
                 >
@@ -10057,7 +10057,7 @@ function AdminDashboardContent() {
             </div>
 
             {/* Report Preview Info */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
               <h4 className="text-sm font-semibold text-blue-900 mb-2">Report Details:</h4>
               <ul className="text-sm text-blue-800 space-y-1">
                 <li>
@@ -10235,7 +10235,7 @@ function AdminDashboardContent() {
                       <tr
                         key={dealer.id}
                         className={`hover:bg-[#0D1117] ${
-                          selectedPayments.includes(dealer.id) ? 'bg-blue-50' : ''
+                          selectedPayments.includes(dealer.id) ? 'bg-blue-500/100/5' : ''
                         }`}
                       >
                         <td className="px-4 py-3">
@@ -10276,7 +10276,7 @@ function AdminDashboardContent() {
             </div>
 
             {/* Summary */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
               <div className="flex justify-between items-center">
                 <p className="text-sm text-blue-800">
                   <strong>Total to process:</strong> {selectedPayments.length} payment(s)
@@ -10348,7 +10348,7 @@ function AdminDashboardContent() {
                 value={planFormData.description || ''}
                 onChange={(e) => setPlanFormData({...planFormData, description: e.target.value})}
                 placeholder="Plan description"
-                className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={3}
               />
             </div>
@@ -10414,7 +10414,7 @@ function AdminDashboardContent() {
               <select
                 value={planFormData.isActive ? 'active' : 'inactive'}
                 onChange={(e) => setPlanFormData({...planFormData, isActive: e.target.value === 'active'})}
-                className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -10505,7 +10505,7 @@ function AdminDashboardContent() {
                 <select
                   value={promoFormData.discountType}
                   onChange={(e) => setPromoFormData({ ...promoFormData, discountType: e.target.value })}
-                  className="w-full px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="PERCENTAGE">Percentage</option>
                   <option value="FIXED_AMOUNT">Fixed Amount</option>
@@ -10594,7 +10594,7 @@ function AdminDashboardContent() {
             <div className="py-4">
               <div className="bg-[#0D1117] rounded-lg p-4 border border-white/[0.06]">
                 <div className="flex items-center justify-between mb-2">
-                  <code className="px-2 py-1 bg-blue-50 text-blue-700 rounded font-mono text-sm font-bold">
+                  <code className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded font-mono text-sm font-bold">
                     {promoToDelete.code}
                   </code>
                   <span className="text-sm font-medium">
@@ -10828,7 +10828,7 @@ function AdminDashboardContent() {
             </div>
 
             {/* Preview Info */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
               <p className="text-sm text-blue-800">
                 <strong>Preview:</strong> This newsletter will be sent to{' '}
                 {recipientFilter === 'all' && dealers.length}
@@ -11035,7 +11035,7 @@ function AdminDashboardContent() {
               </div>
 
               {/* Banner Size Info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
                 <h4 className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
                   <Image className="h-4 w-4 mr-2" />
                   Recommended Banner Sizes & Formats
@@ -11227,7 +11227,7 @@ function AdminDashboardContent() {
                       onClick={() => setSelectedPlanId(plan.id)}
                       className={`relative p-4 border-2 rounded-lg cursor-pointer transition-all ${
                         isSelected
-                          ? 'border-blue-600 bg-blue-50 shadow-md'
+                          ? 'border-blue-500 bg-blue-500/10 shadow-md'
                           : 'border-white/[0.06] hover:border-blue-300 hover:shadow-none'
                       }`}
                     >
@@ -11692,7 +11692,7 @@ function AdminDashboardContent() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-blue-600 hover:text-blue-800"
+                              className="text-blue-400 hover:text-blue-300"
                               onClick={() => {
                                 setSelectedReport(report);
                                 setHighPriorityModalOpen(false);
@@ -11705,7 +11705,7 @@ function AdminDashboardContent() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-green-600 hover:text-green-800"
+                              className="text-emerald-400 hover:text-emerald-300"
                               onClick={() => {
                                 handleApproveReport(report.id);
                               }}
@@ -11716,7 +11716,7 @@ function AdminDashboardContent() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-400 hover:text-red-300"
                               onClick={() => {
                                 handleRejectReport(report.id);
                               }}
@@ -11913,7 +11913,7 @@ function AdminDashboardContent() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b">
+                    <tr className="border-b border-white/[0.06]">
                       <th className="text-left py-2">Make</th>
                       <th className="text-right py-2">Views</th>
                       <th className="text-right py-2">Inquiries</th>
@@ -11923,7 +11923,7 @@ function AdminDashboardContent() {
                   </thead>
                   <tbody>
                     {(analyticsData.listings.performance || []).map((make, index) => (
-                      <tr key={index} className="border-b">
+                      <tr key={index} className="border-b border-white/[0.06]">
                         <td className="py-2 font-medium">{make.make}</td>
                         <td className="text-right">{make.views.toLocaleString()}</td>
                         <td className="text-right">{make.inquiries}</td>
@@ -12168,7 +12168,7 @@ function AdminDashboardContent() {
                   <p className="text-sm text-slate-400 bg-[#0D1117] rounded p-3">{selectedFeaturedRequest.notes}</p>
                 </div>
               )}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
                   <strong>Note:</strong> Upon approval, the dealership will be featured immediately and the featured period will start today.
                 </p>
@@ -12273,7 +12273,7 @@ function AdminDashboardContent() {
           {selectedFeaturedRequest && (
             <div className="space-y-4 py-4">
               {/* Dealership Information */}
-              <div className="bg-blue-50 rounded-lg p-4 space-y-3">
+              <div className="bg-blue-500/10 rounded-lg p-4 space-y-3 border border-blue-500/20">
                 <h3 className="font-semibold text-white mb-2">Dealership Information</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -12336,7 +12336,7 @@ function AdminDashboardContent() {
 
               {/* Active Period (if approved) */}
               {selectedFeaturedRequest.startDate && selectedFeaturedRequest.endDate && (
-                <div className="bg-green-50 rounded-lg p-4 space-y-2">
+                <div className="bg-emerald-500/10 rounded-lg p-4 space-y-2 border border-emerald-500/20">
                   <h3 className="font-semibold text-white mb-2">Featured Period</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -12357,7 +12357,7 @@ function AdminDashboardContent() {
 
               {/* Approval/Rejection Details */}
               {selectedFeaturedRequest.approvedAt && (
-                <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+                <div className="bg-blue-500/10 rounded-lg p-4 space-y-2 border border-blue-500/20">
                   <h3 className="font-semibold text-white mb-2">Approval Details</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -12543,7 +12543,7 @@ function EventsAdminPanel() {
     PENDING: 'bg-amber-500/10 text-amber-400',
     REVIEWED: 'bg-blue-500/10 text-blue-400',
     APPROVED: 'bg-emerald-500/10 text-emerald-400',
-    REJECTED: 'bg-red-100 text-red-700',
+    REJECTED: 'bg-red-500/10 text-red-400',
   };
 
   const pendingCount = inquiries.filter(i => i.status === 'PENDING').length;
@@ -12599,7 +12599,7 @@ function EventsAdminPanel() {
           {inquiriesLoading ? (
             <div className="text-center py-10 text-slate-500 text-sm">Loading inquiries…</div>
           ) : inquiries.length === 0 ? (
-            <Card>
+            <Card className="bg-[#111827] border-white/[0.06]">
               <CardContent className="py-12 text-center">
                 <Megaphone className="w-10 h-10 text-slate-600 mx-auto mb-3" />
                 <p className="text-slate-500 font-medium">No inquiries yet</p>
@@ -12621,7 +12621,7 @@ function EventsAdminPanel() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-semibold text-white text-sm">{inq.eventName}</span>
                             {inq.eventCategory && (
-                              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">
+                              <span className="text-xs bg-white/[0.06] text-slate-400 px-2 py-0.5 rounded-full font-medium">
                                 {inq.eventCategory}
                               </span>
                             )}
@@ -12649,7 +12649,7 @@ function EventsAdminPanel() {
 
                       {/* Expanded details */}
                       {isExpanded && (
-                        <div className="border-t border-gray-100 p-4 bg-slate-50 space-y-4">
+                        <div className="border-t border-white/[0.06] p-4 bg-[#0D1117] space-y-4">
                           <div className="grid sm:grid-cols-2 gap-4 text-sm">
                             <div>
                               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Contact</p>
@@ -12731,7 +12731,7 @@ function EventsAdminPanel() {
       </div>
 
       {/* Table card */}
-      <Card>
+      <Card className="bg-[#111827] border-white/[0.06]">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-bold">All Events</CardTitle>
@@ -12756,7 +12756,7 @@ function EventsAdminPanel() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 bg-[#0D1117]">
+                  <tr className="border-b border-white/[0.06] bg-[#0D1117]">
                     <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Event</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Location</th>
@@ -12787,7 +12787,7 @@ function EventsAdminPanel() {
                           ) : '—'}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${ev.isPublished ? 'bg-green-50 text-green-700' : 'bg-[#111827]/[0.04] text-slate-500'}`}>
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${ev.isPublished ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-500'}`}>
                             {ev.isPublished ? 'Published' : 'Draft'}
                           </span>
                         </td>
@@ -12796,7 +12796,7 @@ function EventsAdminPanel() {
                             <button onClick={() => openEdit(ev)} className="p-1.5 rounded-md text-slate-500 hover:text-slate-300 hover:bg-[#111827]/[0.04] transition-colors">
                               <Edit className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={() => setDeleting(ev)} className="p-1.5 rounded-md text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors">
+                            <button onClick={() => setDeleting(ev)} className="p-1.5 rounded-md text-slate-500 hover:text-red-600 hover:bg-red-500/10 transition-colors">
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
