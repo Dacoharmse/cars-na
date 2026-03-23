@@ -1,29 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import {
   MessageSquare,
   Mail,
   Phone,
   Search,
-  Filter,
   RefreshCw,
   Eye,
   Reply,
   Trash2,
   CheckCircle,
   Clock,
-  AlertCircle,
   Building2,
   Car,
   User,
-  Calendar,
   MoreVertical,
   Inbox,
   Send,
@@ -33,6 +27,8 @@ import {
   ChevronRight,
   X,
   ExternalLink,
+  AlertCircle,
+  Circle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -75,6 +71,82 @@ interface PaginationInfo {
   totalPages: number;
 }
 
+const STATUS_TABS = [
+  { key: 'all', label: 'All' },
+  { key: 'NEW', label: 'New' },
+  { key: 'READ', label: 'Read' },
+  { key: 'RESPONDED', label: 'Responded' },
+  { key: 'CLOSED', label: 'Closed' },
+  { key: 'SPAM', label: 'Spam' },
+] as const;
+
+const STATUS_CONFIG: Record<string, { color: string; icon: React.ReactNode; dot: string }> = {
+  NEW: {
+    color: 'bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20',
+    icon: <Inbox className="h-3 w-3" />,
+    dot: 'bg-blue-400',
+  },
+  READ: {
+    color: 'bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/20',
+    icon: <Eye className="h-3 w-3" />,
+    dot: 'bg-slate-500',
+  },
+  RESPONDED: {
+    color: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20',
+    icon: <CheckCircle className="h-3 w-3" />,
+    dot: 'bg-emerald-400',
+  },
+  CLOSED: {
+    color: 'bg-purple-500/10 text-purple-400 ring-1 ring-purple-500/20',
+    icon: <Archive className="h-3 w-3" />,
+    dot: 'bg-purple-400',
+  },
+  SPAM: {
+    color: 'bg-red-500/10 text-red-400 ring-1 ring-red-500/20',
+    icon: <Flag className="h-3 w-3" />,
+    dot: 'bg-red-400',
+  },
+};
+
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+  });
+}
+
+function formatFullDate(dateString: string) {
+  return new Date(dateString).toLocaleString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 export function MessagingCenter() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,26 +160,21 @@ export function MessagingCenter() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
   const [replyMessage, setReplyMessage] = useState('');
+  const [isReplying, setIsReplying] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  const fetchInquiries = async () => {
+  const fetchInquiries = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
       });
-
-      if (statusFilter !== 'all') {
-        params.append('status', statusFilter);
-      }
-
-      if (searchQuery) {
-        params.append('search', searchQuery);
-      }
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (searchQuery) params.append('search', searchQuery);
 
       const response = await fetch(`/api/dealership-inquiries?${params}`);
       const data = await response.json();
@@ -116,76 +183,70 @@ export function MessagingCenter() {
         setInquiries(data.inquiries);
         setPagination(data.pagination);
         setUnreadCount(data.unreadCount);
+
+        // Build status counts
+        const counts: Record<string, number> = {};
+        (data.inquiries as Inquiry[]).forEach((i) => {
+          counts[i.status] = (counts[i.status] || 0) + 1;
+        });
+        setStatusCounts(counts);
       }
     } catch (error) {
       console.error('Failed to fetch inquiries:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.page, statusFilter, searchQuery]);
 
   useEffect(() => {
     fetchInquiries();
   }, [pagination.page, statusFilter]);
 
-  const handleSearch = () => {
-    setPagination(prev => ({ ...prev, page: 1 }));
+  const handleSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    setPagination((prev) => ({ ...prev, page: 1 }));
     fetchInquiries();
   };
 
   const handleMarkAsRead = async (inquiry: Inquiry) => {
+    if (inquiry.isRead) return;
     try {
-      const response = await fetch(`/api/dealership-inquiries/${inquiry.id}`, {
+      await fetch(`/api/dealership-inquiries/${inquiry.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'markAsRead' }),
       });
-
-      if (response.ok) {
-        fetchInquiries();
-      }
-    } catch (error) {
-      console.error('Failed to mark as read:', error);
-    }
+      setInquiries((prev) =>
+        prev.map((i) => (i.id === inquiry.id ? { ...i, isRead: true, status: i.status === 'NEW' ? 'READ' : i.status } : i))
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch {}
   };
 
-  const handleViewInquiry = async (inquiry: Inquiry) => {
+  const handleSelectInquiry = async (inquiry: Inquiry) => {
     setSelectedInquiry(inquiry);
-    setIsViewDialogOpen(true);
-
-    if (!inquiry.isRead) {
-      await handleMarkAsRead(inquiry);
-    }
-  };
-
-  const handleReply = (inquiry: Inquiry) => {
-    setSelectedInquiry(inquiry);
+    setIsReplying(false);
     setReplyMessage('');
-    setIsReplyDialogOpen(true);
+    await handleMarkAsRead(inquiry);
   };
 
   const handleSendReply = async () => {
     if (!selectedInquiry || !replyMessage.trim()) return;
-
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/dealership-inquiries/${selectedInquiry.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'respond',
-          response: replyMessage,
-        }),
+        body: JSON.stringify({ action: 'respond', response: replyMessage }),
       });
-
       if (response.ok) {
-        setIsReplyDialogOpen(false);
+        const updated = { ...selectedInquiry, response: replyMessage, responded: true, status: 'RESPONDED' as const };
+        setSelectedInquiry(updated);
+        setInquiries((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+        setIsReplying(false);
         setReplyMessage('');
-        fetchInquiries();
       }
-    } catch (error) {
-      console.error('Failed to send reply:', error);
-    } finally {
+    } catch {} finally {
       setIsSubmitting(false);
     }
   };
@@ -197,483 +258,418 @@ export function MessagingCenter() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'updateStatus', status }),
       });
-
       if (response.ok) {
-        fetchInquiries();
+        const updated = { ...inquiry, status: status as Inquiry['status'] };
+        setInquiries((prev) => prev.map((i) => (i.id === inquiry.id ? updated : i)));
+        if (selectedInquiry?.id === inquiry.id) setSelectedInquiry(updated);
       }
-    } catch (error) {
-      console.error('Failed to update status:', error);
-    }
+    } catch {}
   };
 
   const handleDelete = async (inquiry: Inquiry) => {
-    if (!confirm('Are you sure you want to delete this inquiry?')) return;
-
+    if (!confirm('Delete this inquiry permanently?')) return;
     try {
-      const response = await fetch(`/api/dealership-inquiries/${inquiry.id}`, {
-        method: 'DELETE',
-      });
-
+      const response = await fetch(`/api/dealership-inquiries/${inquiry.id}`, { method: 'DELETE' });
       if (response.ok) {
-        fetchInquiries();
-        if (selectedInquiry?.id === inquiry.id) {
-          setIsViewDialogOpen(false);
-          setSelectedInquiry(null);
-        }
+        setInquiries((prev) => prev.filter((i) => i.id !== inquiry.id));
+        if (selectedInquiry?.id === inquiry.id) setSelectedInquiry(null);
       }
-    } catch (error) {
-      console.error('Failed to delete inquiry:', error);
-    }
+    } catch {}
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
-      NEW: { color: 'bg-blue-100 text-blue-700 border-blue-200', icon: <Inbox className="h-3 w-3" /> },
-      READ: { color: 'bg-gray-100 text-gray-700 border-gray-200', icon: <Eye className="h-3 w-3" /> },
-      RESPONDED: { color: 'bg-green-100 text-green-700 border-green-200', icon: <CheckCircle className="h-3 w-3" /> },
-      CLOSED: { color: 'bg-purple-100 text-purple-700 border-purple-200', icon: <Archive className="h-3 w-3" /> },
-      SPAM: { color: 'bg-red-100 text-red-700 border-red-200', icon: <Flag className="h-3 w-3" /> },
-    };
-
-    const config = statusConfig[status] || statusConfig.NEW;
-
-    return (
-      <Badge className={`${config.color} border flex items-center gap-1`}>
-        {config.icon}
-        {status}
-      </Badge>
-    );
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-    });
+  const totalsByStatus = {
+    total: pagination.total,
+    unread: unreadCount,
+    responded: inquiries.filter((i) => i.status === 'RESPONDED').length,
+    closed: inquiries.filter((i) => i.status === 'CLOSED').length,
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-600 font-medium">Total Messages</p>
-                <p className="text-2xl font-bold text-blue-900">{pagination.total}</p>
-              </div>
-              <div className="p-3 bg-blue-500 rounded-lg">
-                <MessageSquare className="h-5 w-5 text-white" />
-              </div>
+    <div className="space-y-5">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Messages', value: totalsByStatus.total, icon: MessageSquare, color: 'text-blue-400', bg: 'bg-blue-500/10', ring: 'ring-blue-500/20' },
+          { label: 'Unread', value: totalsByStatus.unread, icon: Inbox, color: 'text-amber-400', bg: 'bg-amber-500/10', ring: 'ring-amber-500/20' },
+          { label: 'Responded', value: totalsByStatus.responded, icon: Send, color: 'text-emerald-400', bg: 'bg-emerald-500/10', ring: 'ring-emerald-500/20' },
+          { label: 'Closed', value: totalsByStatus.closed, icon: Archive, color: 'text-purple-400', bg: 'bg-purple-500/10', ring: 'ring-purple-500/20' },
+        ].map(({ label, value, icon: Icon, color, bg, ring }) => (
+          <div key={label} className="bg-[#111827] border border-white/[0.06] rounded-xl p-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">{label}</p>
+              <p className={`text-2xl font-bold ${color}`}>{value}</p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-orange-600 font-medium">Unread</p>
-                <p className="text-2xl font-bold text-orange-900">{unreadCount}</p>
-              </div>
-              <div className="p-3 bg-orange-500 rounded-lg">
-                <Inbox className="h-5 w-5 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-green-600 font-medium">Responded</p>
-                <p className="text-2xl font-bold text-green-900">
-                  {inquiries.filter(i => i.status === 'RESPONDED').length}
-                </p>
-              </div>
-              <div className="p-3 bg-green-500 rounded-lg">
-                <Send className="h-5 w-5 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-purple-600 font-medium">Closed</p>
-                <p className="text-2xl font-bold text-purple-900">
-                  {inquiries.filter(i => i.status === 'CLOSED').length}
-                </p>
-              </div>
-              <div className="p-3 bg-purple-500 rounded-lg">
-                <Archive className="h-5 w-5 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters and Search */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="flex gap-2 flex-1">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search by name, email, or message..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-10"
-                />
-              </div>
-              <Button variant="outline" onClick={handleSearch}>
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex gap-2">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Status</option>
-                <option value="NEW">New</option>
-                <option value="READ">Read</option>
-                <option value="RESPONDED">Responded</option>
-                <option value="CLOSED">Closed</option>
-                <option value="SPAM">Spam</option>
-              </select>
-
-              <Button variant="outline" onClick={fetchInquiries}>
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              </Button>
+            <div className={`p-2.5 rounded-lg ${bg} ring-1 ${ring}`}>
+              <Icon className={`h-5 w-5 ${color}`} />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
 
-      {/* Messages List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Customer Inquiries
-            {unreadCount > 0 && (
-              <Badge className="bg-red-500 text-white ml-2">{unreadCount} new</Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+      {/* Main Panel */}
+      <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden flex flex-col" style={{ minHeight: '680px' }}>
+        {/* Toolbar */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.06]">
+          {/* Search */}
+          <form onSubmit={handleSearch} className="flex items-center gap-2 flex-1 max-w-sm">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 pointer-events-none" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="Search messages…"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-white/[0.04] border border-white/[0.08] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#CB2030]/50 focus:border-[#CB2030]/40 transition-colors"
+              />
             </div>
-          ) : inquiries.length === 0 ? (
-            <div className="text-center py-12">
-              <Inbox className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
-              <p className="text-gray-500">Customer inquiries will appear here</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {inquiries.map((inquiry) => (
-                <div
-                  key={inquiry.id}
-                  className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                    !inquiry.isRead ? 'bg-blue-50/50' : ''
-                  }`}
-                  onClick={() => handleViewInquiry(inquiry)}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4 flex-1 min-w-0">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        !inquiry.isRead ? 'bg-blue-500' : 'bg-gray-200'
+          </form>
+
+          {/* Status Tabs */}
+          <div className="flex items-center gap-1 flex-1">
+            {STATUS_TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => { setStatusFilter(tab.key); setPagination((p) => ({ ...p, page: 1 })); }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                  statusFilter === tab.key
+                    ? 'bg-[#CB2030]/10 text-[#CB2030] ring-1 ring-[#CB2030]/20'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                }`}
+              >
+                {tab.label}
+                {tab.key === 'NEW' && unreadCount > 0 && (
+                  <span className="ml-1.5 bg-[#CB2030] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadCount}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Refresh */}
+          <button
+            onClick={fetchInquiries}
+            aria-label="Refresh messages"
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.04] transition-colors"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+
+        {/* Split Pane */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Message List — left panel */}
+          <div className={`flex flex-col border-r border-white/[0.06] overflow-y-auto ${selectedInquiry ? 'w-[340px] flex-shrink-0' : 'flex-1'}`}>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center flex-1 py-20 gap-3">
+                <RefreshCw className="h-6 w-6 animate-spin text-slate-600" />
+                <p className="text-sm text-slate-500">Loading messages…</p>
+              </div>
+            ) : inquiries.length === 0 ? (
+              <div className="flex flex-col items-center justify-center flex-1 py-20 gap-3">
+                <div className="w-12 h-12 rounded-full bg-white/[0.04] flex items-center justify-center">
+                  <Inbox className="h-6 w-6 text-slate-600" />
+                </div>
+                <p className="text-sm font-medium text-slate-400">No messages</p>
+                <p className="text-xs text-slate-600">Customer inquiries will appear here</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/[0.04]">
+                {inquiries.map((inquiry) => {
+                  const isSelected = selectedInquiry?.id === inquiry.id;
+                  const cfg = STATUS_CONFIG[inquiry.status] || STATUS_CONFIG.NEW;
+                  return (
+                    <div
+                      key={inquiry.id}
+                      onClick={() => handleSelectInquiry(inquiry)}
+                      className={`group relative flex gap-3 px-4 py-3.5 cursor-pointer transition-colors select-none ${
+                        isSelected
+                          ? 'bg-white/[0.06]'
+                          : 'hover:bg-white/[0.03]'
+                      } ${!inquiry.isRead ? 'border-l-2 border-l-[#CB2030]' : 'border-l-2 border-l-transparent'}`}
+                    >
+                      {/* Avatar */}
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                        !inquiry.isRead ? 'bg-[#CB2030]/20 text-[#CB2030]' : 'bg-white/[0.06] text-slate-400'
                       }`}>
-                        <User className={`h-5 w-5 ${!inquiry.isRead ? 'text-white' : 'text-gray-500'}`} />
+                        {getInitials(inquiry.senderName)}
                       </div>
+
+                      {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`font-medium ${!inquiry.isRead ? 'text-gray-900' : 'text-gray-700'}`}>
+                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                          <span className={`text-sm truncate ${!inquiry.isRead ? 'font-semibold text-white' : 'font-medium text-slate-300'}`}>
                             {inquiry.senderName}
                           </span>
-                          {getStatusBadge(inquiry.status)}
+                          <span className="text-[11px] text-slate-500 flex-shrink-0">{formatDate(inquiry.createdAt)}</span>
                         </div>
-                        <p className={`text-sm mb-1 ${!inquiry.isRead ? 'font-medium text-gray-900' : 'text-gray-600'}`}>
+                        <p className={`text-xs truncate mb-0.5 ${!inquiry.isRead ? 'text-slate-300' : 'text-slate-400'}`}>
                           {inquiry.subject || 'No subject'}
                         </p>
-                        <p className="text-sm text-gray-500 truncate">{inquiry.message}</p>
-                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                          <span className="flex items-center gap-1">
-                            <Building2 className="h-3 w-3" />
+                        <p className="text-[11px] text-slate-500 truncate leading-relaxed">{inquiry.message}</p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${cfg.color}`}>
+                            {cfg.icon}
+                            {inquiry.status}
+                          </span>
+                          <span className="text-[10px] text-slate-600 flex items-center gap-0.5">
+                            <Building2 className="h-2.5 w-2.5" />
                             {inquiry.dealership.name}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {formatDate(inquiry.createdAt)}
-                          </span>
-                          {inquiry.vehicleId && (
-                            <span className="flex items-center gap-1">
-                              <Car className="h-3 w-3" />
-                              Vehicle inquiry
-                            </span>
-                          )}
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleReply(inquiry)}
-                        title="Reply"
+                      {/* Hover Quick Actions */}
+                      <div
+                        className="absolute right-3 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1 bg-[#111827] border border-white/[0.08] rounded-lg px-1 py-1 shadow-lg"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <Reply className="h-4 w-4" />
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewInquiry(inquiry)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleReply(inquiry)}>
-                            <Reply className="h-4 w-4 mr-2" />
-                            Reply
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleUpdateStatus(inquiry, 'CLOSED')}>
-                            <Archive className="h-4 w-4 mr-2" />
-                            Mark as Closed
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleUpdateStatus(inquiry, 'SPAM')}>
-                            <Flag className="h-4 w-4 mr-2" />
-                            Mark as Spam
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(inquiry)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                        <button
+                          onClick={() => { setSelectedInquiry(inquiry); setIsReplying(true); setReplyMessage(''); }}
+                          title="Reply"
+                          className="p-1 rounded text-slate-400 hover:text-[#CB2030] hover:bg-[#CB2030]/10 transition-colors"
+                        >
+                          <Reply className="h-3.5 w-3.5" />
+                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors">
+                              <MoreVertical className="h-3.5 w-3.5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-[#111827] border-white/[0.08] text-slate-300">
+                            <DropdownMenuItem onClick={() => handleUpdateStatus(inquiry, 'CLOSED')} className="hover:bg-white/[0.04] cursor-pointer">
+                              <Archive className="h-3.5 w-3.5 mr-2 text-purple-400" /> Mark Closed
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleUpdateStatus(inquiry, 'SPAM')} className="hover:bg-white/[0.04] cursor-pointer">
+                              <Flag className="h-3.5 w-3.5 mr-2 text-red-400" /> Mark Spam
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-white/[0.06]" />
+                            <DropdownMenuItem onClick={() => handleDelete(inquiry)} className="text-red-400 hover:bg-red-500/10 cursor-pointer">
+                              <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
 
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-4">
-              <p className="text-sm text-gray-500">
-                Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} messages
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-                  disabled={pagination.page === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="px-3 py-1 text-sm text-gray-600">
-                  Page {pagination.page} of {pagination.totalPages}
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-white/[0.06] mt-auto">
+                <span className="text-[11px] text-slate-500">
+                  {((pagination.page - 1) * pagination.limit) + 1}–{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
                 </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                  disabled={pagination.page === pagination.totalPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* View Inquiry Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              {selectedInquiry?.subject || 'Customer Inquiry'}
-            </DialogTitle>
-            <DialogDescription>
-              Received {selectedInquiry && formatDate(selectedInquiry.createdAt)}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedInquiry && (
-            <div className="space-y-4">
-              {/* Customer Info */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-3">Customer Information</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">{selectedInquiry.senderName}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-gray-400" />
-                    <a href={`mailto:${selectedInquiry.senderEmail}`} className="text-sm text-blue-600 hover:underline">
-                      {selectedInquiry.senderEmail}
-                    </a>
-                  </div>
-                  {selectedInquiry.senderPhone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-gray-400" />
-                      <a href={`tel:${selectedInquiry.senderPhone}`} className="text-sm text-blue-600 hover:underline">
-                        {selectedInquiry.senderPhone}
-                      </a>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">{selectedInquiry.dealership.name}</span>
-                  </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
+                    disabled={pagination.page === 1}
+                    className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.04] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
+                    disabled={pagination.page === pagination.totalPages}
+                    className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.04] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
+            )}
+          </div>
 
-              {/* Message */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Message</h4>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-gray-700 whitespace-pre-wrap">{selectedInquiry.message}</p>
-                </div>
-              </div>
-
-              {/* Response (if any) */}
-              {selectedInquiry.response && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    Response Sent
-                  </h4>
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-gray-700 whitespace-pre-wrap">{selectedInquiry.response}</p>
-                    {selectedInquiry.respondedAt && (
-                      <p className="text-xs text-gray-500 mt-2">
-                        Responded on {new Date(selectedInquiry.respondedAt).toLocaleString()}
-                      </p>
-                    )}
+          {/* Detail Panel — right */}
+          {selectedInquiry ? (
+            <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+              {/* Detail Header */}
+              <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-white/[0.06]">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <h2 className="text-base font-semibold text-white">
+                      {selectedInquiry.subject || 'No subject'}
+                    </h2>
+                    <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full ${STATUS_CONFIG[selectedInquiry.status]?.color}`}>
+                      {STATUS_CONFIG[selectedInquiry.status]?.icon}
+                      {selectedInquiry.status}
+                    </span>
                   </div>
+                  <p className="text-xs text-slate-500">{formatFullDate(selectedInquiry.createdAt)}</p>
                 </div>
-              )}
 
-              {/* Status */}
-              <div className="flex items-center justify-between pt-4 border-t">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Status:</span>
-                  {getStatusBadge(selectedInquiry.status)}
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => {
-                    setIsViewDialogOpen(false);
-                    handleReply(selectedInquiry);
-                  }}>
-                    <Reply className="h-4 w-4 mr-2" />
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button
+                    onClick={() => { setIsReplying(true); setReplyMessage(''); }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#CB2030] hover:bg-[#B01C2A] text-white text-xs font-medium rounded-lg transition-colors"
+                  >
+                    <Reply className="h-3.5 w-3.5" />
                     Reply
-                  </Button>
+                  </button>
                   <a
                     href={`mailto:${selectedInquiry.senderEmail}?subject=Re: ${encodeURIComponent(selectedInquiry.subject || 'Your inquiry')}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    title="Open in email client"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
                   >
-                    <Button>
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Open in Email
-                    </Button>
+                    <ExternalLink className="h-4 w-4" />
                   </a>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors">
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-[#111827] border-white/[0.08] text-slate-300">
+                      <DropdownMenuItem onClick={() => handleUpdateStatus(selectedInquiry, 'CLOSED')} className="hover:bg-white/[0.04] cursor-pointer">
+                        <Archive className="h-3.5 w-3.5 mr-2 text-purple-400" /> Mark as Closed
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleUpdateStatus(selectedInquiry, 'SPAM')} className="hover:bg-white/[0.04] cursor-pointer">
+                        <Flag className="h-3.5 w-3.5 mr-2 text-red-400" /> Mark as Spam
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-white/[0.06]" />
+                      <DropdownMenuItem onClick={() => handleDelete(selectedInquiry)} className="text-red-400 hover:bg-red-500/10 cursor-pointer">
+                        <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete Permanently
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <button
+                    onClick={() => setSelectedInquiry(null)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+                    aria-label="Close detail"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
+              </div>
+
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+                {/* Sender Info */}
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#CB2030]/15 text-[#CB2030] flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    {getInitials(selectedInquiry.senderName)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white">{selectedInquiry.senderName}</p>
+                    <div className="flex flex-wrap items-center gap-3 mt-1">
+                      <a href={`mailto:${selectedInquiry.senderEmail}`} className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                        <Mail className="h-3 w-3" />
+                        {selectedInquiry.senderEmail}
+                      </a>
+                      {selectedInquiry.senderPhone && (
+                        <a href={`tel:${selectedInquiry.senderPhone}`} className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                          <Phone className="h-3 w-3" />
+                          {selectedInquiry.senderPhone}
+                        </a>
+                      )}
+                      <span className="flex items-center gap-1 text-xs text-slate-500">
+                        <Building2 className="h-3 w-3" />
+                        {selectedInquiry.dealership.name}
+                      </span>
+                      {selectedInquiry.vehicleId && (
+                        <span className="flex items-center gap-1 text-xs text-slate-500">
+                          <Car className="h-3 w-3" />
+                          Vehicle inquiry
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Message bubble */}
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+                  <p className="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">{selectedInquiry.message}</p>
+                </div>
+
+                {/* Response (if exists) */}
+                {selectedInquiry.response && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
+                      <span className="text-xs font-medium text-emerald-400">Your response</span>
+                      {selectedInquiry.respondedAt && (
+                        <span className="text-[11px] text-slate-600">· {formatDate(selectedInquiry.respondedAt)}</span>
+                      )}
+                    </div>
+                    <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-xl p-4">
+                      <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{selectedInquiry.response}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Reply Composer */}
+              {isReplying && (
+                <div className="border-t border-white/[0.06] bg-[#0D1117] px-6 py-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-slate-400">
+                      Reply to <span className="text-white">{selectedInquiry.senderName}</span>
+                    </p>
+                    <button
+                      onClick={() => setIsReplying(false)}
+                      className="text-slate-500 hover:text-slate-300 transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <textarea
+                    value={replyMessage}
+                    onChange={(e) => setReplyMessage(e.target.value)}
+                    placeholder="Write your response…"
+                    rows={4}
+                    autoFocus
+                    className="w-full px-3 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#CB2030]/50 focus:border-[#CB2030]/40 transition-colors resize-none"
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] text-slate-600">Response will be saved and emailed to {selectedInquiry.senderEmail}</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setIsReplying(false)}
+                        className="px-3 py-1.5 text-xs text-slate-400 hover:text-white border border-white/[0.08] hover:border-white/[0.15] rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSendReply}
+                        disabled={!replyMessage.trim() || isSubmitting}
+                        className="flex items-center gap-1.5 px-4 py-1.5 bg-[#CB2030] hover:bg-[#B01C2A] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-medium rounded-lg transition-colors"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                            Sending…
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-3 w-3" />
+                            Send Reply
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Empty detail state */
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-8">
+              <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
+                <MessageSquare className="h-8 w-8 text-slate-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-400 mb-1">Select a message</p>
+                <p className="text-xs text-slate-600">Choose an inquiry from the list to view details and reply</p>
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Reply Dialog */}
-      <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Reply to {selectedInquiry?.senderName}</DialogTitle>
-            <DialogDescription>
-              Send a response to this inquiry. The response will be saved for reference.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-3 text-sm">
-              <p className="text-gray-500 mb-1">Original message:</p>
-              <p className="text-gray-700 line-clamp-3">{selectedInquiry?.message}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your Response
-              </label>
-              <Textarea
-                value={replyMessage}
-                onChange={(e) => setReplyMessage(e.target.value)}
-                placeholder="Type your response here..."
-                rows={6}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsReplyDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSendReply} disabled={!replyMessage.trim() || isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Response
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </div>
   );
 }
