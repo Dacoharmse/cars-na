@@ -4100,18 +4100,18 @@ function AdminDashboardContent() {
                       <>
                         {users.slice(0, 2).map((user, idx) => (
                           <div key={user.id} className="flex items-center gap-3">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
                             <div>
-                              <p className="text-sm font-medium">New user: {user.name}</p>
+                              <p className="text-sm font-medium text-white">New user: {user.name}</p>
                               <p className="text-xs text-slate-500">{new Date(user.joinedAt).toLocaleDateString()}</p>
                             </div>
                           </div>
                         ))}
                         {listings.slice(0, 2).map((listing, idx) => (
                           <div key={listing.id} className="flex items-center gap-3">
-                            <div className="w-2 h-2 bg-blue-500/100 rounded-full"></div>
+                            <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
                             <div>
-                              <p className="text-sm font-medium">New listing: {listing.title}</p>
+                              <p className="text-sm font-medium text-white">New listing: {listing.title}</p>
                               <p className="text-xs text-slate-500">{listing.dealer}</p>
                             </div>
                           </div>
@@ -5499,15 +5499,15 @@ function AdminDashboardContent() {
                         </div>
                         <div>
                           <p className="text-slate-500">Priority</p>
-                          <p className="font-medium">{banner.priority || 0}</p>
+                          <p className="font-medium text-white">{banner.priority || 0}</p>
                         </div>
                         <div>
                           <p className="text-slate-500">Start Date</p>
-                          <p className="font-medium">{banner.startDate ? new Date(banner.startDate).toLocaleDateString() : 'N/A'}</p>
+                          <p className="font-medium text-white">{banner.startDate ? new Date(banner.startDate).toLocaleDateString() : 'N/A'}</p>
                         </div>
                         <div>
                           <p className="text-slate-500">End Date</p>
-                          <p className="font-medium">{banner.endDate ? new Date(banner.endDate).toLocaleDateString() : 'N/A'}</p>
+                          <p className="font-medium text-white">{banner.endDate ? new Date(banner.endDate).toLocaleDateString() : 'N/A'}</p>
                         </div>
                         <div>
                           <p className="text-slate-500">Clicks</p>
@@ -6372,12 +6372,12 @@ function AdminDashboardContent() {
                               backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'][index]
                             }}></div>
                             <div>
-                              <p className="text-sm font-medium">{source.name}</p>
+                              <p className="text-sm font-medium text-white">{source.name}</p>
                               <p className="text-xs text-slate-500">{source.visitors.toLocaleString()} visitors</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-medium">{source.percentage}%</p>
+                            <p className="text-sm font-medium text-white">{source.percentage}%</p>
                             <p className={`text-xs ${source.growth > 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {source.growth > 0 ? '+' : ''}{source.growth}%
                             </p>
@@ -6402,30 +6402,30 @@ function AdminDashboardContent() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div className="w-3 h-3 rounded-full bg-blue-500/100"></div>
-                          <span className="text-sm font-medium">Subscription Fees</span>
+                          <span className="text-sm font-medium text-white">Subscription Fees</span>
                         </div>
-                        <span className="text-sm font-medium">N${(analyticsData.revenue.breakdown.subscriptionRevenue / 100).toLocaleString()}</span>
+                        <span className="text-sm font-medium text-white">N${(analyticsData.revenue.breakdown.subscriptionRevenue / 100).toLocaleString()}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                          <span className="text-sm font-medium">Commission</span>
+                          <span className="text-sm font-medium text-white">Commission</span>
                         </div>
-                        <span className="text-sm font-medium">N${(analyticsData.revenue.breakdown.commissionRevenue / 100).toLocaleString()}</span>
+                        <span className="text-sm font-medium text-white">N${(analyticsData.revenue.breakdown.commissionRevenue / 100).toLocaleString()}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                          <span className="text-sm font-medium">Featured Listings</span>
+                          <span className="text-sm font-medium text-white">Featured Listings</span>
                         </div>
-                        <span className="text-sm font-medium">N${(analyticsData.revenue.breakdown.featuredListings / 100).toLocaleString()}</span>
+                        <span className="text-sm font-medium text-white">N${(analyticsData.revenue.breakdown.featuredListings / 100).toLocaleString()}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                          <span className="text-sm font-medium">Premium Services</span>
+                          <span className="text-sm font-medium text-white">Premium Services</span>
                         </div>
-                        <span className="text-sm font-medium">N${(analyticsData.revenue.breakdown.premiumServices / 100).toLocaleString()}</span>
+                        <span className="text-sm font-medium text-white">N${(analyticsData.revenue.breakdown.premiumServices / 100).toLocaleString()}</span>
                       </div>
                       <div className="pt-2 border-t">
                         <div className="flex items-center justify-between font-semibold">
@@ -6465,7 +6465,7 @@ function AdminDashboardContent() {
                             <tr key={index} className="border-b border-white/[0.06]">
                               <td className="py-2">
                                 <div>
-                                  <p className="font-medium">{make.make}</p>
+                                  <p className="font-medium text-white">{make.make}</p>
                                   <p className="text-xs text-slate-500">Avg: N${make.avgPrice.toLocaleString()}</p>
                                 </div>
                               </td>
@@ -6494,11 +6494,11 @@ function AdminDashboardContent() {
                       {analyticsData.geographic.map((region, index) => (
                         <div key={index} className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium">{region.region}</p>
+                            <p className="text-sm font-medium text-white">{region.region}</p>
                             <p className="text-xs text-slate-500">{region.users.toLocaleString()} users</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-medium">N${(region.revenue / 100).toLocaleString()}</p>
+                            <p className="text-sm font-medium text-white">N${(region.revenue / 100).toLocaleString()}</p>
                             <p className="text-xs text-slate-500">{region.percentage}%</p>
                           </div>
                         </div>
@@ -6686,7 +6686,7 @@ function AdminDashboardContent() {
                             <td colSpan={7} className="px-6 py-12 text-center">
                               <div className="flex flex-col items-center justify-center text-slate-500">
                                 <Crown className="h-12 w-12 mb-4 text-slate-600" />
-                                <p className="font-medium">No featured requests yet</p>
+                                <p className="font-medium text-white">No featured requests yet</p>
                                 <p className="text-sm mt-1">Requests will appear here when dealerships apply</p>
                               </div>
                             </td>
@@ -7000,7 +7000,7 @@ function AdminDashboardContent() {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div><p className="text-slate-500">Invoice #</p><p className="font-mono font-semibold">{selectedInvoice.invoiceNumber}</p></div>
                       <div><p className="text-slate-500">Status</p><span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${selectedInvoice.status === 'PAID' ? 'bg-emerald-500/10 text-emerald-400 border-green-200' : selectedInvoice.status === 'OVERDUE' ? 'bg-red-500/10 text-red-400 border-red-200' : selectedInvoice.status === 'CANCELLED' ? 'bg-[#111827]/[0.04] text-slate-400 border-white/[0.06]' : 'bg-amber-500/10 text-amber-400 border-yellow-200'}`}>{selectedInvoice.status}</span></div>
-                      <div><p className="text-slate-500">Dealership</p><p className="font-medium">{selectedInvoice.dealership?.name}</p></div>
+                      <div><p className="text-slate-500">Dealership</p><p className="font-medium text-white">{selectedInvoice.dealership?.name}</p></div>
                       <div><p className="text-slate-500">Contact</p><p>{selectedInvoice.dealership?.contactPerson || '—'}</p></div>
                       <div><p className="text-slate-500">Period</p><p>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][selectedInvoice.billingMonth - 1]} {selectedInvoice.billingYear}</p></div>
                       <div><p className="text-slate-500">Plan</p><p>{selectedInvoice.planName}</p></div>
@@ -7637,7 +7637,7 @@ function AdminDashboardContent() {
                                 </code>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="text-sm font-medium">
+                                <span className="text-sm font-medium text-white">
                                   {promo.discountType === 'PERCENTAGE'
                                     ? `${promo.discountValue}%`
                                     : `N$${(promo.discountValue / 100).toFixed(2)}`
@@ -7849,7 +7849,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Maintenance Mode</span>
+                          <span className="text-sm font-medium text-white">Maintenance Mode</span>
                           <button
                             onClick={() => toggleSetting('general', 'maintenanceMode')}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.general.maintenanceMode ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
@@ -7858,7 +7858,7 @@ function AdminDashboardContent() {
                           </button>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Guest Browsing</span>
+                          <span className="text-sm font-medium text-white">Guest Browsing</span>
                           <button
                             onClick={() => toggleSetting('general', 'guestBrowsing')}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.general.guestBrowsing ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
@@ -7885,7 +7885,7 @@ function AdminDashboardContent() {
                     <CardContent className="space-y-4">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Require Email Verification</span>
+                          <span className="text-sm font-medium text-white">Require Email Verification</span>
                           <button
                             onClick={() => toggleSetting('security', 'requireEmailVerification')}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.requireEmailVerification ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
@@ -7894,7 +7894,7 @@ function AdminDashboardContent() {
                           </button>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Two-Factor Authentication</span>
+                          <span className="text-sm font-medium text-white">Two-Factor Authentication</span>
                           <button
                             onClick={() => toggleSetting('security', 'twoFactorAuth')}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.twoFactorAuth ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
@@ -7903,7 +7903,7 @@ function AdminDashboardContent() {
                           </button>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Require CAPTCHA</span>
+                          <span className="text-sm font-medium text-white">Require CAPTCHA</span>
                           <button
                             onClick={() => toggleSetting('security', 'requireCaptcha')}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.requireCaptcha ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
@@ -7961,7 +7961,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">SSL Enabled</span>
+                          <span className="text-sm font-medium text-white">SSL Enabled</span>
                           <button
                             onClick={() => toggleSetting('security', 'sslEnabled')}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.sslEnabled ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
@@ -7970,7 +7970,7 @@ function AdminDashboardContent() {
                           </button>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Security Headers</span>
+                          <span className="text-sm font-medium text-white">Security Headers</span>
                           <button
                             onClick={() => toggleSetting('security', 'securityHeaders')}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full ${settingsData.security.securityHeaders ? 'bg-[#1F3469]' : 'bg-white/[0.06]'}`}
@@ -8109,7 +8109,7 @@ function AdminDashboardContent() {
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">New User Registration</p>
+                          <p className="font-medium text-white">New User Registration</p>
                           <p className="text-sm text-slate-400">Notify when new users register</p>
                         </div>
                         <button
@@ -8130,7 +8130,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">New Listing Posted</p>
+                          <p className="font-medium text-white">New Listing Posted</p>
                           <p className="text-sm text-slate-400">Notify when dealers post new vehicles</p>
                         </div>
                         <button
@@ -8151,7 +8151,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Payment Received</p>
+                          <p className="font-medium text-white">Payment Received</p>
                           <p className="text-sm text-slate-400">Notify when payments are processed</p>
                         </div>
                         <button
@@ -8172,7 +8172,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Moderation Reports</p>
+                          <p className="font-medium text-white">Moderation Reports</p>
                           <p className="text-sm text-slate-400">Notify when content is reported</p>
                         </div>
                         <button
@@ -8216,7 +8216,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Enable Push Notifications</p>
+                          <p className="font-medium text-white">Enable Push Notifications</p>
                           <p className="text-sm text-slate-400">Allow sending push notifications to users</p>
                         </div>
                         <button
@@ -8269,7 +8269,7 @@ function AdminDashboardContent() {
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Auto-approve Listings</p>
+                          <p className="font-medium text-white">Auto-approve Listings</p>
                           <p className="text-sm text-slate-400">Automatically approve new listings without review</p>
                         </div>
                         <button
@@ -8309,7 +8309,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Allow Price Negotiation</p>
+                          <p className="font-medium text-white">Allow Price Negotiation</p>
                           <p className="text-sm text-slate-400">Enable price negotiation features</p>
                         </div>
                         <button
@@ -8360,7 +8360,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Auto-renew Featured</p>
+                          <p className="font-medium text-white">Auto-renew Featured</p>
                           <p className="text-sm text-slate-400">Automatically renew featured listings</p>
                         </div>
                         <button
@@ -8393,7 +8393,7 @@ function AdminDashboardContent() {
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Enable API Access</p>
+                          <p className="font-medium text-white">Enable API Access</p>
                           <p className="text-sm text-slate-400">Allow third-party API access</p>
                         </div>
                         <button
@@ -8427,7 +8427,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Require API Keys</p>
+                          <p className="font-medium text-white">Require API Keys</p>
                           <p className="text-sm text-slate-400">Require authentication for API access</p>
                         </div>
                         <button
@@ -8496,7 +8496,7 @@ function AdminDashboardContent() {
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Google Analytics</p>
+                          <p className="font-medium text-white">Google Analytics</p>
                           <p className="text-sm text-slate-400">Track website analytics with Google Analytics</p>
                         </div>
                         <button
@@ -8521,7 +8521,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Facebook Pixel</p>
+                          <p className="font-medium text-white">Facebook Pixel</p>
                           <p className="text-sm text-slate-400">Track conversions with Facebook Pixel</p>
                         </div>
                         <button
@@ -8557,7 +8557,7 @@ function AdminDashboardContent() {
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">AWS S3 Storage</p>
+                          <p className="font-medium text-white">AWS S3 Storage</p>
                           <p className="text-sm text-slate-400">Store images and files on Amazon S3</p>
                         </div>
                         <button
@@ -8607,7 +8607,7 @@ function AdminDashboardContent() {
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Auto Backup</p>
+                          <p className="font-medium text-white">Auto Backup</p>
                           <p className="text-sm text-slate-400">Automatically create system backups</p>
                         </div>
                         <button
@@ -8664,7 +8664,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Include User Data</p>
+                          <p className="font-medium text-white">Include User Data</p>
                           <p className="text-sm text-slate-400">Backup user profiles and preferences</p>
                         </div>
                         <button
@@ -8681,7 +8681,7 @@ function AdminDashboardContent() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">Include Media Files</p>
+                          <p className="font-medium text-white">Include Media Files</p>
                           <p className="text-sm text-slate-400">Backup uploaded images and documents</p>
                         </div>
                         <button
@@ -8776,7 +8776,7 @@ function AdminDashboardContent() {
                       <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">Auto Rotation</p>
+                            <p className="font-medium text-white">Auto Rotation</p>
                             <p className="text-sm text-slate-400">Automatically rotate banners</p>
                           </div>
                           <button
@@ -8803,7 +8803,7 @@ function AdminDashboardContent() {
                         </div>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">Click Tracking</p>
+                            <p className="font-medium text-white">Click Tracking</p>
                             <p className="text-sm text-slate-400">Track banner click events</p>
                           </div>
                           <button
@@ -8820,7 +8820,7 @@ function AdminDashboardContent() {
                         </div>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">Impression Tracking</p>
+                            <p className="font-medium text-white">Impression Tracking</p>
                             <p className="text-sm text-slate-400">Track banner view events</p>
                           </div>
                           <button
@@ -8851,7 +8851,7 @@ function AdminDashboardContent() {
                       <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">Require Approval</p>
+                            <p className="font-medium text-white">Require Approval</p>
                             <p className="text-sm text-slate-400">New banners need admin approval</p>
                           </div>
                           <button
@@ -8868,7 +8868,7 @@ function AdminDashboardContent() {
                         </div>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">Allow External Links</p>
+                            <p className="font-medium text-white">Allow External Links</p>
                             <p className="text-sm text-slate-400">Enable links to external websites</p>
                           </div>
                           <button
@@ -8885,7 +8885,7 @@ function AdminDashboardContent() {
                         </div>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">Enable Scheduling</p>
+                            <p className="font-medium text-white">Enable Scheduling</p>
                             <p className="text-sm text-slate-400">Allow scheduled banner campaigns</p>
                           </div>
                           <button
@@ -8913,7 +8913,7 @@ function AdminDashboardContent() {
                       <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">Auto Compression</p>
+                            <p className="font-medium text-white">Auto Compression</p>
                             <p className="text-sm text-slate-400">Automatically compress banner images</p>
                           </div>
                           <button
@@ -8940,7 +8940,7 @@ function AdminDashboardContent() {
                         </div>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium">Watermark</p>
+                            <p className="font-medium text-white">Watermark</p>
                             <p className="text-sm text-slate-400">Add watermark to banner images</p>
                           </div>
                           <button
@@ -9979,7 +9979,7 @@ function AdminDashboardContent() {
           <div className="space-y-6 py-4">
             {/* Report Type Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Report Type</label>
+              <label className="text-sm font-medium text-white">Report Type</label>
               <select
                 value={reportType}
                 onChange={(e) => setReportType(e.target.value)}
@@ -9995,7 +9995,7 @@ function AdminDashboardContent() {
 
             {/* Date Range Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Date Range</label>
+              <label className="text-sm font-medium text-white">Date Range</label>
               <select
                 value={reportDateRange}
                 onChange={(e) => setReportDateRange(e.target.value)}
@@ -10012,7 +10012,7 @@ function AdminDashboardContent() {
 
             {/* Format Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Export Format</label>
+              <label className="text-sm font-medium text-white">Export Format</label>
               <div className="grid grid-cols-3 gap-3">
                 <button
                   onClick={() => setReportFormat('pdf')}
@@ -10024,7 +10024,7 @@ function AdminDashboardContent() {
                 >
                   <div className="flex flex-col items-center gap-1">
                     <FileText className="h-5 w-5" />
-                    <span className="text-sm font-medium">PDF</span>
+                    <span className="text-sm font-medium text-white">PDF</span>
                   </div>
                 </button>
                 <button
@@ -10037,7 +10037,7 @@ function AdminDashboardContent() {
                 >
                   <div className="flex flex-col items-center gap-1">
                     <Download className="h-5 w-5" />
-                    <span className="text-sm font-medium">CSV</span>
+                    <span className="text-sm font-medium text-white">CSV</span>
                   </div>
                 </button>
                 <button
@@ -10050,7 +10050,7 @@ function AdminDashboardContent() {
                 >
                   <div className="flex flex-col items-center gap-1">
                     <FileText className="h-5 w-5" />
-                    <span className="text-sm font-medium">Excel</span>
+                    <span className="text-sm font-medium text-white">Excel</span>
                   </div>
                 </button>
               </div>
@@ -10597,7 +10597,7 @@ function AdminDashboardContent() {
                   <code className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded font-mono text-sm font-bold">
                     {promoToDelete.code}
                   </code>
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium text-white">
                     {promoToDelete.discountType === 'PERCENTAGE'
                       ? `${promoToDelete.discountValue}%`
                       : `N$${(promoToDelete.discountValue / 100).toFixed(2)}`}
@@ -10730,7 +10730,7 @@ function AdminDashboardContent() {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Action</label>
+              <label className="text-sm font-medium text-white">Action</label>
               <select className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option>Change Status</option>
                 <option>Update Category</option>
@@ -10740,7 +10740,7 @@ function AdminDashboardContent() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">New Value</label>
+              <label className="text-sm font-medium text-white">New Value</label>
               <select className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option>Active</option>
                 <option>Pending</option>
@@ -10789,7 +10789,7 @@ function AdminDashboardContent() {
           <div className="space-y-4 py-4">
             {/* Recipient Filter */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Recipients</label>
+              <label className="text-sm font-medium text-white">Recipients</label>
               <select
                 value={recipientFilter}
                 onChange={(e) => setRecipientFilter(e.target.value)}
@@ -10807,7 +10807,7 @@ function AdminDashboardContent() {
 
             {/* Subject */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Subject</label>
+              <label className="text-sm font-medium text-white">Subject</label>
               <Input
                 placeholder="Enter newsletter subject..."
                 value={newsletterSubject}
@@ -10817,7 +10817,7 @@ function AdminDashboardContent() {
 
             {/* Message */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Message</label>
+              <label className="text-sm font-medium text-white">Message</label>
               <Textarea
                 placeholder="Enter your newsletter message..."
                 value={newsletterMessage}
@@ -10907,11 +10907,11 @@ function AdminDashboardContent() {
               <div className="grid grid-cols-2 gap-4 p-4 bg-[#0D1117] rounded-lg">
                 <div>
                   <p className="text-sm text-slate-500">Position</p>
-                  <p className="font-medium">{previewBanner.position}</p>
+                  <p className="font-medium text-white">{previewBanner.position}</p>
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Priority</p>
-                  <p className="font-medium">{previewBanner.priority || 0}</p>
+                  <p className="font-medium text-white">{previewBanner.priority || 0}</p>
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Link URL</p>
@@ -10919,15 +10919,15 @@ function AdminDashboardContent() {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Status</p>
-                  <p className="font-medium">{previewBanner.isActive ? 'Active' : 'Inactive'}</p>
+                  <p className="font-medium text-white">{previewBanner.isActive ? 'Active' : 'Inactive'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Start Date</p>
-                  <p className="font-medium">{previewBanner.startDate ? new Date(previewBanner.startDate).toLocaleDateString() : 'N/A'}</p>
+                  <p className="font-medium text-white">{previewBanner.startDate ? new Date(previewBanner.startDate).toLocaleDateString() : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">End Date</p>
-                  <p className="font-medium">{previewBanner.endDate ? new Date(previewBanner.endDate).toLocaleDateString() : 'N/A'}</p>
+                  <p className="font-medium text-white">{previewBanner.endDate ? new Date(previewBanner.endDate).toLocaleDateString() : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Clicks</p>
@@ -12002,28 +12002,28 @@ function AdminDashboardContent() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">Page View Tracking</p>
+                    <p className="text-sm font-medium text-white">Page View Tracking</p>
                     <p className="text-xs text-slate-500">Track page views across the platform</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">User Event Tracking</p>
+                    <p className="text-sm font-medium text-white">User Event Tracking</p>
                     <p className="text-xs text-slate-500">Track user interactions and events</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">Conversion Tracking</p>
+                    <p className="text-sm font-medium text-white">Conversion Tracking</p>
                     <p className="text-xs text-slate-500">Track lead generation and sales conversions</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">Revenue Tracking</p>
+                    <p className="text-sm font-medium text-white">Revenue Tracking</p>
                     <p className="text-xs text-slate-500">Track subscription and payment revenue</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
@@ -12036,7 +12036,7 @@ function AdminDashboardContent() {
               <h4 className="text-sm font-semibold mb-4">Report Settings</h4>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Default Date Range</label>
+                  <label className="text-sm font-medium text-white">Default Date Range</label>
                   <select className="w-full mt-1 p-2 border rounded-md text-sm">
                     <option>Last 7 Days</option>
                     <option>Last 30 Days</option>
@@ -12045,7 +12045,7 @@ function AdminDashboardContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Report Timezone</label>
+                  <label className="text-sm font-medium text-white">Report Timezone</label>
                   <select className="w-full mt-1 p-2 border rounded-md text-sm">
                     <option>Africa/Windhoek (CAT)</option>
                     <option>UTC</option>
@@ -12053,7 +12053,7 @@ function AdminDashboardContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Currency Format</label>
+                  <label className="text-sm font-medium text-white">Currency Format</label>
                   <select className="w-full mt-1 p-2 border rounded-md text-sm">
                     <option>NAD (Namibian Dollar)</option>
                     <option>USD (US Dollar)</option>
@@ -12068,7 +12068,7 @@ function AdminDashboardContent() {
               <h4 className="text-sm font-semibold mb-4">Data Retention</h4>
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium">Analytics Data Retention Period</label>
+                  <label className="text-sm font-medium text-white">Analytics Data Retention Period</label>
                   <select className="w-full mt-1 p-2 border rounded-md text-sm">
                     <option>6 Months</option>
                     <option>1 Year</option>
@@ -12089,21 +12089,21 @@ function AdminDashboardContent() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">Daily Summary Email</p>
+                    <p className="text-sm font-medium text-white">Daily Summary Email</p>
                     <p className="text-xs text-slate-500">Receive daily analytics summary</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">Weekly Performance Report</p>
+                    <p className="text-sm font-medium text-white">Weekly Performance Report</p>
                     <p className="text-xs text-slate-500">Receive weekly performance insights</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">Monthly Executive Summary</p>
+                    <p className="text-sm font-medium text-white">Monthly Executive Summary</p>
                     <p className="text-xs text-slate-500">Comprehensive monthly report</p>
                   </div>
                   <input type="checkbox" className="h-4 w-4" defaultChecked />
