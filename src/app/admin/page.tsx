@@ -101,6 +101,10 @@ import {
   Send,
   FileDown,
   Megaphone,
+  MessageCircle,
+  RefreshCw,
+  ChevronUp,
+  ExternalLink,
 } from 'lucide-react';
 
 // Admin stats will be fetched from API
@@ -1152,230 +1156,234 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
     rejected: listings.filter(l => l.status === 'REJECTED').length,
   };
 
+  const formatDate = (val: string | null | undefined) => {
+    if (!val) return '—';
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Sell Your Car Listings</h2>
-          <p className="text-sm text-slate-400 mt-1">
-            Auto-Moderate: {autoModerate ? 'Enabled' : 'Disabled'}
-          </p>
+          <h2 className="text-xl font-semibold text-white">Sell Your Car</h2>
+          <p className="text-sm text-slate-400 mt-0.5">{stats.total} private seller submissions</p>
         </div>
-        <div className="flex gap-3 items-center">
+        <div className="flex items-center gap-3">
           {/* Auto-Moderate Toggle */}
-          <div className="flex items-center gap-3 px-4 py-2 bg-[#0D1117] rounded-lg border border-white/[0.06]">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className={`h-4 w-4 ${autoModerate ? 'text-green-600' : 'text-slate-500'}`} />
-              <span className="text-sm font-medium text-slate-300">Auto-Approve</span>
-            </div>
+          <div className="flex items-center gap-2.5 px-3 py-2 bg-[#0D1117] rounded-lg border border-white/[0.06]">
+            <span className="text-xs font-medium text-slate-400">Auto-Approve</span>
             <button
               onClick={toggleAutoModerate}
               disabled={loadingAutoModerate}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                autoModerate ? 'bg-green-600' : 'bg-white/[0.08]'
+              title={autoModerate ? 'Auto-approve is ON' : 'Auto-approve is OFF'}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                autoModerate ? 'bg-emerald-500' : 'bg-white/[0.12]'
               } ${loadingAutoModerate ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-[#111827] transition-transform ${
-                  autoModerate ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
+              <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${autoModerate ? 'translate-x-4' : 'translate-x-0.5'}`} />
             </button>
+            <span className={`text-xs font-medium ${autoModerate ? 'text-emerald-400' : 'text-slate-500'}`}>
+              {autoModerate ? 'On' : 'Off'}
+            </span>
           </div>
-
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search listings..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <Button variant="outline" size="sm" onClick={() => fetchListings()}>
-            <Download className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
+          <button
+            onClick={() => fetchListings()}
+            className="h-8 w-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            title="Refresh"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-[#111827] border-white/[0.06]">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Total Listings</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-              <Car className="h-8 w-8 text-blue-600" />
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total</span>
+            <div className="h-8 w-8 rounded-lg bg-white/[0.05] flex items-center justify-center">
+              <Car className="h-4 w-4 text-slate-400" />
             </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#111827] border-white/[0.06]">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Pending Approval</p>
-                <p className="text-2xl font-bold">{stats.pending}</p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-600" />
+          </div>
+          <div className="text-2xl font-bold text-white">{stats.total}</div>
+          <p className="text-xs text-slate-500 mt-1">All submissions</p>
+        </div>
+        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Pending</span>
+            <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+              <Clock className="h-4 w-4 text-amber-400" />
             </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#111827] border-white/[0.06]">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Approved</p>
-                <p className="text-2xl font-bold">{stats.approved}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+          <div className="text-2xl font-bold text-white">{stats.pending}</div>
+          <p className={`text-xs mt-1 ${stats.pending > 0 ? 'text-amber-500' : 'text-slate-500'}`}>
+            {stats.pending > 0 ? 'Needs review' : 'Queue clear'}
+          </p>
+        </div>
+        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Approved</span>
+            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <CheckCircle className="h-4 w-4 text-emerald-400" />
             </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#111827] border-white/[0.06]">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Rejected</p>
-                <p className="text-2xl font-bold">{stats.rejected}</p>
-              </div>
-              <XCircle className="h-8 w-8 text-red-600" />
+          </div>
+          <div className="text-2xl font-bold text-white">{stats.approved}</div>
+          <p className="text-xs text-emerald-500 mt-1">
+            {stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0}% approval rate
+          </p>
+        </div>
+        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Rejected</span>
+            <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+              <XCircle className="h-4 w-4 text-red-400" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="text-2xl font-bold text-white">{stats.rejected}</div>
+          <p className="text-xs text-slate-500 mt-1">Not approved</p>
+        </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 border-b border-white/[0.06]">
-        {['all', 'pending', 'approved', 'rejected'].map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilterStatus(status)}
-            className={`px-4 py-2 -mb-px font-medium text-sm border-b-2 transition-colors ${
-              filterStatus === status
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-400 hover:text-white hover:border-white/[0.1]'
-            }`}
-          >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </button>
-        ))}
+      {/* Search + Filter Pills */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <input
+            type="text"
+            placeholder="Search by make, model, seller..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-[#111827] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/40 focus:border-[#CB2030]/50 transition-colors"
+          />
+        </div>
+        <div className="flex gap-2">
+          {[
+            { label: 'All', value: 'all', count: stats.total },
+            { label: 'Pending', value: 'pending', count: stats.pending },
+            { label: 'Approved', value: 'approved', count: stats.approved },
+            { label: 'Rejected', value: 'rejected', count: stats.rejected },
+          ].map(pill => (
+            <button
+              key={pill.value}
+              onClick={() => setFilterStatus(pill.value)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                filterStatus === pill.value
+                  ? 'bg-[#CB2030] text-white'
+                  : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.1] hover:text-white'
+              }`}
+            >
+              {pill.label}
+              <span className={`${filterStatus === pill.value ? 'bg-white/20' : 'bg-white/[0.08]'} rounded-full px-1.5 py-0.5 text-[10px]`}>
+                {pill.count}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Listings Table */}
-      <Card className="bg-[#111827] border-white/[0.06]">
+      <Card className="bg-[#111827] border-white/[0.06] overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-slate-400">Loading listings...</p>
-              </div>
+            <div className="flex flex-col items-center justify-center py-14">
+              <div className="h-8 w-8 border-2 border-[#CB2030]/40 border-t-[#CB2030] rounded-full animate-spin mb-3" />
+              <p className="text-sm text-slate-500">Loading submissions...</p>
             </div>
           ) : filteredListings.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Car className="h-16 w-16 text-slate-600 mb-4" />
-              <p className="text-slate-400 text-lg font-medium">No listings found</p>
-              <p className="text-slate-500 text-sm mt-1">Try adjusting your filters or search term</p>
+            <div className="flex flex-col items-center justify-center py-14">
+              <Car className="h-8 w-8 text-slate-600 mb-3" />
+              <p className="text-sm text-slate-500">No listings found</p>
+              {searchTerm && <p className="text-xs text-slate-600 mt-1">Try adjusting your search</p>}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-[#0D1117]">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Vehicle
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Seller
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Price
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Submitted
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+                <thead>
+                  <tr className="border-b border-white/[0.06]">
+                    <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Vehicle</th>
+                    <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Seller</th>
+                    <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Price</th>
+                    <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                    <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hidden md:table-cell">Submitted</th>
+                    <th className="px-5 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
+                <tbody className="divide-y divide-white/[0.04]">
                   {filteredListings.map((listing) => (
-                    <tr key={listing.id} className="hover:bg-[#0D1117]">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 bg-white/[0.06] rounded flex items-center justify-center">
-                            <Car className="h-6 w-6 text-slate-500" />
+                    <tr
+                      key={listing.id}
+                      className={`group hover:bg-white/[0.02] transition-colors ${listing.status === 'PENDING' ? 'border-l-2 border-l-amber-500/60' : ''}`}
+                    >
+                      {/* Vehicle */}
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-14 rounded-lg bg-white/[0.05] flex items-center justify-center shrink-0">
+                            <Car className="h-4 w-4 text-slate-500" />
                           </div>
-                          <div className="ml-4">
+                          <div>
                             <div className="text-sm font-medium text-white">
-                              {listing.year} {listing.make} {listing.model}
+                              {[listing.year, listing.make, listing.model].filter(Boolean).join(' ')}
                             </div>
-                            <div className="text-sm text-slate-500">{listing.category}</div>
+                            <div className="text-xs text-slate-500 mt-0.5 capitalize">{listing.category || '—'}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-white">{listing.userName}</div>
-                        <div className="text-sm text-slate-500">{listing.userEmail}</div>
-                        <div className="text-sm text-slate-500">{listing.userPhone}</div>
+                      {/* Seller */}
+                      <td className="px-5 py-3.5">
+                        <div className="text-sm text-slate-300">{listing.userName || '—'}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{listing.userEmail}</div>
+                        {listing.userPhone && <div className="text-xs text-slate-600">{listing.userPhone}</div>}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-white">
-                          N$ {listing.price?.toLocaleString()}
+                      {/* Price */}
+                      <td className="px-5 py-3.5">
+                        <div className="text-sm font-semibold text-white">
+                          N${listing.price?.toLocaleString() ?? '—'}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(listing.status)}
+                      {/* Status */}
+                      <td className="px-5 py-3.5">
+                        <Badge className={`text-xs w-fit ${
+                          listing.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                          listing.status === 'REJECTED' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                          'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                        }`}>
+                          {listing.status === 'APPROVED' ? 'Approved' : listing.status === 'REJECTED' ? 'Rejected' : 'Pending'}
+                        </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                        {new Date(listing.createdAt).toLocaleDateString()}
+                      {/* Date */}
+                      <td className="px-5 py-3.5 hidden md:table-cell">
+                        <div className="text-sm text-slate-400">{formatDate(listing.createdAt)}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end gap-2">
+                      {/* Actions */}
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
                           {listing.status === 'PENDING' && (
                             <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedListing(listing);
-                                  setShowApproveDialog(true);
-                                }}
-                                className="text-green-600 hover:text-green-700"
+                              <button
+                                onClick={() => { setSelectedListing(listing); setShowApproveDialog(true); }}
+                                title="Approve"
+                                className="h-7 w-7 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center transition-colors cursor-pointer"
                               >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedListing(listing);
-                                  setShowRejectDialog(true);
-                                }}
-                                className="text-red-600 hover:text-red-700"
+                                <CheckCircle className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => { setSelectedListing(listing); setShowRejectDialog(true); }}
+                                title="Reject"
+                                className="h-7 w-7 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors cursor-pointer"
                               >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Reject
-                              </Button>
+                                <XCircle className="h-3.5 w-3.5" />
+                              </button>
                             </>
                           )}
-                          <Button
-                            size="sm"
-                            variant="outline"
+                          <button
                             onClick={() => handleDelete(listing.id)}
-                            className="text-slate-400 hover:text-slate-300"
+                            title="Delete"
+                            className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-red-500/10 text-slate-500 hover:text-red-400 flex items-center justify-center transition-colors cursor-pointer"
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1389,71 +1397,65 @@ function SellYourCarManagement({ showToast }: { showToast: any }) {
 
       {/* Approve Dialog */}
       {showApproveDialog && selectedListing && (
-        <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Approve Listing</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to approve this listing? The seller will be notified via email.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <div className="text-sm">
-                <p><strong>Vehicle:</strong> {selectedListing.year} {selectedListing.make} {selectedListing.model}</p>
-                <p><strong>Seller:</strong> {selectedListing.userName} ({selectedListing.userEmail})</p>
-                <p><strong>Price:</strong> N$ {selectedListing.price?.toLocaleString()}</p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowApproveDialog(false)}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <CheckCircle className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-white">Approve Listing</h3>
+                <p className="text-xs text-slate-400 mt-0.5">The seller will be notified via email</p>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowApproveDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
-                <CheckCircle className="h-4 w-4 mr-2" />
+            <div className="bg-[#0D1117] rounded-lg p-3 mb-5 text-sm space-y-1">
+              <p className="text-slate-300"><span className="text-slate-500">Vehicle: </span>{selectedListing.year} {selectedListing.make} {selectedListing.model}</p>
+              <p className="text-slate-300"><span className="text-slate-500">Seller: </span>{selectedListing.userName} · {selectedListing.userEmail}</p>
+              <p className="text-slate-300"><span className="text-slate-500">Price: </span>N$ {selectedListing.price?.toLocaleString()}</p>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" size="sm" className="border-white/[0.1]" onClick={() => setShowApproveDialog(false)}>Cancel</Button>
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleApprove}>
+                <CheckCircle className="h-4 w-4 mr-1.5" />
                 Approve Listing
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Reject Dialog */}
       {showRejectDialog && selectedListing && (
-        <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Reject Listing</DialogTitle>
-              <DialogDescription>
-                Please provide a reason for rejecting this listing (optional).
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <div className="text-sm mb-4">
-                <p><strong>Vehicle:</strong> {selectedListing.year} {selectedListing.make} {selectedListing.model}</p>
-                <p><strong>Seller:</strong> {selectedListing.userName} ({selectedListing.userEmail})</p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => { setShowRejectDialog(false); setRejectionReason(''); }}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
+                <XCircle className="h-5 w-5 text-red-400" />
               </div>
+              <div>
+                <h3 className="text-base font-semibold text-white">Reject Listing</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{selectedListing.year} {selectedListing.make} {selectedListing.model} · {selectedListing.userName}</p>
+              </div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Rejection reason (optional — sent to seller)</label>
               <Textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Enter rejection reason (optional)..."
-                className="w-full"
-                rows={4}
+                placeholder="e.g. Incomplete information, unclear photos, price issue..."
+                className="w-full bg-[#0D1117] border-white/[0.08] text-sm text-white placeholder-slate-600 resize-none focus:ring-[#CB2030]/40 focus:border-[#CB2030]/50"
+                rows={3}
               />
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                setShowRejectDialog(false);
-                setRejectionReason('');
-              }}>
-                Cancel
-              </Button>
-              <Button onClick={handleReject} className="bg-red-600 hover:bg-red-700">
-                <XCircle className="h-4 w-4 mr-2" />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" size="sm" className="border-white/[0.1]" onClick={() => { setShowRejectDialog(false); setRejectionReason(''); }}>Cancel</Button>
+              <Button size="sm" className="bg-[#CB2030] hover:bg-[#B01C2A] text-white" onClick={handleReject}>
+                <XCircle className="h-4 w-4 mr-1.5" />
                 Reject Listing
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1485,6 +1487,8 @@ function AdminDashboardContent() {
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
   const [userRoleFilter, setUserRoleFilter] = useState('all');
   const [userStatusFilter, setUserStatusFilter] = useState('all');
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userQuickFilter, setUserQuickFilter] = useState('all');
   const [editingUser, setEditingUser] = useState<any>(null);
   const [dealers, setDealers] = useState(() => {
     // Initialize from localStorage if available
@@ -1810,6 +1814,10 @@ function AdminDashboardContent() {
     avgCTR: 0
   });
   const [activeAdvertTab, setActiveAdvertTab] = useState('banners'); // 'banners', 'payments', 'analytics'
+  const [advertFilter, setAdvertFilter] = useState('ALL'); // position filter: 'ALL'|'HERO'|'MAIN'|'SIDEBAR'
+  const [advertSearch, setAdvertSearch] = useState(''); // banner search term
+  const [bannerSaving, setBannerSaving] = useState(false);
+  const [bannerFormError, setBannerFormError] = useState('');
 
   // Load platform settings from database
   useEffect(() => {
@@ -2421,26 +2429,23 @@ function AdminDashboardContent() {
     setEditingBanner(banner);
   };
 
-  const handleDeleteBanner = async (banner: any) => {
-    const confirmed = confirm(`Are you sure you want to delete the banner "${banner.title}"?`);
-    if (confirmed) {
-      try {
-        const response = await fetch(`/api/admin/banners/${banner.id}`, {
-          method: 'DELETE',
-        });
+  const handleDeleteBanner = (banner: any) => {
+    setDeletingBanner(banner);
+  };
 
-        if (response.ok) {
-          alert('Banner deleted successfully!');
-          fetchBanners(); // Refresh the list
-        } else {
-          alert('Failed to delete banner');
-        }
-      } catch (error) {
-        console.error('Error deleting banner:', error);
-        alert('An error occurred while deleting the banner');
+  const handleConfirmDeleteBanner = async () => {
+    if (!deletingBanner) return;
+    try {
+      const response = await fetch(`/api/admin/banners/${deletingBanner.id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        fetchBanners();
       }
-      setDeletingBanner(null);
+    } catch (error) {
+      console.error('Error deleting banner:', error);
     }
+    setDeletingBanner(null);
   };
 
   // Listing management functions
@@ -4302,638 +4307,661 @@ function AdminDashboardContent() {
           )}
 
           {/* Users Tab */}
-          {activeTab === 'users' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">User Management</h2>
-                <div className="flex gap-3">
-                  <Button variant="outline" size="sm" onClick={() => setUserFilterOpen(!userFilterOpen)}>
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filter
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => {
-                    const csvContent = users.map(u => `${u.name},${u.email},${u.role},${u.status},${u.joinedAt}`).join('\n');
-                    const blob = new Blob([`Name,Email,Role,Status,Joined\n${csvContent}`], { type: 'text/csv' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'users-export.csv';
-                    a.click();
-                  }}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
-                  <Button size="sm" className="bg-[#CB2030] hover:bg-[#B01C2A]" onClick={() => setAddUserModalOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add User
-                  </Button>
-                </div>
-              </div>
-
-              {/* Filter Panel */}
-              {userFilterOpen && (
-                <Card className="border-white/[0.06] bg-[#111827]">
-                  <CardContent className="pt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Role</label>
-                        <select
-                          value={userRoleFilter}
-                          onChange={(e) => setUserRoleFilter(e.target.value)}
-                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          <option value="all">All Roles</option>
-                          <option value="User">User</option>
-                          <option value="Dealer">Dealer</option>
-                          <option value="Admin">Admin</option>
-                        </select>
+          {activeTab === 'users' && (() => {
+            const avatarPalette = [
+              'bg-blue-500/20 text-blue-300',
+              'bg-purple-500/20 text-purple-300',
+              'bg-emerald-500/20 text-emerald-300',
+              'bg-amber-500/20 text-amber-300',
+              'bg-pink-500/20 text-pink-300',
+              'bg-cyan-500/20 text-cyan-300',
+              'bg-orange-500/20 text-orange-300',
+              'bg-teal-500/20 text-teal-300',
+            ];
+            const getAvatarColor = (name: string) => avatarPalette[(name?.charCodeAt(0) || 0) % avatarPalette.length];
+            const getInitials = (name: string) => (name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            const getRoleBadge = (role: string) => {
+              switch (role?.toLowerCase()) {
+                case 'admin': return 'bg-[#CB2030]/10 text-[#CB2030] border border-[#CB2030]/20';
+                case 'dealer': return 'bg-purple-500/10 text-purple-400 border border-purple-500/20';
+                case 'sales executive': return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
+                default: return 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
+              }
+            };
+            const getStatusStyle = (status: string) => {
+              switch (status?.toLowerCase()) {
+                case 'active': return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                case 'pending': return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                case 'suspended': return 'bg-red-500/10 text-red-400 border border-red-500/20';
+                default: return 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
+              }
+            };
+            const filteredUsers = users.filter(u => {
+              const q = userSearchQuery.toLowerCase();
+              if (q && !u.name?.toLowerCase().includes(q) && !u.email?.toLowerCase().includes(q)) return false;
+              if (userQuickFilter === 'active') return u.status?.toLowerCase() === 'active';
+              if (userQuickFilter === 'suspended') return u.status?.toLowerCase() === 'suspended';
+              if (userQuickFilter === 'dealer') return u.role?.toLowerCase() === 'dealer';
+              if (userQuickFilter === 'admin') return u.role?.toLowerCase() === 'admin';
+              return true;
+            });
+            const counts = {
+              all: users.length,
+              active: users.filter(u => u.status?.toLowerCase() === 'active').length,
+              suspended: users.filter(u => u.status?.toLowerCase() === 'suspended').length,
+              dealer: users.filter(u => u.role?.toLowerCase() === 'dealer').length,
+              admin: users.filter(u => u.role?.toLowerCase() === 'admin').length,
+            };
+            return (
+              <div className="space-y-5">
+                {/* Stat Cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { label: 'Total Users', value: counts.all, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+                    { label: 'Active', value: counts.active, icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+                    { label: 'Suspended', value: counts.suspended, icon: Ban, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+                    { label: 'Dealers', value: counts.dealer, icon: Building2, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
+                  ].map(({ label, value, icon: Icon, color, bg, border }) => (
+                    <div key={label} className={`bg-[#111827] border ${border} rounded-xl p-4 flex items-center gap-4`}>
+                      <div className={`w-10 h-10 rounded-lg ${bg} flex items-center justify-center flex-shrink-0`}>
+                        <Icon className={`h-5 w-5 ${color}`} />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Status</label>
-                        <select
-                          value={userStatusFilter}
-                          onChange={(e) => setUserStatusFilter(e.target.value)}
-                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          <option value="all">All Statuses</option>
-                          <option value="Active">Active</option>
-                          <option value="Pending">Pending</option>
-                          <option value="Suspended">Suspended</option>
-                        </select>
-                      </div>
-                      <div className="flex items-end">
-                        <Button variant="outline" className="w-full" onClick={() => {
-                          setUserRoleFilter('all');
-                          setUserStatusFilter('all');
-                        }}>
-                          Clear Filters
-                        </Button>
+                        <p className="text-[11px] text-slate-500 uppercase tracking-wide font-medium">{label}</p>
+                        <p className={`text-2xl font-bold ${color}`}>{value}</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  ))}
+                </div>
 
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardContent className="p-0">
+                {/* Main Panel */}
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+                  {/* Toolbar */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-5 py-4 border-b border-white/[0.06]">
+                    <h2 className="text-base font-semibold text-white">User Management</h2>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <div className="relative flex-1 sm:w-60">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                        <input
+                          type="text"
+                          placeholder="Search name or email…"
+                          value={userSearchQuery}
+                          onChange={(e) => setUserSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-3 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500/50"
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          const csvContent = users.map(u => `${u.name},${u.email},${u.role},${u.status},${u.joinedAt}`).join('\n');
+                          const blob = new Blob([`Name,Email,Role,Status,Joined\n${csvContent}`], { type: 'text/csv' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url; a.download = 'users-export.csv'; a.click();
+                        }}
+                        className="p-2 rounded-lg border border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.04] transition-colors shrink-0"
+                        title="Export CSV"
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setAddUserModalOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#CB2030] hover:bg-[#B01C2A] text-white text-sm font-medium transition-colors shrink-0"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add User
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Filter Tabs */}
+                  <div className="flex items-center gap-1 px-4 py-2 border-b border-white/[0.06] overflow-x-auto">
+                    {([
+                      { key: 'all', label: 'All' },
+                      { key: 'active', label: 'Active' },
+                      { key: 'suspended', label: 'Suspended' },
+                      { key: 'dealer', label: 'Dealers' },
+                      { key: 'admin', label: 'Admins' },
+                    ] as { key: keyof typeof counts; label: string }[]).map(({ key, label }) => (
+                      <button
+                        key={key}
+                        onClick={() => setUserQuickFilter(key)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                          userQuickFilter === key
+                            ? 'bg-white/[0.1] text-white'
+                            : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                        }`}
+                      >
+                        {label}
+                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                          userQuickFilter === key ? 'bg-white/[0.15] text-white' : 'bg-white/[0.06] text-slate-500'
+                        }`}>{counts[key]}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Table */}
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-[#0D1117]">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">User</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Role</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Joined</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                      <thead>
+                        <tr className="bg-[#0D1117]">
+                          <th className="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">User</th>
+                          <th className="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Role</th>
+                          <th className="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                          <th className="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Joined</th>
+                          <th className="px-5 py-3 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
-                        {users
-                          .filter(user => userRoleFilter === 'all' || user.role === userRoleFilter)
-                          .filter(user => userStatusFilter === 'all' || user.status === userStatusFilter)
-                          .map((user) => (
-                          <tr key={user.id} className="hover:bg-[#0D1117]">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div>
-                                <div className="text-sm font-medium text-white">{user.name}</div>
-                                <div className="text-sm text-slate-500">{user.email}</div>
+                      <tbody>
+                        {filteredUsers.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="px-5 py-12 text-center text-slate-500 text-sm">
+                              No users match your search.
+                            </td>
+                          </tr>
+                        ) : filteredUsers.map((user) => (
+                          <tr key={user.id} className="border-t border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                            <td className="px-5 py-3.5">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${getAvatarColor(user.name)}`}>
+                                  {getInitials(user.name)}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-sm font-medium text-white truncate">{user.name}</div>
+                                  <div className="text-xs text-slate-500 truncate">{user.email}</div>
+                                </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge variant="outline">{user.role}</Badge>
+                            <td className="px-5 py-3.5">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${getRoleBadge(user.role)}`}>
+                                {user.role}
+                              </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge className={getStatusBadge(user.status)}>{user.status}</Badge>
+                            <td className="px-5 py-3.5">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${getStatusStyle(user.status)}`}>
+                                {user.status}
+                              </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                              {new Date(user.joinedAt).toLocaleDateString()}
+                            <td className="px-5 py-3.5 text-xs text-slate-500 whitespace-nowrap">
+                              {new Date(user.joinedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>Edit</Button>
-                              {user.status === 'Active' ? (
-                                <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleSuspendUser(user)}>Suspend</Button>
-                              ) : (
-                                <Button variant="ghost" size="sm" className="text-green-600" onClick={() => handleActivateUser(user)}>Activate</Button>
-                              )}
+                            <td className="px-5 py-3.5">
+                              <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => handleEditUser(user)}
+                                  className="px-2.5 py-1 rounded-md text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+                                >
+                                  Edit
+                                </button>
+                                {user.status?.toLowerCase() === 'active' ? (
+                                  <button
+                                    onClick={() => handleSuspendUser(user)}
+                                    className="px-2.5 py-1 rounded-md text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                                  >
+                                    Suspend
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleActivateUser(user)}
+                                    className="px-2.5 py-1 rounded-md text-xs font-medium text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors"
+                                  >
+                                    Activate
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Add User Modal */}
           {addUserModalOpen && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setAddUserModalOpen(false)}>
-              <Card className="w-full max-w-md m-4 bg-[#111827] border-white/[0.08]" onClick={(e) => e.stopPropagation()}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-white">Add New User</CardTitle>
-                    <Button variant="ghost" size="sm" onClick={() => setAddUserModalOpen(false)}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <CardDescription className="text-slate-400">Create a new user account</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setAddUserModalOpen(false)}>
+              <div className="w-full max-w-md bg-[#111827] border border-white/[0.08] rounded-xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    <h3 className="text-base font-semibold text-white">Add New User</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Create a new user account</p>
+                  </div>
+                  <button onClick={() => setAddUserModalOpen(false)} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="px-6 py-5 space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Full Name</label>
+                    <input type="text" placeholder="John Doe" className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500/50" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
-                    <input
-                      type="email"
-                      placeholder="john@example.com"
-                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Email Address</label>
+                    <input type="email" placeholder="john@example.com" className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500/50" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Role</label>
-                    <select className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Role</label>
+                    <select className="w-full px-3 py-2 bg-[#0D1117] border border-white/[0.1] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500/50">
                       <option value="Dealer">Dealer</option>
                       <option value="Admin">Admin</option>
                       <option value="Sales Executive">Sales Executive</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">
-                      Dealership <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    >
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Dealership <span className="text-red-400">*</span></label>
+                    <select className="w-full px-3 py-2 bg-[#0D1117] border border-white/[0.1] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500/50" required>
                       <option value="">Select a dealership</option>
                       {dealers.map((dealer) => (
                         <option key={dealer.id} value={dealer.id}>{dealer.name}</option>
                       ))}
                     </select>
-                    <p className="text-xs text-slate-500 mt-1">All users must be assigned to a dealership</p>
+                    <p className="text-[11px] text-slate-500 mt-1">All users must be assigned to a dealership</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Password</label>
+                    <input type="password" placeholder="••••••••" className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500/50" />
                   </div>
-                  <div className="flex gap-3 pt-4">
-                    <Button variant="outline" className="flex-1" onClick={() => setAddUserModalOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button className="flex-1 bg-[#CB2030] hover:bg-[#B01C2A]" onClick={() => {
-                      // In real app, this would call an API
-                      alert('User would be created here');
-                      setAddUserModalOpen(false);
-                    }}>
-                      Create User
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="flex gap-3 px-6 py-4 border-t border-white/[0.06]">
+                  <button onClick={() => setAddUserModalOpen(false)} className="flex-1 px-4 py-2 rounded-lg border border-white/[0.1] text-sm text-slate-300 hover:text-white hover:bg-white/[0.04] transition-colors font-medium">
+                    Cancel
+                  </button>
+                  <button onClick={() => { alert('User would be created here'); setAddUserModalOpen(false); }} className="flex-1 px-4 py-2 rounded-lg bg-[#CB2030] hover:bg-[#B01C2A] text-sm text-white font-medium transition-colors">
+                    Create User
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
           {/* Edit User Modal */}
           {editingUser && (
-            <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit User</DialogTitle>
-                  <DialogDescription>Update user information</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setEditingUser(null)}>
+              <div className="w-full max-w-md bg-[#111827] border border-white/[0.08] rounded-xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
-                    <Input
-                      value={editingUser.name}
-                      onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
-                    />
+                    <h3 className="text-base font-semibold text-white">Edit User</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Update user information</p>
+                  </div>
+                  <button onClick={() => setEditingUser(null)} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="px-6 py-5 space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Full Name</label>
+                    <input type="text" value={editingUser.name} onChange={(e) => setEditingUser({...editingUser, name: e.target.value})} className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500/50" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-                    <Input
-                      type="email"
-                      value={editingUser.email}
-                      onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
-                    />
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Email</label>
+                    <input type="email" value={editingUser.email} onChange={(e) => setEditingUser({...editingUser, email: e.target.value})} className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500/50" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Role</label>
-                    <select
-                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
-                      value={editingUser.role}
-                      onChange={(e) => setEditingUser({...editingUser, role: e.target.value})}
-                    >
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Role</label>
+                    <select value={editingUser.role} onChange={(e) => setEditingUser({...editingUser, role: e.target.value})} className="w-full px-3 py-2 bg-[#0D1117] border border-white/[0.1] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500/50">
                       <option value="Dealer">Dealer</option>
                       <option value="Admin">Admin</option>
                       <option value="Sales Executive">Sales Executive</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">
-                      Dealership <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
-                      value={editingUser.dealershipId || ''}
-                      onChange={(e) => setEditingUser({...editingUser, dealershipId: e.target.value})}
-                      required
-                    >
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Dealership <span className="text-red-400">*</span></label>
+                    <select value={editingUser.dealershipId || ''} onChange={(e) => setEditingUser({...editingUser, dealershipId: e.target.value})} className="w-full px-3 py-2 bg-[#0D1117] border border-white/[0.1] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500/50" required>
                       <option value="">Select a dealership</option>
                       {dealers.map((dealer) => (
                         <option key={dealer.id} value={dealer.id}>{dealer.name}</option>
                       ))}
                     </select>
-                    <p className="text-xs text-slate-500 mt-1">All users must be assigned to a dealership</p>
+                    <p className="text-[11px] text-slate-500 mt-1">All users must be assigned to a dealership</p>
                   </div>
                 </div>
-                <DialogFooter className="mt-4 gap-2">
-                  <Button variant="outline" onClick={() => setEditingUser(null)}>Cancel</Button>
-                  <Button onClick={saveUserEdit}>Save Changes</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                <div className="flex gap-3 px-6 py-4 border-t border-white/[0.06]">
+                  <button onClick={() => setEditingUser(null)} className="flex-1 px-4 py-2 rounded-lg border border-white/[0.1] text-sm text-slate-300 hover:text-white hover:bg-white/[0.04] transition-colors font-medium">
+                    Cancel
+                  </button>
+                  <button onClick={saveUserEdit} className="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm text-white font-medium transition-colors">
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Suspend User Modal */}
           {suspendingUser && (
-            <Dialog open={!!suspendingUser} onOpenChange={() => setSuspendingUser(null)}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Suspend User</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to suspend {suspendingUser.name}? They will not be able to access their account until reactivated.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSuspendingUser(null)}>
+              <div className="w-full max-w-md bg-[#111827] border border-white/[0.08] rounded-xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">Reason for suspension (optional)</label>
-                    <Textarea
-                      value={suspendReason}
-                      onChange={(e) => setSuspendReason(e.target.value)}
-                      placeholder="Enter reason for suspension..."
-                      className="w-full"
-                    />
+                    <h3 className="text-base font-semibold text-white">Suspend User</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{suspendingUser.name} will lose account access</p>
                   </div>
+                  <button onClick={() => setSuspendingUser(null)} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors">
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-                <div className="flex flex-row justify-end gap-3 mt-6 pt-4 border-t border-white/[0.06]" style={{ marginTop: '24px', paddingTop: '16px' }}>
-                  <button
-                    onClick={() => setSuspendingUser(null)}
-                    className="px-4 py-2 border border-white/[0.1] rounded-md bg-[#111827] text-slate-300 hover:bg-[#0D1117] font-medium text-sm"
-                  >
+                <div className="px-6 py-5">
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Reason for suspension (optional)</label>
+                  <textarea
+                    value={suspendReason}
+                    onChange={(e) => setSuspendReason(e.target.value)}
+                    placeholder="Enter reason for suspension..."
+                    rows={3}
+                    className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500/50 resize-none"
+                  />
+                </div>
+                <div className="flex gap-3 px-6 py-4 border-t border-white/[0.06]">
+                  <button onClick={() => setSuspendingUser(null)} className="flex-1 px-4 py-2 rounded-lg border border-white/[0.1] text-sm text-slate-300 hover:text-white hover:bg-white/[0.04] transition-colors font-medium">
                     Cancel
                   </button>
-                  <button
-                    onClick={confirmSuspendUser}
-                    className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 font-medium text-sm inline-flex items-center"
-                  >
-                    <Ban className="h-4 w-4 mr-2" />
+                  <button onClick={confirmSuspendUser} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-sm text-white font-medium transition-colors">
+                    <Ban className="h-4 w-4" />
                     Suspend User
                   </button>
                 </div>
-              </DialogContent>
-            </Dialog>
+              </div>
+            </div>
           )}
 
           {/* Activate User Modal */}
           {activatingUser && (
-            <Dialog open={!!activatingUser} onOpenChange={() => setActivatingUser(null)}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Activate User</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to activate {activatingUser.name}? They will regain access to their account.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="mt-4 gap-2">
-                  <Button variant="outline" onClick={() => setActivatingUser(null)}>Cancel</Button>
-                  <Button onClick={confirmActivateUser} className="bg-green-600 hover:bg-green-700">
-                    <UserCheck className="h-4 w-4 mr-2" />
-                    Activate User
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setActivatingUser(null)}>
+              <div className="w-full max-w-sm bg-[#111827] border border-white/[0.08] rounded-xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="px-6 py-5 text-center">
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+                    <UserCheck className="h-6 w-6 text-emerald-400" />
+                  </div>
+                  <h3 className="text-base font-semibold text-white mb-1">Activate User</h3>
+                  <p className="text-sm text-slate-400">Are you sure you want to activate <span className="text-white font-medium">{activatingUser.name}</span>? They will regain access to their account.</p>
+                </div>
+                <div className="flex gap-3 px-6 pb-5">
+                  <button onClick={() => setActivatingUser(null)} className="flex-1 px-4 py-2 rounded-lg border border-white/[0.1] text-sm text-slate-300 hover:text-white hover:bg-white/[0.04] transition-colors font-medium">
+                    Cancel
+                  </button>
+                  <button onClick={confirmActivateUser} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-sm text-white font-medium transition-colors">
+                    <UserCheck className="h-4 w-4" />
+                    Activate
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Dealers Tab */}
-          {activeTab === 'dealers' && (
+          {activeTab === 'dealers' && (() => {
+            const pendingCount = dealers.filter(d => d.verificationStatus === 'Pending').length;
+            const approvedCount = dealers.filter(d => d.status === 'APPROVED').length;
+            const suspendedCount = dealers.filter(d => d.status === 'SUSPENDED').length;
+            const rejectedCount = dealers.filter(d => d.status === 'REJECTED').length;
+            const monthlyRevenue = dealers.reduce((sum, d) => sum + (d.monthlyFee || 0), 0);
+            const filteredDealers = dealers.filter(dealer => {
+              const q = searchTerm.toLowerCase();
+              const matchesSearch = !q ||
+                dealer.name.toLowerCase().includes(q) ||
+                dealer.email.toLowerCase().includes(q) ||
+                (dealer.city || '').toLowerCase().includes(q);
+              const matchesStatus = statusFilter === 'all' || dealer.status === statusFilter;
+              const matchesVerification = verificationFilter === 'all' || dealer.verificationStatus === verificationFilter;
+              return matchesSearch && matchesStatus && matchesVerification;
+            });
+            return (
             <div className="space-y-6">
+              {/* Header */}
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Dealer Management</h2>
-                <div className="flex gap-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
-                    <input
-                      type="text"
-                      placeholder="Search dealers..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                <div>
+                  <h2 className="text-xl font-semibold text-white">Dealer Management</h2>
+                  <p className="text-sm text-slate-400 mt-0.5">{dealers.length} dealerships registered</p>
+                </div>
+                <Button variant="outline" size="sm" className="border-white/[0.1] text-slate-300 hover:text-white" onClick={handleGenerateReports}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </div>
+
+              {/* Stats Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total</span>
+                    <div className="h-8 w-8 rounded-lg bg-white/[0.05] flex items-center justify-center">
+                      <Building2 className="h-4 w-4 text-slate-400" />
+                    </div>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <Filter className="h-4 w-4 mr-2" />
-                        Filter
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => setStatusFilter('all')}>
-                        <CheckCircle className={`mr-2 h-4 w-4 ${statusFilter === 'all' ? 'opacity-100' : 'opacity-0'}`} />
-                        All Statuses
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter('PENDING')}>
-                        <CheckCircle className={`mr-2 h-4 w-4 ${statusFilter === 'PENDING' ? 'opacity-100' : 'opacity-0'}`} />
-                        Pending
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter('APPROVED')}>
-                        <CheckCircle className={`mr-2 h-4 w-4 ${statusFilter === 'APPROVED' ? 'opacity-100' : 'opacity-0'}`} />
-                        Approved
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter('SUSPENDED')}>
-                        <CheckCircle className={`mr-2 h-4 w-4 ${statusFilter === 'SUSPENDED' ? 'opacity-100' : 'opacity-0'}`} />
-                        Suspended
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter('REJECTED')}>
-                        <CheckCircle className={`mr-2 h-4 w-4 ${statusFilter === 'REJECTED' ? 'opacity-100' : 'opacity-0'}`} />
-                        Rejected
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel>Filter by Verification</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => setVerificationFilter('all')}>
-                        <CheckCircle className={`mr-2 h-4 w-4 ${verificationFilter === 'all' ? 'opacity-100' : 'opacity-0'}`} />
-                        All
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setVerificationFilter('Verified')}>
-                        <CheckCircle className={`mr-2 h-4 w-4 ${verificationFilter === 'Verified' ? 'opacity-100' : 'opacity-0'}`} />
-                        Verified
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setVerificationFilter('Pending')}>
-                        <CheckCircle className={`mr-2 h-4 w-4 ${verificationFilter === 'Pending' ? 'opacity-100' : 'opacity-0'}`} />
-                        Pending
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
+                  <div className="text-2xl font-bold text-white">{dealers.length}</div>
+                  <p className="text-xs text-slate-500 mt-1">All dealerships</p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Active</span>
+                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-emerald-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{approvedCount}</div>
+                  <p className="text-xs text-emerald-500 mt-1">
+                    {dealers.length > 0 ? Math.round((approvedCount / dealers.length) * 100) : 0}% of total
+                  </p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Pending</span>
+                    <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <Clock className="h-4 w-4 text-amber-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{pendingCount}</div>
+                  <p className={`text-xs mt-1 ${pendingCount > 0 ? 'text-amber-500' : 'text-slate-500'}`}>
+                    {pendingCount > 0 ? 'Requires attention' : 'All clear'}
+                  </p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Revenue</span>
+                    <div className="h-8 w-8 rounded-lg bg-[#CB2030]/10 flex items-center justify-center">
+                      <DollarSign className="h-4 w-4 text-[#CB2030]" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">N${(monthlyRevenue / 100).toLocaleString()}</div>
+                  <p className="text-xs text-slate-500 mt-1">Monthly subscriptions</p>
                 </div>
               </div>
 
-              {/* Dealers Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Total Dealers</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{dealers.length}</div>
-                    <p className="text-xs text-green-600 flex items-center">
-                      <ArrowUpRight className="h-3 w-3 mr-1" />
-                      +12% from last month
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Active Dealers</CardTitle>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {dealers.filter(d => d.status === 'Active').length}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {Math.round((dealers.filter(d => d.status === 'Active').length / dealers.length) * 100)}% of total
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Pending Approval</CardTitle>
-                    <Clock className="h-4 w-4 text-yellow-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {dealers.filter(d => d.verificationStatus === 'Pending').length}
-                    </div>
-                    <p className="text-xs text-yellow-600">Requires attention</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Monthly Revenue</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      N${dealers.reduce((sum, dealer) => sum + (dealer.monthlyFee || 0), 0).toLocaleString()}
-                    </div>
-                    <p className="text-xs text-green-600 flex items-center">
-                      <ArrowUpRight className="h-3 w-3 mr-1" />
-                      +8% from last month
-                    </p>
-                  </CardContent>
-                </Card>
+              {/* Search + Filter Row */}
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, city..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 bg-[#111827] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/40 focus:border-[#CB2030]/50 transition-colors"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: 'All', value: 'all', count: dealers.length },
+                    { label: 'Approved', value: 'APPROVED', count: approvedCount },
+                    { label: 'Pending', value: 'PENDING', count: pendingCount },
+                    { label: 'Suspended', value: 'SUSPENDED', count: suspendedCount },
+                    { label: 'Rejected', value: 'REJECTED', count: rejectedCount },
+                  ].map(pill => (
+                    <button
+                      key={pill.value}
+                      onClick={() => setStatusFilter(pill.value)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                        statusFilter === pill.value
+                          ? 'bg-[#CB2030] text-white'
+                          : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.1] hover:text-white'
+                      }`}
+                    >
+                      {pill.label}
+                      <span className={`${statusFilter === pill.value ? 'bg-white/20' : 'bg-white/[0.08]'} rounded-full px-1.5 py-0.5 text-[10px]`}>
+                        {pill.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Dealers Table */}
-              <Card className="bg-[#111827] border-white/[0.06]">
+              <Card className="bg-[#111827] border-white/[0.06] overflow-hidden">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-[#0D1117]">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dealer</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contact</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Location</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Plan</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Verification</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Performance</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                      <thead>
+                        <tr className="border-b border-white/[0.06]">
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dealership</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contact</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hidden md:table-cell">Location</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hidden lg:table-cell">Plan</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hidden xl:table-cell">Listings</th>
+                          <th className="px-5 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
-                        {dealers
-                          .filter(dealer => {
-                            // Search filter
-                            const matchesSearch = dealer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              dealer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              dealer.city.toLowerCase().includes(searchTerm.toLowerCase());
-
-                            // Status filter
-                            const matchesStatus = statusFilter === 'all' || dealer.status === statusFilter;
-
-                            // Verification filter
-                            const matchesVerification = verificationFilter === 'all' || dealer.verificationStatus === verificationFilter;
-
-                            return matchesSearch && matchesStatus && matchesVerification;
-                          })
-                          .map((dealer) => (
-                          <tr key={dealer.id} className="hover:bg-[#0D1117]">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="h-10 w-10 rounded-full bg-white/[0.06] flex items-center justify-center">
-                                  <Building className="h-5 w-5 text-slate-500" />
+                      <tbody className="divide-y divide-white/[0.04]">
+                        {filteredDealers.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="px-5 py-12 text-center">
+                              <Building2 className="h-8 w-8 text-slate-600 mx-auto mb-3" />
+                              <p className="text-sm text-slate-500">No dealerships found</p>
+                              {searchTerm && <p className="text-xs text-slate-600 mt-1">Try adjusting your search</p>}
+                            </td>
+                          </tr>
+                        ) : filteredDealers.map((dealer) => (
+                          <tr
+                            key={dealer.id}
+                            className={`group hover:bg-white/[0.02] transition-colors ${dealer.verificationStatus === 'Pending' ? 'border-l-2 border-l-amber-500/60' : ''}`}
+                          >
+                            {/* Dealership */}
+                            <td className="px-5 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0">
+                                  <Building className="h-4 w-4 text-slate-400" />
                                 </div>
-                                <div className="ml-3">
-                                  <div className="text-sm font-medium text-white">{dealer.name}</div>
-                                  <div className="text-sm text-slate-500">{dealer.contactPerson}</div>
+                                <div>
+                                  <div className="text-sm font-medium text-white leading-tight">{dealer.name}</div>
+                                  <div className="text-xs text-slate-500 mt-0.5">{dealer.contactPerson}</div>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-white">{dealer.email}</div>
-                              <div className="text-sm text-slate-500">{dealer.phone}</div>
+                            {/* Contact */}
+                            <td className="px-5 py-4">
+                              <div className="text-sm text-slate-300">{dealer.email}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">{dealer.phone}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-white">{dealer.city}</div>
-                              <div className="text-sm text-slate-500">{dealer.region}</div>
+                            {/* Location */}
+                            <td className="px-5 py-4 hidden md:table-cell">
+                              <div className="text-sm text-slate-300">{dealer.city}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">{dealer.region}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-white">{dealer.subscriptionPlan}</div>
-                              <div className="text-sm text-slate-500">N${(dealer.monthlyFee / 100).toFixed(2)}/mo</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge className={
-                                dealer.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
-                                dealer.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
-                                dealer.status === 'SUSPENDED' ? 'bg-red-500/10 text-red-400' :
-                                'bg-[#111827]/[0.04] text-slate-200'
-                              }>
-                                {dealer.status}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge className={
-                                dealer.verificationStatus === 'Verified' ? 'bg-emerald-500/10 text-emerald-400' :
-                                dealer.verificationStatus === 'Flagged' ? 'bg-red-500/10 text-red-400' :
-                                'bg-amber-500/10 text-amber-400'
-                              }>
-                                {dealer.verificationStatus}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-white">
-                                {dealer.activeListings} active / {dealer.totalListings} total
-                              </div>
-                              <div className="text-sm text-slate-500">
-                                ⭐ {dealer.rating.toFixed(1)} • {dealer.totalSales} sales
+                            {/* Plan */}
+                            <td className="px-5 py-4 hidden lg:table-cell">
+                              <div className="text-sm text-slate-300">{dealer.subscriptionPlan || 'No Plan'}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">
+                                {dealer.monthlyFee > 0 ? `N$${(dealer.monthlyFee / 100).toFixed(0)}/mo` : 'Free'}
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Open menu</span>
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56">
-                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                  <DropdownMenuItem onClick={() => handleViewDealer(dealer)}>
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    <span>View Details</span>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-
-                                  {dealer.verificationStatus === 'Pending' && (
-                                    <>
-                                      <DropdownMenuItem
-                                        onClick={() => handleApproveDealer(dealer.id)}
-                                        className="text-green-600 focus:text-green-600"
-                                      >
-                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                        <span>Approve Dealership</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        onClick={() => handleRejectDealer(dealer.id)}
-                                        className="text-red-600 focus:text-red-600"
-                                      >
-                                        <XCircle className="mr-2 h-4 w-4" />
-                                        <span>Reject Application</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                    </>
-                                  )}
-
-                                  {dealer.status === 'APPROVED' && (
-                                    <>
-                                      <DropdownMenuItem
-                                        onClick={() => handleSuspendDealer(dealer.id)}
-                                        className="text-yellow-600 focus:text-yellow-600"
-                                      >
-                                        <AlertTriangle className="mr-2 h-4 w-4" />
-                                        <span>Suspend Dealership</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                    </>
-                                  )}
-
-                                  {dealer.status === 'SUSPENDED' && (
-                                    <>
-                                      <DropdownMenuItem
-                                        onClick={() => handleReactivateDealer(dealer.id)}
-                                        className="text-green-600 focus:text-green-600"
-                                      >
-                                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                                        <span>Reactivate Dealership</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                    </>
-                                  )}
-
-                                  <DropdownMenuItem onClick={() => handleEditDealer(dealer)}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    <span>Edit Details</span>
-                                  </DropdownMenuItem>
-
-                                  <DropdownMenuItem onClick={() => handleManageSubscription(dealer)}>
-                                    <CreditCard className="mr-2 h-4 w-4" />
-                                    <span>Manage Subscription</span>
-                                  </DropdownMenuItem>
-
-                                  <DropdownMenuSeparator />
-
-                                  {dealer.status !== 'REJECTED' && (
-                                    <DropdownMenuItem
-                                      onClick={() => handleBanDealer(dealer.id)}
-                                      className="text-red-600 focus:text-red-600"
+                            {/* Status */}
+                            <td className="px-5 py-4">
+                              <div className="flex flex-col gap-1.5">
+                                <Badge className={`text-xs w-fit ${
+                                  dealer.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                  dealer.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                  dealer.status === 'SUSPENDED' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                  'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                                }`}>
+                                  {dealer.status}
+                                </Badge>
+                                <Badge className={`text-xs w-fit ${
+                                  dealer.verificationStatus === 'Verified' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                  dealer.verificationStatus === 'Flagged' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                  'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                }`}>
+                                  {dealer.verificationStatus}
+                                </Badge>
+                              </div>
+                            </td>
+                            {/* Listings */}
+                            <td className="px-5 py-4 hidden xl:table-cell">
+                              <div className="text-sm text-slate-300">{dealer.activeListings ?? 0} active</div>
+                              <div className="text-xs text-slate-500 mt-0.5">{dealer.totalListings ?? 0} total • {dealer.rating?.toFixed(1) ?? '—'} ★</div>
+                            </td>
+                            {/* Actions */}
+                            <td className="px-5 py-4 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                {/* Inline approve/reject for pending dealers */}
+                                {dealer.verificationStatus === 'Pending' && (
+                                  <>
+                                    <button
+                                      onClick={() => handleApproveDealer(dealer.id)}
+                                      title="Approve"
+                                      className="h-7 w-7 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center transition-colors cursor-pointer"
                                     >
-                                      <Ban className="mr-2 h-4 w-4" />
-                                      <span>Ban Permanently</span>
+                                      <CheckCircle className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleRejectDealer(dealer.id)}
+                                      title="Reject"
+                                      className="h-7 w-7 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors cursor-pointer"
+                                    >
+                                      <XCircle className="h-3.5 w-3.5" />
+                                    </button>
+                                  </>
+                                )}
+                                <button
+                                  onClick={() => handleViewDealer(dealer)}
+                                  title="View details"
+                                  className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                </button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                                      <MoreVertical className="h-3.5 w-3.5" />
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-52">
+                                    <DropdownMenuLabel className="text-xs text-slate-400">Manage Dealer</DropdownMenuLabel>
+                                    <DropdownMenuItem onClick={() => handleEditDealer(dealer)}>
+                                      <Edit className="mr-2 h-4 w-4" />
+                                      Edit Details
                                     </DropdownMenuItem>
-                                  )}
-
-                                  <DropdownMenuItem
-                                    onClick={() => handleDeleteDealer(dealer.id)}
-                                    className="text-red-600 focus:text-red-600"
-                                  >
-                                    <X className="mr-2 h-4 w-4" />
-                                    <span>Delete Dealership</span>
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                                    <DropdownMenuItem onClick={() => handleManageSubscription(dealer)}>
+                                      <CreditCard className="mr-2 h-4 w-4" />
+                                      Manage Subscription
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    {dealer.status === 'APPROVED' && (
+                                      <DropdownMenuItem onClick={() => handleSuspendDealer(dealer.id)} className="text-yellow-500 focus:text-yellow-500">
+                                        <AlertTriangle className="mr-2 h-4 w-4" />
+                                        Suspend
+                                      </DropdownMenuItem>
+                                    )}
+                                    {dealer.status === 'SUSPENDED' && (
+                                      <DropdownMenuItem onClick={() => handleReactivateDealer(dealer.id)} className="text-emerald-500 focus:text-emerald-500">
+                                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                                        Reactivate
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuSeparator />
+                                    {dealer.status !== 'REJECTED' && (
+                                      <DropdownMenuItem onClick={() => handleBanDealer(dealer.id)} className="text-red-500 focus:text-red-500">
+                                        <Ban className="mr-2 h-4 w-4" />
+                                        Ban Permanently
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuItem onClick={() => handleDeleteDealer(dealer.id)} className="text-red-500 focus:text-red-500">
+                                      <X className="mr-2 h-4 w-4" />
+                                      Delete Dealership
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -4943,307 +4971,335 @@ function AdminDashboardContent() {
                 </CardContent>
               </Card>
 
-              {/* Quick Actions Panel */}
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardHeader>
-                  <CardTitle className="text-lg text-white">Quick Actions</CardTitle>
-                  <CardDescription className="text-slate-400">Batch operations and dealer management tools</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                      onClick={handleSendNewsletter}
-                    >
-                      <Mail className="h-4 w-4" />
-                      Send Newsletter
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                      onClick={handleProcessPayments}
-                    >
-                      <CreditCard className="h-4 w-4" />
-                      Process Payments
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                      onClick={handleGenerateReports}
-                    >
-                      <FileText className="h-4 w-4" />
-                      Generate Reports
-                    </Button>
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={handleSendNewsletter}
+                  className="bg-[#111827] border border-white/[0.06] rounded-xl p-4 text-left hover:border-white/[0.12] hover:bg-white/[0.02] transition-all group cursor-pointer"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3 group-hover:bg-blue-500/20 transition-colors">
+                    <Mail className="h-4 w-4 text-blue-400" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="text-sm font-medium text-white">Send Newsletter</div>
+                  <div className="text-xs text-slate-500 mt-1">Broadcast to all active dealers</div>
+                </button>
+                <button
+                  onClick={handleProcessPayments}
+                  className="bg-[#111827] border border-white/[0.06] rounded-xl p-4 text-left hover:border-white/[0.12] hover:bg-white/[0.02] transition-all group cursor-pointer"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-3 group-hover:bg-emerald-500/20 transition-colors">
+                    <CreditCard className="h-4 w-4 text-emerald-400" />
+                  </div>
+                  <div className="text-sm font-medium text-white">Process Payments</div>
+                  <div className="text-xs text-slate-500 mt-1">Run monthly subscription billing</div>
+                </button>
+                <button
+                  onClick={handleGenerateReports}
+                  className="bg-[#111827] border border-white/[0.06] rounded-xl p-4 text-left hover:border-white/[0.12] hover:bg-white/[0.02] transition-all group cursor-pointer"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-purple-500/10 flex items-center justify-center mb-3 group-hover:bg-purple-500/20 transition-colors">
+                    <FileText className="h-4 w-4 text-purple-400" />
+                  </div>
+                  <div className="text-sm font-medium text-white">Generate Reports</div>
+                  <div className="text-xs text-slate-500 mt-1">Export dealer performance data</div>
+                </button>
+              </div>
             </div>
-          )}
+            );
+          })()}
 
           {/* Listings Tab */}
-          {activeTab === 'listings' && (
+          {activeTab === 'listings' && (() => {
+            const totalListings = listings.length;
+            const activeCount = listings.filter(l => l.status === 'Active').length;
+            const pendingCount = listings.filter(l => l.listingStatus === 'Pending' || l.listingStatus === 'Under Review').length;
+            const featuredCount = listings.filter(l => l.featured).length;
+            const rejectedCount = listings.filter(l => l.listingStatus === 'Rejected').length;
+            const approvedCount = listings.filter(l => l.listingStatus === 'Approved').length;
+            const formatDate = (val: string | null | undefined) => {
+              if (!val) return '—';
+              const d = new Date(val);
+              return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' });
+            };
+            const filteredListings = listings.filter(listing => {
+              const q = searchTerm.toLowerCase();
+              const matchesSearch = !q ||
+                (listing.title || '').toLowerCase().includes(q) ||
+                (listing.dealerName || '').toLowerCase().includes(q) ||
+                (listing.make || '').toLowerCase().includes(q) ||
+                (listing.model || '').toLowerCase().includes(q);
+              const matchesStatus = statusFilter === 'all' ||
+                (statusFilter === 'APPROVED' && listing.listingStatus === 'Approved') ||
+                (statusFilter === 'PENDING' && (listing.listingStatus === 'Pending' || listing.listingStatus === 'Under Review')) ||
+                (statusFilter === 'REJECTED' && listing.listingStatus === 'Rejected') ||
+                (statusFilter === 'SUSPENDED' && (listing.listingStatus === 'Suspended' || listing.status === 'Suspended')) ||
+                (statusFilter === 'FEATURED' && listing.featured);
+              return matchesSearch && matchesStatus;
+            });
+            return (
             <div className="space-y-6">
+              {/* Header */}
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Listing Management</h2>
-                <div className="flex gap-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
-                    <input
-                      type="text"
-                      placeholder="Search listings..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                <div>
+                  <h2 className="text-xl font-semibold text-white">Listing Management</h2>
+                  <p className="text-sm text-slate-400 mt-0.5">{totalListings} vehicle listings total</p>
+                </div>
+                <Button variant="outline" size="sm" className="border-white/[0.1] text-slate-300 hover:text-white" onClick={handleExportData}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </div>
+
+              {/* Stats Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total</span>
+                    <div className="h-8 w-8 rounded-lg bg-white/[0.05] flex items-center justify-center">
+                      <Car className="h-4 w-4 text-slate-400" />
+                    </div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filter
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
+                  <div className="text-2xl font-bold text-white">{totalListings}</div>
+                  <p className="text-xs text-slate-500 mt-1">All listings</p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Live</span>
+                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-emerald-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{approvedCount}</div>
+                  <p className="text-xs text-emerald-500 mt-1">
+                    {totalListings > 0 ? Math.round((approvedCount / totalListings) * 100) : 0}% of total
+                  </p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Review</span>
+                    <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <Clock className="h-4 w-4 text-amber-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{pendingCount}</div>
+                  <p className={`text-xs mt-1 ${pendingCount > 0 ? 'text-amber-500' : 'text-slate-500'}`}>
+                    {pendingCount > 0 ? 'Awaiting approval' : 'Queue clear'}
+                  </p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Featured</span>
+                    <div className="h-8 w-8 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                      <Star className="h-4 w-4 text-yellow-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{featuredCount}</div>
+                  <p className="text-xs text-slate-500 mt-1">Premium placements</p>
                 </div>
               </div>
 
-              {/* Listings Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Total Listings</CardTitle>
-                    <Car className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{listings.length}</div>
-                    <p className="text-xs text-green-600 flex items-center">
-                      <ArrowUpRight className="h-3 w-3 mr-1" />
-                      +8% from last month
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Active Listings</CardTitle>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {listings.filter(l => l.status === 'Active').length}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {Math.round((listings.filter(l => l.status === 'Active').length / listings.length) * 100)}% of total
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Pending Review</CardTitle>
-                    <Clock className="h-4 w-4 text-yellow-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {listings.filter(l => l.listingStatus === 'Pending').length}
-                    </div>
-                    <p className="text-xs text-yellow-600">Awaiting approval</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Featured</CardTitle>
-                    <Star className="h-4 w-4 text-yellow-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {listings.filter(l => l.featured).length}
-                    </div>
-                    <p className="text-xs text-blue-600">Premium placements</p>
-                  </CardContent>
-                </Card>
+              {/* Search + Filter Pills */}
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Search by title, dealer, make..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 bg-[#111827] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/40 focus:border-[#CB2030]/50 transition-colors"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: 'All', value: 'all', count: totalListings },
+                    { label: 'Approved', value: 'APPROVED', count: approvedCount },
+                    { label: 'Pending', value: 'PENDING', count: pendingCount },
+                    { label: 'Featured', value: 'FEATURED', count: featuredCount },
+                    { label: 'Rejected', value: 'REJECTED', count: rejectedCount },
+                  ].map(pill => (
+                    <button
+                      key={pill.value}
+                      onClick={() => setStatusFilter(pill.value)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                        statusFilter === pill.value
+                          ? 'bg-[#CB2030] text-white'
+                          : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.1] hover:text-white'
+                      }`}
+                    >
+                      {pill.label}
+                      <span className={`${statusFilter === pill.value ? 'bg-white/20' : 'bg-white/[0.08]'} rounded-full px-1.5 py-0.5 text-[10px]`}>
+                        {pill.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Listings Table */}
-              <Card className="bg-[#111827] border-white/[0.06]">
+              <Card className="bg-[#111827] border-white/[0.06] overflow-hidden">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-[#0D1117]">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Vehicle</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dealer</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Price</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Performance</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Posted</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                      <thead>
+                        <tr className="border-b border-white/[0.06]">
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Vehicle</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hidden md:table-cell">Dealer</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Price</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hidden lg:table-cell">Performance</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hidden xl:table-cell">Posted</th>
+                          <th className="px-5 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
-                        {listings
-                          .filter(listing =>
-                            listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            listing.dealerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            listing.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            listing.model.toLowerCase().includes(searchTerm.toLowerCase())
-                          )
-                          .map((listing) => (
-                          <tr key={listing.id} className="hover:bg-[#0D1117]">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="h-12 w-16 rounded bg-white/[0.06] flex items-center justify-center mr-3">
-                                  <Car className="h-6 w-6 text-slate-500" />
+                      <tbody className="divide-y divide-white/[0.04]">
+                        {filteredListings.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="px-5 py-12 text-center">
+                              <Car className="h-8 w-8 text-slate-600 mx-auto mb-3" />
+                              <p className="text-sm text-slate-500">No listings found</p>
+                              {searchTerm && <p className="text-xs text-slate-600 mt-1">Try adjusting your search</p>}
+                            </td>
+                          </tr>
+                        ) : filteredListings.map((listing) => (
+                          <tr
+                            key={listing.id}
+                            className={`group hover:bg-white/[0.02] transition-colors ${
+                              listing.listingStatus === 'Pending' || listing.listingStatus === 'Under Review'
+                                ? 'border-l-2 border-l-amber-500/60'
+                                : ''
+                            }`}
+                          >
+                            {/* Vehicle */}
+                            <td className="px-5 py-3.5">
+                              <div className="flex items-center gap-3">
+                                <div className="h-11 w-16 rounded-lg bg-white/[0.05] flex items-center justify-center shrink-0 overflow-hidden">
+                                  {listing.imageUrl ? (
+                                    <img src={listing.imageUrl} alt={listing.title} className="h-full w-full object-cover" />
+                                  ) : (
+                                    <Car className="h-5 w-5 text-slate-500" />
+                                  )}
                                 </div>
-                                <div>
-                                  <div className="text-sm font-medium text-white">{listing.title}</div>
-                                  <div className="text-sm text-slate-500">
-                                    {listing.year} • {(listing.mileage || 0).toLocaleString()} km • {listing.fuelType}
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-sm font-medium text-white truncate max-w-[160px]">{listing.title}</span>
+                                    {listing.featured && (
+                                      <Star className="h-3 w-3 text-yellow-400 fill-yellow-400 shrink-0" />
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-slate-500 mt-0.5">
+                                    {[listing.year, listing.mileage ? `${(listing.mileage).toLocaleString()} km` : null, listing.fuelType].filter(Boolean).join(' · ')}
                                   </div>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-white">{listing.dealerName}</div>
-                              <div className="text-sm text-slate-500">{listing.location}</div>
+                            {/* Dealer */}
+                            <td className="px-5 py-3.5 hidden md:table-cell">
+                              <div className="text-sm text-slate-300">{listing.dealerName || '—'}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">{listing.location || '—'}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-white">
+                            {/* Price */}
+                            <td className="px-5 py-3.5">
+                              <div className="text-sm font-semibold text-white">
                                 N${(listing.price || 0).toLocaleString()}
                               </div>
-                              <div className="text-sm text-slate-500">{listing.condition}</div>
+                              <div className="text-xs text-slate-500 mt-0.5 capitalize">{listing.condition || '—'}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge className={
-                                listing.listingStatus === 'Approved' ? 'bg-emerald-500/10 text-emerald-400' :
-                                listing.listingStatus === 'Rejected' ? 'bg-red-500/10 text-red-400' :
-                                listing.listingStatus === 'Under Review' ? 'bg-orange-500/10 text-orange-400' :
-                                'bg-amber-500/10 text-amber-400'
-                              }>
+                            {/* Status */}
+                            <td className="px-5 py-3.5">
+                              <Badge className={`text-xs w-fit ${
+                                listing.listingStatus === 'Approved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                listing.listingStatus === 'Rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                listing.listingStatus === 'Under Review' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                listing.listingStatus === 'Suspended' ? 'bg-slate-500/10 text-slate-400 border-slate-500/20' :
+                                'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                              }`}>
                                 {listing.listingStatus}
                               </Badge>
-                              <div className="flex items-center mt-1 text-xs text-slate-500">
-                                {listing.featured && <Star className="h-3 w-3 text-yellow-500 mr-1" />}
-                                {listing.status}
+                            </td>
+                            {/* Performance */}
+                            <td className="px-5 py-3.5 hidden lg:table-cell">
+                              <div className="flex items-center gap-1 text-sm text-slate-300">
+                                <Eye className="h-3.5 w-3.5 text-slate-500" />
+                                {(listing.views || 0).toLocaleString()}
+                              </div>
+                              <div className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
+                                <MessageCircle className="h-3 w-3" />
+                                {listing.inquiries || 0} inquiries
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-white">
-                                👁 {listing.views} views
-                              </div>
-                              <div className="text-sm text-slate-500">
-                                💬 {listing.inquiries} inquiries
-                              </div>
+                            {/* Posted */}
+                            <td className="px-5 py-3.5 hidden xl:table-cell">
+                              <div className="text-sm text-slate-300">{formatDate(listing.datePosted)}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">Upd. {formatDate(listing.lastUpdated)}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-white">
-                                {new Date(listing.datePosted).toLocaleDateString()}
-                              </div>
-                              <div className="text-sm text-slate-500">
-                                Updated: {new Date(listing.lastUpdated).toLocaleDateString()}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <div className="flex space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-blue-400 hover:text-blue-300"
-                                  onClick={() => handleViewListing(listing)}
-                                  title="View Details"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                {listing.listingStatus === 'Pending' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-emerald-400 hover:text-emerald-300"
+                            {/* Actions */}
+                            <td className="px-5 py-3.5 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                {/* Inline approve for pending/review */}
+                                {(listing.listingStatus === 'Pending' || listing.listingStatus === 'Under Review') && (
+                                  <button
                                     onClick={() => handleApproveListing(listing.id)}
-                                    title="Approve Listing"
+                                    title="Approve"
+                                    className="h-7 w-7 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center transition-colors cursor-pointer"
                                   >
-                                    <CheckCircle className="h-4 w-4" />
-                                  </Button>
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                  </button>
                                 )}
-                                {listing.listingStatus === 'Under Review' && (
-                                  <>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-emerald-400 hover:text-emerald-300"
-                                      onClick={() => handleApproveListing(listing.id)}
-                                      title="Approve Listing"
-                                    >
-                                      <CheckCircle className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-red-400 hover:text-red-300"
-                                      onClick={() => handleRemoveListing(listing.id)}
-                                      title="Delete Listing"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </>
-                                )}
+                                {/* Feature/unfeature for approved */}
                                 {listing.listingStatus === 'Approved' && (
-                                  <>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className={listing.featured ? "text-yellow-600 hover:text-yellow-800" : "text-slate-400 hover:text-slate-200"}
-                                      onClick={() => handleFeatureListing(listing.id)}
-                                      title={listing.featured ? "Remove Feature" : "Feature Listing"}
-                                    >
-                                      <Star className={`h-4 w-4 ${listing.featured ? 'fill-current' : ''}`} />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-purple-400 hover:text-purple-300"
-                                      onClick={() => handlePutUnderReview(listing.id)}
-                                      title="Put Under Review"
-                                    >
-                                      <AlertCircle className="h-4 w-4" />
-                                    </Button>
-                                  </>
-                                )}
-                                {listing.status === 'Active' && listing.listingStatus !== 'Suspended' && listing.listingStatus !== 'Under Review' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-orange-400 hover:text-orange-300"
-                                    onClick={() => handleSuspendListing(listing.id)}
-                                    title="Suspend Listing"
+                                  <button
+                                    onClick={() => handleFeatureListing(listing.id)}
+                                    title={listing.featured ? 'Remove feature' : 'Feature listing'}
+                                    className={`h-7 w-7 rounded-md flex items-center justify-center transition-colors cursor-pointer ${
+                                      listing.featured
+                                        ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
+                                        : 'bg-white/[0.05] text-slate-500 hover:bg-white/[0.1] hover:text-yellow-400'
+                                    }`}
                                   >
-                                    <Ban className="h-4 w-4" />
-                                  </Button>
+                                    <Star className={`h-3.5 w-3.5 ${listing.featured ? 'fill-yellow-400' : ''}`} />
+                                  </button>
                                 )}
-                                {(listing.status === 'Suspended' || listing.listingStatus === 'Suspended') && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-emerald-400 hover:text-emerald-300"
-                                    onClick={() => handleReactivateListing(listing.id)}
-                                    title="Reactivate Listing"
-                                  >
-                                    <CheckCircle className="h-4 w-4" />
-                                  </Button>
-                                )}
-                                {listing.listingStatus !== 'Under Review' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-red-400 hover:text-red-300"
-                                    onClick={() => handleRemoveListing(listing.id)}
-                                    title="Remove Listing"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                )}
+                                <button
+                                  onClick={() => handleViewListing(listing)}
+                                  title="View details"
+                                  className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                </button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                                      <MoreVertical className="h-3.5 w-3.5" />
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-48">
+                                    <DropdownMenuLabel className="text-xs text-slate-400">Listing Actions</DropdownMenuLabel>
+                                    {listing.listingStatus === 'Approved' && (
+                                      <DropdownMenuItem onClick={() => handlePutUnderReview(listing.id)} className="text-orange-400 focus:text-orange-400">
+                                        <AlertCircle className="mr-2 h-4 w-4" />
+                                        Put Under Review
+                                      </DropdownMenuItem>
+                                    )}
+                                    {listing.status === 'Active' && listing.listingStatus !== 'Suspended' && listing.listingStatus !== 'Under Review' && (
+                                      <DropdownMenuItem onClick={() => handleSuspendListing(listing.id)} className="text-yellow-500 focus:text-yellow-500">
+                                        <Ban className="mr-2 h-4 w-4" />
+                                        Suspend
+                                      </DropdownMenuItem>
+                                    )}
+                                    {(listing.status === 'Suspended' || listing.listingStatus === 'Suspended') && (
+                                      <DropdownMenuItem onClick={() => handleReactivateListing(listing.id)} className="text-emerald-500 focus:text-emerald-500">
+                                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                                        Reactivate
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => handleRemoveListing(listing.id)} className="text-red-500 focus:text-red-500">
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Remove Listing
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                             </td>
                           </tr>
@@ -5254,1029 +5310,786 @@ function AdminDashboardContent() {
                 </CardContent>
               </Card>
 
-              {/* Quick Actions Panel */}
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardHeader>
-                  <CardTitle className="text-lg text-white">Bulk Actions</CardTitle>
-                  <CardDescription className="text-slate-400">Manage multiple listings at once</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                      onClick={handleApproveAllPending}
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      Approve All Pending
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                      onClick={handleManageFeatured}
-                    >
-                      <Star className="h-4 w-4" />
-                      Manage Featured
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                      onClick={handleExportData}
-                    >
-                      <Download className="h-4 w-4" />
-                      Export Data
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                      onClick={handleBulkSettings}
-                    >
-                      <Settings2 className="h-4 w-4" />
-                      Bulk Settings
-                    </Button>
+              {/* Bulk Actions */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button
+                  onClick={handleApproveAllPending}
+                  className="bg-[#111827] border border-white/[0.06] rounded-xl p-4 text-left hover:border-white/[0.12] hover:bg-white/[0.02] transition-all group cursor-pointer"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-3 group-hover:bg-emerald-500/20 transition-colors">
+                    <CheckCircle className="h-4 w-4 text-emerald-400" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="text-sm font-medium text-white">Approve Pending</div>
+                  <div className="text-xs text-slate-500 mt-1">{pendingCount} awaiting review</div>
+                </button>
+                <button
+                  onClick={handleManageFeatured}
+                  className="bg-[#111827] border border-white/[0.06] rounded-xl p-4 text-left hover:border-white/[0.12] hover:bg-white/[0.02] transition-all group cursor-pointer"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-yellow-500/10 flex items-center justify-center mb-3 group-hover:bg-yellow-500/20 transition-colors">
+                    <Star className="h-4 w-4 text-yellow-400" />
+                  </div>
+                  <div className="text-sm font-medium text-white">Manage Featured</div>
+                  <div className="text-xs text-slate-500 mt-1">{featuredCount} featured slots</div>
+                </button>
+                <button
+                  onClick={handleExportData}
+                  className="bg-[#111827] border border-white/[0.06] rounded-xl p-4 text-left hover:border-white/[0.12] hover:bg-white/[0.02] transition-all group cursor-pointer"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3 group-hover:bg-blue-500/20 transition-colors">
+                    <Download className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <div className="text-sm font-medium text-white">Export Data</div>
+                  <div className="text-xs text-slate-500 mt-1">CSV / spreadsheet</div>
+                </button>
+                <button
+                  onClick={handleBulkSettings}
+                  className="bg-[#111827] border border-white/[0.06] rounded-xl p-4 text-left hover:border-white/[0.12] hover:bg-white/[0.02] transition-all group cursor-pointer"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-purple-500/10 flex items-center justify-center mb-3 group-hover:bg-purple-500/20 transition-colors">
+                    <Settings2 className="h-4 w-4 text-purple-400" />
+                  </div>
+                  <div className="text-sm font-medium text-white">Bulk Settings</div>
+                  <div className="text-xs text-slate-500 mt-1">Batch operations</div>
+                </button>
+              </div>
             </div>
-          )}
+            );
+          })()}
 
           {/* Advertisements Tab */}
-          {activeTab === 'advertisements' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Advertisement Management</h2>
-                <div className="flex gap-3">
-                  {activeAdvertTab === 'banners' && (
-                    <Button size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Banner
-                    </Button>
-                  )}
-                  {activeAdvertTab === 'analytics' && (
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-2" />
-                      Export Analytics
-                    </Button>
-                  )}
+          {activeTab === 'advertisements' && (() => {
+            const inputCls = 'w-full px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors';
+            const fmtDate = (d: any) => { if (!d) return 'N/A'; try { return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch { return 'N/A'; } };
+            const POS_CFG: Record<string, { label: string; badgeCls: string; borderCls: string; desc: string; page: string; size: string }> = {
+              HERO:    { label: 'Hero',    badgeCls: 'bg-amber-500/10 text-amber-400 border-amber-500/20',         borderCls: 'border-l-amber-500/60',   desc: 'Top banner · Vehicles page',          page: '/vehicles', size: '1200×600px' },
+              MAIN:    { label: 'Main',    badgeCls: 'bg-[#CB2030]/10 text-[#CB2030] border-[#CB2030]/20',         borderCls: 'border-l-[#CB2030]/60',   desc: 'Main banner · Homepage',              page: '/',         size: '1200×600px' },
+              SIDEBAR: { label: 'Sidebar', badgeCls: 'bg-white/[0.06] text-slate-300 border-white/[0.1]',          borderCls: 'border-l-slate-500/40',   desc: 'Sidebar · Vehicles (desktop only)',   page: '/vehicles', size: '800×600px'  },
+            };
+            const filteredBanners = banners.filter((b: any) => {
+              const matchPos = advertFilter === 'ALL' || b.position === advertFilter;
+              const matchSearch = !advertSearch.trim() || (b.title || '').toLowerCase().includes(advertSearch.toLowerCase());
+              return matchPos && matchSearch;
+            });
+            return (
+              <div className="space-y-6">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">Advertisement Management</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Manage banner ads, subscriptions, and performance</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {activeAdvertTab === 'banners' && (
+                      <button
+                        onClick={() => setEditingBanner({ id: null, title: '', imageUrl: '', linkUrl: '', position: 'HERO', priority: 0, isActive: true, startDate: '', endDate: '' })}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#CB2030] hover:bg-[#B01C2A] text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        <Plus className="h-4 w-4" />
+                        New Banner
+                      </button>
+                    )}
+                    {activeAdvertTab === 'analytics' && (
+                      <button className="flex items-center gap-2 px-3 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-sm text-slate-300 rounded-lg transition-colors">
+                        <Download className="h-4 w-4" />
+                        Export
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Sub-tabs Navigation */}
-              <div className="border-b border-white/[0.06]">
-                {/* Debug indicator */}
-                <div className="text-xs text-slate-500 px-4 py-1">Current tab: {activeAdvertTab}</div>
-                <nav className="flex gap-6">
-                  <button
-                    onClick={() => setActiveAdvertTab('banners')}
-                    className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                      activeAdvertTab === 'banners'
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/[0.1]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Image className="h-4 w-4" />
-                      Banner Management
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setActiveAdvertTab('payments')}
-                    className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                      activeAdvertTab === 'payments'
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/[0.1]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4" />
-                      Payments & Subscriptions
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setActiveAdvertTab('analytics')}
-                    className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                      activeAdvertTab === 'analytics'
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/[0.1]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4" />
-                      Analytics & Reports
-                    </div>
-                  </button>
-                </nav>
-              </div>
-
-              {/* Banners Tab Content */}
-              {activeAdvertTab === 'banners' && (
-                <>
-                  {/* Banner Stats Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Total Banners</CardTitle>
-                    <Image className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{bannerStats.totalBanners}</div>
-                    <p className="text-xs text-muted-foreground">
-                      {bannerStats.activeBanners} active
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Total Clicks</CardTitle>
-                    <Activity className="h-4 w-4 text-blue-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{(bannerStats.totalClicks || 0).toLocaleString()}</div>
-                    <p className="text-xs text-blue-600">Last 30 days</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Impressions</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-green-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{(bannerStats.totalImpressions || 0).toLocaleString()}</div>
-                    <p className="text-xs text-green-600">+15% from last month</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Avg CTR</CardTitle>
-                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{bannerStats.avgCTR}%</div>
-                    <p className="text-xs text-muted-foreground">Click-through rate</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Banners Grid - Organized by Position */}
-              <div className="space-y-8">
-                {banners.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Image className="h-16 w-16 mx-auto mb-4 text-slate-600" />
-                    <p className="text-slate-500">No banners found. Create your first banner to get started!</p>
-                  </div>
-                ) : (
-                  <>
-                    {['HERO', 'MAIN', 'SIDEBAR'].map(position => {
-                      const positionBanners = banners.filter(b => b.position === position);
-                      if (positionBanners.length === 0) return null;
-
-                      const positionInfo: Record<string, {title: string, description: string, page: string}> = {
-                        HERO: {title: 'Hero Banners', description: 'Top banner on Vehicles page', page: '/vehicles'},
-                        MAIN: {title: 'Main Banners', description: 'Main banner on Homepage', page: '/'},
-                        SIDEBAR: {title: 'Sidebar Banners', description: 'Sidebar on Vehicles page (desktop only)', page: '/vehicles'}
-                      };
-
-                      return (
-                        <div key={position}>
-                          <div className="flex items-center justify-between mb-4">
-                            <div>
-                              <h3 className="text-lg font-semibold text-white">{positionInfo[position].title}</h3>
-                              <p className="text-sm text-slate-500">
-                                {positionInfo[position].description} • <a href={positionInfo[position].page} target="_blank" className="text-blue-600 hover:underline">View page</a>
-                              </p>
-                            </div>
-                            <Badge variant="outline">{positionBanners.length} banner(s)</Badge>
-                          </div>
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {positionBanners.map((banner) => (
-                  <Card key={banner.id}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg text-white">{banner.title}</CardTitle>
-                        <Badge className={banner.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-200'}>
-                          {banner.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                      <CardDescription className="text-slate-400">
-                        Fixed Position: {banner.position} •
-                        <span className="text-blue-600"> Change image/content only</span>
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* Banner Preview */}
-                      <div className="aspect-video bg-[#111827]/[0.04] rounded-lg overflow-hidden">
-                        {banner.imageUrl ? (
-                          <img
-                            src={banner.imageUrl}
-                            alt={banner.title}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              const parent = e.currentTarget.parentElement;
-                              if (parent) {
-                                parent.innerHTML = '<div class="flex items-center justify-center h-full text-center text-slate-500"><div><div class="h-12 w-12 mx-auto mb-2 flex items-center justify-center"><svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div><p class="text-sm">Failed to load image</p></div></div>';
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full text-center text-slate-500">
-                            <div>
-                              <Image className="h-12 w-12 mx-auto mb-2" />
-                              <p className="text-sm">No image available</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Banner Details */}
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-slate-500">Link</p>
-                          <p className="font-medium text-blue-600 truncate">{banner.linkUrl || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-500">Priority</p>
-                          <p className="font-medium text-white">{banner.priority || 0}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-500">Start Date</p>
-                          <p className="font-medium text-white">{banner.startDate ? new Date(banner.startDate).toLocaleDateString() : 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-500">End Date</p>
-                          <p className="font-medium text-white">{banner.endDate ? new Date(banner.endDate).toLocaleDateString() : 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-500">Clicks</p>
-                          <p className="font-medium text-blue-600">{(banner.clicks || 0).toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-slate-500">Impressions</p>
-                          <p className="font-medium text-green-600">{(banner.impressions || 0).toLocaleString()}</p>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2 pt-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() => handlePreviewBanner(banner)}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Preview
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() => handleEditBanner(banner)}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-500/10"
-                          onClick={() => handleDeleteBanner(banner)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </>
-                )}
-              </div>
-
-              {/* Banner Management Help */}
-              <Card className="bg-[#1F3469]/20 border-[#1F3469]/40">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-blue-400">
-                    <Image className="h-5 w-5 mr-2" />
-                    How to Manage Banners
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-slate-300 space-y-2">
-                  <p><strong className="text-blue-400">1. Edit Existing Banners:</strong> Click the "Edit" button on any banner card above to change its image, title, or link.</p>
-                  <p><strong className="text-blue-400">2. Preview Changes:</strong> Use the "Preview" button to see how the banner looks before making changes.</p>
-                  <p><strong className="text-blue-400">3. Toggle Active/Inactive:</strong> Use the status dropdown in edit mode to enable or disable banners.</p>
-                  <p><strong className="text-blue-400">4. Banner Positions are Fixed:</strong> Each banner slot is tied to a specific location on the website and cannot be moved.</p>
-                  <p className="mt-4 p-3 bg-[#0B0F1A] rounded border border-[#1F3469]/40">
-                    <strong>Tip:</strong> Changes take effect immediately on the live site. Always preview your changes before saving!
-                  </p>
-                </CardContent>
-              </Card>
-                </>
-              )}
-
-              {/* Payments Tab Content */}
-              {activeAdvertTab === 'payments' && (
-                <div className="space-y-6">
-                  {/* Payment Stats */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <Card className="bg-[#111827] border-white/[0.06]">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-400">Total Revenue</CardTitle>
-                        <CreditCard className="h-4 w-4 text-green-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">$12,450</div>
-                        <p className="text-xs text-green-600">+18% from last month</p>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-[#111827] border-white/[0.06]">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-400">Active Subscriptions</CardTitle>
-                        <Users className="h-4 w-4 text-blue-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">8</div>
-                        <p className="text-xs text-muted-foreground">Advertisers paying</p>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-[#111827] border-white/[0.06]">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-400">Pending Payments</CardTitle>
-                        <Clock className="h-4 w-4 text-orange-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">3</div>
-                        <p className="text-xs text-orange-600">Awaiting payment</p>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-[#111827] border-white/[0.06]">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-400">Expiring Soon</CardTitle>
-                        <AlertCircle className="h-4 w-4 text-red-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">2</div>
-                        <p className="text-xs text-red-600">Within 7 days</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Active Subscriptions Table */}
-                  <Card className="bg-[#111827] border-white/[0.06]">
-                    <CardHeader>
-                      <CardTitle className="text-white">Active Advertisement Subscriptions</CardTitle>
-                      <CardDescription className="text-slate-400">Manage advertiser subscriptions and payments</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead className="bg-[#0D1117] border-b border-white/[0.06]">
-                            <tr>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Advertiser</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Banner Position</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Plan</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Start Date</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">End Date</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Amount</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-200">
-                            <tr className="hover:bg-[#0D1117]">
-                              <td className="px-4 py-3">
-                                <div>
-                                  <p className="font-medium text-white">ABC Motors</p>
-                                  <p className="text-sm text-slate-500">contact@abcmotors.com</p>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3">
-                                <Badge>HERO</Badge>
-                              </td>
-                              <td className="px-4 py-3 text-sm">Monthly Premium</td>
-                              <td className="px-4 py-3 text-sm">Jan 1, 2025</td>
-                              <td className="px-4 py-3 text-sm">Jan 31, 2025</td>
-                              <td className="px-4 py-3 text-sm font-semibold">$500/mo</td>
-                              <td className="px-4 py-3">
-                                <Badge className="bg-emerald-500/10 text-emerald-400">Active</Badge>
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex gap-2">
-                                  <Button size="sm" variant="outline">View</Button>
-                                  <Button size="sm" variant="outline">Invoice</Button>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr className="hover:bg-[#0D1117]">
-                              <td className="px-4 py-3">
-                                <div>
-                                  <p className="font-medium text-white">XYZ Dealership</p>
-                                  <p className="text-sm text-slate-500">info@xyzdealership.com</p>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3">
-                                <Badge>MAIN</Badge>
-                              </td>
-                              <td className="px-4 py-3 text-sm">Quarterly Standard</td>
-                              <td className="px-4 py-3 text-sm">Dec 15, 2024</td>
-                              <td className="px-4 py-3 text-sm">Mar 15, 2025</td>
-                              <td className="px-4 py-3 text-sm font-semibold">$1,200/qtr</td>
-                              <td className="px-4 py-3">
-                                <Badge className="bg-emerald-500/10 text-emerald-400">Active</Badge>
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex gap-2">
-                                  <Button size="sm" variant="outline">View</Button>
-                                  <Button size="sm" variant="outline">Invoice</Button>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr className="hover:bg-[#0D1117]">
-                              <td className="px-4 py-3">
-                                <div>
-                                  <p className="font-medium text-white">Premium Autos Ltd</p>
-                                  <p className="text-sm text-slate-500">sales@premiumautos.com</p>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3">
-                                <Badge>SIDEBAR</Badge>
-                              </td>
-                              <td className="px-4 py-3 text-sm">Monthly Basic</td>
-                              <td className="px-4 py-3 text-sm">Jan 5, 2025</td>
-                              <td className="px-4 py-3 text-sm">Feb 5, 2025</td>
-                              <td className="px-4 py-3 text-sm font-semibold">$200/mo</td>
-                              <td className="px-4 py-3">
-                                <Badge className="bg-amber-500/10 text-amber-400">Expiring Soon</Badge>
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex gap-2">
-                                  <Button size="sm" variant="outline">Renew</Button>
-                                  <Button size="sm" variant="outline">Invoice</Button>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Pricing Plans */}
-                  <Card className="bg-[#111827] border-white/[0.06]">
-                    <CardHeader>
-                      <CardTitle className="text-white">Advertisement Pricing Plans</CardTitle>
-                      <CardDescription className="text-slate-400">Manage subscription tiers and pricing</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="border rounded-lg p-6">
-                          <h3 className="font-semibold text-lg mb-2">Basic Plan</h3>
-                          <p className="text-3xl font-bold mb-4">$200<span className="text-sm text-slate-500">/month</span></p>
-                          <ul className="space-y-2 text-sm mb-4">
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />SIDEBAR position</li>
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Basic analytics</li>
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />1 banner change/month</li>
-                          </ul>
-                          <Button className="w-full" variant="outline">Edit Plan</Button>
-                        </div>
-
-                        <div className="border-2 border-blue-500 rounded-lg p-6">
-                          <div className="flex justify-between items-center mb-2">
-                            <h3 className="font-semibold text-lg">Standard Plan</h3>
-                            <Badge className="bg-blue-500/10 text-blue-400">Popular</Badge>
-                          </div>
-                          <p className="text-3xl font-bold mb-4">$400<span className="text-sm text-slate-500">/month</span></p>
-                          <ul className="space-y-2 text-sm mb-4">
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />MAIN position</li>
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Advanced analytics</li>
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Unlimited changes</li>
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Priority support</li>
-                          </ul>
-                          <Button className="w-full">Edit Plan</Button>
-                        </div>
-
-                        <div className="border rounded-lg p-6 bg-[#1F3469]/20 border border-[#1F3469]/30">
-                          <h3 className="font-semibold text-lg mb-2">Premium Plan</h3>
-                          <p className="text-3xl font-bold mb-4">$600<span className="text-sm text-slate-500">/month</span></p>
-                          <ul className="space-y-2 text-sm mb-4">
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />HERO position</li>
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Full analytics suite</li>
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Unlimited changes</li>
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Dedicated account manager</li>
-                            <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2" />Custom reporting</li>
-                          </ul>
-                          <Button className="w-full" variant="outline">Edit Plan</Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                {/* Sub-tabs */}
+                <div className="border-b border-white/[0.06]">
+                  <nav className="flex gap-6">
+                    {([
+                      { id: 'banners', label: 'Banner Management', Icon: Image },
+                      { id: 'payments', label: 'Payments & Subscriptions', Icon: CreditCard },
+                      { id: 'analytics', label: 'Analytics & Reports', Icon: BarChart3 },
+                    ] as const).map(({ id, label, Icon }) => (
+                      <button
+                        key={id}
+                        onClick={() => setActiveAdvertTab(id)}
+                        className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer flex items-center gap-2 ${
+                          activeAdvertTab === id
+                            ? 'border-[#CB2030] text-[#CB2030]'
+                            : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/[0.1]'
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                      </button>
+                    ))}
+                  </nav>
                 </div>
-              )}
 
-              {/* Analytics Tab Content */}
-              {activeAdvertTab === 'analytics' && (
-                <div className="space-y-6">
-                  {/* Analytics Overview */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <Card className="bg-[#111827] border-white/[0.06]">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-400">Total Impressions</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-blue-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">{(bannerStats.totalImpressions || 0).toLocaleString()}</div>
-                        <p className="text-xs text-blue-600">Last 30 days</p>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-[#111827] border-white/[0.06]">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-400">Total Clicks</CardTitle>
-                        <Activity className="h-4 w-4 text-green-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">{(bannerStats.totalClicks || 0).toLocaleString()}</div>
-                        <p className="text-xs text-green-600">Last 30 days</p>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-[#111827] border-white/[0.06]">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-400">Average CTR</CardTitle>
-                        <BarChart3 className="h-4 w-4 text-purple-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">{bannerStats.avgCTR}%</div>
-                        <p className="text-xs text-muted-foreground">Click-through rate</p>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-[#111827] border-white/[0.06]">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-400">ROI</CardTitle>
-                        <DollarSign className="h-4 w-4 text-green-500" />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">324%</div>
-                        <p className="text-xs text-green-600">Return on investment</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Performance by Position */}
-                  <Card className="bg-[#111827] border-white/[0.06]">
-                    <CardHeader>
-                      <CardTitle className="text-white">Performance by Banner Position</CardTitle>
-                      <CardDescription className="text-slate-400">Compare performance across different banner slots</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="border-b pb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <h4 className="font-semibold">HERO Position</h4>
-                              <p className="text-sm text-slate-500">Top banner on vehicles page</p>
-                            </div>
-                            <Badge className="bg-emerald-500/10 text-emerald-400">Best CTR</Badge>
-                          </div>
-                          <div className="grid grid-cols-3 gap-4 mt-3">
-                            <div>
-                              <p className="text-sm text-slate-500">Impressions</p>
-                              <p className="text-2xl font-bold">45,234</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-slate-500">Clicks</p>
-                              <p className="text-2xl font-bold">4,892</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-slate-500">CTR</p>
-                              <p className="text-2xl font-bold text-green-600">10.8%</p>
+                {/* -- BANNERS -- */}
+                {activeAdvertTab === 'banners' && (
+                  <div className="space-y-5">
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {([
+                        { label: 'Total Banners', value: bannerStats.totalBanners, sub: bannerStats.activeBanners + ' active', Icon: Image, cls: 'bg-slate-500/10 text-slate-400' },
+                        { label: 'Total Clicks', value: (bannerStats.totalClicks || 0).toLocaleString(), sub: 'Last 30 days', Icon: Activity, cls: 'bg-[#CB2030]/10 text-[#CB2030]' },
+                        { label: 'Impressions', value: (bannerStats.totalImpressions || 0).toLocaleString(), sub: 'Lifetime', Icon: TrendingUp, cls: 'bg-emerald-500/10 text-emerald-400' },
+                        { label: 'Avg CTR', value: bannerStats.avgCTR + '%', sub: 'Click-through rate', Icon: BarChart3, cls: 'bg-amber-500/10 text-amber-400' },
+                      ] as const).map(({ label, value, sub, Icon, cls }) => (
+                        <div key={label} className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">{label}</span>
+                            <div className={'h-7 w-7 rounded-md ' + cls + ' flex items-center justify-center'}>
+                              <Icon className="h-3.5 w-3.5" />
                             </div>
                           </div>
+                          <div className="text-2xl font-bold text-white">{value}</div>
+                          <div className="text-xs text-slate-500 mt-1">{sub}</div>
                         </div>
+                      ))}
+                    </div>
 
-                        <div className="border-b pb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <h4 className="font-semibold">MAIN Position</h4>
-                              <p className="text-sm text-slate-500">Main banner on homepage</p>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-3 gap-4 mt-3">
-                            <div>
-                              <p className="text-sm text-slate-500">Impressions</p>
-                              <p className="text-2xl font-bold">38,567</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-slate-500">Clicks</p>
-                              <p className="text-2xl font-bold">3,534</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-slate-500">CTR</p>
-                              <p className="text-2xl font-bold text-blue-600">9.2%</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="pb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <h4 className="font-semibold">SIDEBAR Position</h4>
-                              <p className="text-sm text-slate-500">Sidebar banner on vehicles page</p>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-3 gap-4 mt-3">
-                            <div>
-                              <p className="text-sm text-slate-500">Impressions</p>
-                              <p className="text-2xl font-bold">22,145</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-slate-500">Clicks</p>
-                              <p className="text-2xl font-bold">1,508</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-slate-500">CTR</p>
-                              <p className="text-2xl font-bold text-orange-600">6.8%</p>
-                            </div>
-                          </div>
-                        </div>
+                    {/* Search + Filter pills */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                        <input
+                          type="text"
+                          placeholder="Search banners..."
+                          value={advertSearch}
+                          onChange={(e) => setAdvertSearch(e.target.value)}
+                          className="w-full pl-9 pr-4 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors"
+                        />
                       </div>
-                    </CardContent>
-                  </Card>
+                      <div className="flex gap-2 flex-wrap">
+                        {(['ALL', 'HERO', 'MAIN', 'SIDEBAR'] as const).map(pos => {
+                          const count = pos === 'ALL' ? banners.length : banners.filter((b: any) => b.position === pos).length;
+                          return (
+                            <button
+                              key={pos}
+                              onClick={() => setAdvertFilter(pos)}
+                              className={'px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ' + (advertFilter === pos ? 'bg-[#CB2030] text-white' : 'bg-white/[0.06] text-slate-400 hover:bg-white/[0.1] hover:text-slate-300')}
+                            >
+                              {pos} {count > 0 ? '(' + count + ')' : ''}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
 
-                  {/* Top Performing Banners */}
-                  <Card className="bg-[#111827] border-white/[0.06]">
-                    <CardHeader>
-                      <CardTitle className="text-white">Top Performing Banners</CardTitle>
-                      <CardDescription className="text-slate-400">Best performing advertisements this month</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {banners.slice(0, 5).map((banner, index) => (
-                          <div key={banner.id} className="flex items-center justify-between p-4 border rounded-lg">
-                            <div className="flex items-center gap-4">
-                              <div className="text-2xl font-bold text-slate-600">#{index + 1}</div>
-                              <div className="w-24 h-16 bg-[#111827]/[0.04] rounded overflow-hidden">
-                                {banner.imageUrl && (
-                                  <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />
-                                )}
+                    {/* Banner Cards */}
+                    {filteredBanners.length === 0 ? (
+                      <div className="bg-[#111827] border border-white/[0.06] rounded-xl py-16 text-center">
+                        <div className="h-12 w-12 rounded-xl bg-white/[0.05] flex items-center justify-center mx-auto mb-3">
+                          <Image className="h-6 w-6 text-slate-500" />
+                        </div>
+                        <p className="text-slate-400 font-medium">No banners found</p>
+                        <p className="text-slate-600 text-sm mt-1">
+                          {advertSearch || advertFilter !== 'ALL' ? 'Try adjusting your search or filter' : 'Create your first banner to get started'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {(['HERO', 'MAIN', 'SIDEBAR'] as const).map(position => {
+                          const group = filteredBanners.filter((b: any) => b.position === position);
+                          if (group.length === 0) return null;
+                          const cfg = POS_CFG[position];
+                          return (
+                            <div key={position}>
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className={'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ' + cfg.badgeCls}>{cfg.label}</span>
+                                  <span className="text-sm text-slate-500">{cfg.desc}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-slate-600">{group.length} banner{group.length !== 1 ? 's' : ''}</span>
+                                  <a href={cfg.page} target="_blank" rel="noreferrer" className="h-6 w-6 rounded bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-slate-500 hover:text-slate-300 transition-colors">
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                  </a>
+                                </div>
                               </div>
-                              <div>
-                                <h4 className="font-semibold">{banner.title}</h4>
-                                <p className="text-sm text-slate-500">{banner.position}</p>
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                {group.map((banner: any) => (
+                                  <div key={banner.id} className={'bg-[#111827] border border-white/[0.06] border-l-2 ' + cfg.borderCls + ' rounded-xl overflow-hidden'}>
+                                    <div className="aspect-video bg-white/[0.04] overflow-hidden relative">
+                                      {banner.imageUrl ? (
+                                        <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover"
+                                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                                      ) : (
+                                        <div className="flex flex-col items-center justify-center h-full text-slate-600 absolute inset-0">
+                                          <Image className="h-10 w-10 mb-2" />
+                                          <p className="text-xs">No image set</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="p-4">
+                                      <div className="flex items-start justify-between gap-2 mb-3">
+                                        <div className="min-w-0">
+                                          <p className="font-semibold text-white truncate">{banner.title}</p>
+                                          <p className="text-xs text-slate-500 mt-0.5 truncate">{banner.linkUrl || 'No link set'}</p>
+                                        </div>
+                                        <span className={'flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ' + (banner.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/[0.06] text-slate-400')}>
+                                          {banner.isActive ? 'Active' : 'Inactive'}
+                                        </span>
+                                      </div>
+                                      <div className="grid grid-cols-3 gap-3 py-3 border-t border-b border-white/[0.04] mb-3">
+                                        <div>
+                                          <p className="text-xs text-slate-500">Clicks</p>
+                                          <p className="text-sm font-semibold text-white">{(banner.clicks || 0).toLocaleString()}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-slate-500">Impressions</p>
+                                          <p className="text-sm font-semibold text-white">{(banner.impressions || 0).toLocaleString()}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-slate-500">CTR</p>
+                                          <p className="text-sm font-semibold text-emerald-400">
+                                            {banner.impressions > 0 ? ((banner.clicks / banner.impressions) * 100).toFixed(1) : '0.0'}%
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-1.5">
+                                        <button onClick={() => handlePreviewBanner(banner)} title="Preview" className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                                          <Eye className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button onClick={() => handleEditBanner(banner)} title="Edit" className="h-7 w-7 rounded-md bg-amber-500/10 hover:bg-amber-500/20 flex items-center justify-center text-amber-400 transition-colors">
+                                          <Edit className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button onClick={() => setDeletingBanner(banner)} title="Delete" className="h-7 w-7 rounded-md bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-red-400 transition-colors">
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
+                                        {(banner.startDate || banner.endDate) && (
+                                          <div className="ml-auto text-xs text-slate-600 truncate">
+                                            {banner.endDate && <span>Ends {fmtDate(banner.endDate)}</span>}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             </div>
-                            <div className="grid grid-cols-3 gap-8 text-center">
-                              <div>
-                                <p className="text-sm text-slate-500">Impressions</p>
-                                <p className="font-semibold">{(banner.impressions || 0).toLocaleString()}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-slate-500">Clicks</p>
-                                <p className="font-semibold">{(banner.clicks || 0).toLocaleString()}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-slate-500">CTR</p>
-                                <p className="font-semibold text-green-600">
-                                  {banner.impressions > 0 ? ((banner.clicks / banner.impressions) * 100).toFixed(1) : 0}%
-                                </p>
-                              </div>
-                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Size Reference */}
+                    <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Recommended Image Sizes</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {Object.entries(POS_CFG).map(([pos, cfg]) => (
+                          <div key={pos} className="text-xs text-slate-500">
+                            <span className="font-semibold text-slate-300">{cfg.label}:</span>
+                            <span className="ml-1">{cfg.size} · JPG/PNG/WebP · Max 2MB</span>
                           </div>
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
+                )}
 
-                  {/* Monthly Trends Chart Placeholder */}
-                  <Card className="bg-[#111827] border-white/[0.06]">
-                    <CardHeader>
-                      <CardTitle className="text-white">Performance Trends</CardTitle>
-                      <CardDescription className="text-slate-400">Banner performance over the last 6 months</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-64 flex items-center justify-center bg-[#0D1117] rounded-lg border-2 border-dashed border-white/[0.1]">
-                        <div className="text-center text-slate-500">
-                          <BarChart3 className="h-12 w-12 mx-auto mb-2" />
-                          <p>Performance chart visualization</p>
-                          <p className="text-sm">(Chart library integration coming soon)</p>
+                {/* -- PAYMENTS -- */}
+                {activeAdvertTab === 'payments' && (
+                  <div className="space-y-5">
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {([
+                        { label: 'Total Revenue', value: 'N$12,450', sub: '+18% from last month', Icon: DollarSign, cls: 'bg-emerald-500/10 text-emerald-400' },
+                        { label: 'Active Subs', value: '8', sub: 'Advertisers paying', Icon: Users, cls: 'bg-[#CB2030]/10 text-[#CB2030]' },
+                        { label: 'Pending', value: '3', sub: 'Awaiting payment', Icon: Clock, cls: 'bg-amber-500/10 text-amber-400' },
+                        { label: 'Expiring Soon', value: '2', sub: 'Within 7 days', Icon: AlertCircle, cls: 'bg-red-500/10 text-red-400' },
+                      ] as const).map(({ label, value, sub, Icon, cls }) => (
+                        <div key={label} className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">{label}</span>
+                            <div className={'h-7 w-7 rounded-md ' + cls + ' flex items-center justify-center'}>
+                              <Icon className="h-3.5 w-3.5" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-bold text-white">{value}</div>
+                          <div className="text-xs text-slate-500 mt-1">{sub}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Subscriptions Table */}
+                    <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+                      <div className="px-5 py-4 border-b border-white/[0.06]">
+                        <h3 className="text-sm font-semibold text-white">Active Advertisement Subscriptions</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Manage advertiser subscriptions and payments</p>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-[#0D1117]">
+                            <tr>
+                              {['Advertiser', 'Position', 'Plan', 'Period', 'Amount', 'Status', 'Actions'].map(h => (
+                                <th key={h} className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/[0.04]">
+                            {[
+                              { company: 'ABC Motors', email: 'contact@abcmotors.com', position: 'HERO', plan: 'Monthly Premium', start: 'Jan 1, 2025', end: 'Jan 31, 2025', amount: 'N$500/mo', status: 'ACTIVE' },
+                              { company: 'XYZ Dealership', email: 'info@xyzdealership.com', position: 'MAIN', plan: 'Quarterly Standard', start: 'Dec 15, 2024', end: 'Mar 15, 2025', amount: 'N$1,200/qtr', status: 'ACTIVE' },
+                              { company: 'Premium Autos Ltd', email: 'sales@premiumautos.com', position: 'SIDEBAR', plan: 'Monthly Basic', start: 'Jan 5, 2025', end: 'Feb 5, 2025', amount: 'N$200/mo', status: 'EXPIRING' },
+                            ].map((row, i) => {
+                              const cfg = POS_CFG[row.position] || POS_CFG.HERO;
+                              const statusCls = row.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400';
+                              return (
+                                <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                                  <td className="px-4 py-3.5">
+                                    <p className="text-sm font-medium text-white">{row.company}</p>
+                                    <p className="text-xs text-slate-500">{row.email}</p>
+                                  </td>
+                                  <td className="px-4 py-3.5">
+                                    <span className={'text-xs px-2 py-0.5 rounded-full font-medium border ' + cfg.badgeCls}>{cfg.label}</span>
+                                  </td>
+                                  <td className="px-4 py-3.5 text-sm text-slate-300">{row.plan}</td>
+                                  <td className="px-4 py-3.5">
+                                    <p className="text-xs text-slate-400">{row.start}</p>
+                                    <p className="text-xs text-slate-600">to {row.end}</p>
+                                  </td>
+                                  <td className="px-4 py-3.5 text-sm font-semibold text-white">{row.amount}</td>
+                                  <td className="px-4 py-3.5">
+                                    <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + statusCls}>
+                                      {row.status === 'EXPIRING' ? 'Expiring Soon' : 'Active'}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3.5">
+                                    <div className="flex gap-1.5">
+                                      <button className="h-7 px-2.5 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-xs text-slate-300 transition-colors cursor-pointer">View</button>
+                                      <button className="h-7 px-2.5 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-xs text-slate-300 transition-colors cursor-pointer">Invoice</button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Pricing Plans */}
+                    <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+                      <div className="px-5 py-4 border-b border-white/[0.06]">
+                        <h3 className="text-sm font-semibold text-white">Advertisement Pricing Plans</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Manage subscription tiers and pricing</p>
+                      </div>
+                      <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {[
+                          { name: 'Basic Plan', price: 'N$200', period: '/month', position: 'SIDEBAR', features: ['Sidebar position', 'Basic analytics', '1 banner change/month'], popular: false },
+                          { name: 'Standard Plan', price: 'N$400', period: '/month', position: 'MAIN', features: ['Main position', 'Advanced analytics', 'Unlimited changes', 'Priority support'], popular: true },
+                          { name: 'Premium Plan', price: 'N$600', period: '/month', position: 'HERO', features: ['Hero position', 'Full analytics suite', 'Unlimited changes', 'Dedicated manager', 'Custom reporting'], popular: false },
+                        ].map((plan) => {
+                          const cfg = POS_CFG[plan.position];
+                          return (
+                            <div key={plan.name} className={'relative rounded-xl p-5 border ' + (plan.popular ? 'border-[#CB2030]/40 bg-[#CB2030]/[0.04]' : 'border-white/[0.06] bg-[#0D1117]')}>
+                              {plan.popular && (
+                                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[#CB2030] text-white text-xs font-semibold rounded-full">Popular</span>
+                              )}
+                              <h4 className="font-semibold text-white mb-1">{plan.name}</h4>
+                              <div className="mb-3">
+                                <span className="text-3xl font-bold text-white">{plan.price}</span>
+                                <span className="text-sm text-slate-500">{plan.period}</span>
+                              </div>
+                              <div className="mb-4">
+                                <span className={'text-xs px-2 py-0.5 rounded-full font-medium border ' + cfg.badgeCls}>{cfg.label} Position</span>
+                              </div>
+                              <ul className="space-y-2 mb-5">
+                                {plan.features.map(f => (
+                                  <li key={f} className="flex items-center gap-2 text-sm text-slate-300">
+                                    <CheckCircle className="h-3.5 w-3.5 text-emerald-400 flex-shrink-0" />
+                                    {f}
+                                  </li>
+                                ))}
+                              </ul>
+                              <button className={'w-full py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ' + (plan.popular ? 'bg-[#CB2030] hover:bg-[#B01C2A] text-white' : 'bg-white/[0.06] hover:bg-white/[0.1] text-slate-300')}>
+                                Edit Plan
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* -- ANALYTICS -- */}
+                {activeAdvertTab === 'analytics' && (
+                  <div className="space-y-5">
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {([
+                        { label: 'Total Impressions', value: (bannerStats.totalImpressions || 0).toLocaleString(), sub: 'Last 30 days', Icon: TrendingUp, cls: 'bg-[#CB2030]/10 text-[#CB2030]' },
+                        { label: 'Total Clicks', value: (bannerStats.totalClicks || 0).toLocaleString(), sub: 'Last 30 days', Icon: Activity, cls: 'bg-emerald-500/10 text-emerald-400' },
+                        { label: 'Average CTR', value: bannerStats.avgCTR + '%', sub: 'Click-through rate', Icon: BarChart3, cls: 'bg-amber-500/10 text-amber-400' },
+                        { label: 'ROI', value: '324%', sub: 'Return on investment', Icon: DollarSign, cls: 'bg-emerald-500/10 text-emerald-400' },
+                      ] as const).map(({ label, value, sub, Icon, cls }) => (
+                        <div key={label} className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">{label}</span>
+                            <div className={'h-7 w-7 rounded-md ' + cls + ' flex items-center justify-center'}>
+                              <Icon className="h-3.5 w-3.5" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-bold text-white">{value}</div>
+                          <div className="text-xs text-slate-500 mt-1">{sub}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Performance by Position */}
+                    <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+                      <div className="px-5 py-4 border-b border-white/[0.06]">
+                        <h3 className="text-sm font-semibold text-white">Performance by Banner Position</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Compare impressions, clicks, and CTR across banner slots</p>
+                      </div>
+                      <div className="p-5 space-y-4">
+                        {([
+                          { position: 'HERO', impressions: 45234, clicks: 4892, ctr: 10.8, badge: 'Best CTR' as string | null },
+                          { position: 'MAIN', impressions: 38567, clicks: 3534, ctr: 9.2, badge: null as string | null },
+                          { position: 'SIDEBAR', impressions: 22145, clicks: 1508, ctr: 6.8, badge: null as string | null },
+                        ]).map(({ position, impressions, clicks, ctr, badge }) => {
+                          const cfg = POS_CFG[position];
+                          const barPct = Math.round((impressions / 45234) * 100);
+                          return (
+                            <div key={position} className="p-4 bg-[#0D1117] rounded-xl">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <span className={'text-xs px-2 py-0.5 rounded-full font-medium border ' + cfg.badgeCls}>{cfg.label}</span>
+                                  <span className="text-xs text-slate-500">{cfg.desc}</span>
+                                </div>
+                                {badge && <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">{badge}</span>}
+                              </div>
+                              <div className="mb-3 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                                <div className="h-full rounded-full bg-[#CB2030]/60" style={{ width: barPct + '%' }} />
+                              </div>
+                              <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                  <p className="text-xs text-slate-500">Impressions</p>
+                                  <p className="text-lg font-bold text-white">{impressions.toLocaleString()}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-500">Clicks</p>
+                                  <p className="text-lg font-bold text-white">{clicks.toLocaleString()}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-slate-500">CTR</p>
+                                  <p className="text-lg font-bold text-emerald-400">{ctr}%</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Top Performing Banners */}
+                    <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+                      <div className="px-5 py-4 border-b border-white/[0.06]">
+                        <h3 className="text-sm font-semibold text-white">Top Performing Banners</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Best performing advertisements this month</p>
+                      </div>
+                      <div className="divide-y divide-white/[0.04]">
+                        {banners.length === 0 ? (
+                          <div className="p-8 text-center text-slate-600 text-sm">No banner data available</div>
+                        ) : (
+                          banners.slice(0, 5).map((banner: any, index: number) => {
+                            const ctr = banner.impressions > 0 ? ((banner.clicks / banner.impressions) * 100).toFixed(1) : '0.0';
+                            const cfg = POS_CFG[banner.position] || POS_CFG.HERO;
+                            return (
+                              <div key={banner.id} className="flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors">
+                                <span className="text-sm font-bold text-slate-700 w-5 flex-shrink-0">#{index + 1}</span>
+                                <div className="w-20 h-12 bg-white/[0.04] rounded-lg overflow-hidden flex-shrink-0">
+                                  {banner.imageUrl && <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-white truncate">{banner.title}</p>
+                                  <span className={'text-xs px-1.5 py-0.5 rounded font-medium border ' + cfg.badgeCls}>{cfg.label}</span>
+                                </div>
+                                <div className="hidden md:grid grid-cols-3 gap-8 text-center flex-shrink-0">
+                                  <div>
+                                    <p className="text-xs text-slate-500">Impressions</p>
+                                    <p className="text-sm font-semibold text-white">{(banner.impressions || 0).toLocaleString()}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-500">Clicks</p>
+                                    <p className="text-sm font-semibold text-white">{(banner.clicks || 0).toLocaleString()}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-500">CTR</p>
+                                    <p className="text-sm font-semibold text-emerald-400">{ctr}%</p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Trends Placeholder */}
+                    <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+                      <div className="px-5 py-4 border-b border-white/[0.06]">
+                        <h3 className="text-sm font-semibold text-white">Performance Trends</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Banner performance over the last 6 months</p>
+                      </div>
+                      <div className="p-5">
+                        <div className="h-48 flex flex-col items-center justify-center bg-[#0D1117] rounded-xl border border-dashed border-white/[0.08]">
+                          <BarChart3 className="h-10 w-10 text-slate-700 mb-2" />
+                          <p className="text-sm text-slate-600">Chart visualization coming soon</p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </div>
-          )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Moderation Tab */}
-          {activeTab === 'moderation' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Content Moderation</h2>
-                <div className="flex gap-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
-                    <input
-                      type="text"
-                      placeholder="Search reports..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+          {activeTab === 'moderation' && (() => {
+            const fmtDate = (d: any) => { try { return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch { return 'N/A'; } };
+            const SEV_CFG: Record<string, { cls: string; borderCls: string; dot: string }> = {
+              Critical: { cls: 'bg-red-500/10 text-red-400 border-red-500/20',       borderCls: 'border-l-red-500/70',    dot: 'bg-red-500' },
+              High:     { cls: 'bg-orange-500/10 text-orange-400 border-orange-500/20', borderCls: 'border-l-orange-500/70', dot: 'bg-orange-500' },
+              Medium:   { cls: 'bg-amber-500/10 text-amber-400 border-amber-500/20',   borderCls: 'border-l-amber-500/60',  dot: 'bg-amber-500' },
+              Low:      { cls: 'bg-white/[0.06] text-slate-400 border-white/[0.1]',    borderCls: 'border-l-slate-500/30',  dot: 'bg-slate-500' },
+            };
+            const STATUS_CLS: Record<string, string> = {
+              'Pending':      'bg-amber-500/10 text-amber-400',
+              'Under Review': 'bg-white/[0.07] text-slate-300',
+              'Resolved':     'bg-emerald-500/10 text-emerald-400',
+            };
+            const filteredReports = reports.filter((report: any) => {
+              if (moderationFilter !== 'all') {
+                if (moderationFilter === 'listings' && report.type !== 'listing') return false;
+                if (moderationFilter === 'users' && report.type !== 'user') return false;
+                if (moderationFilter === 'dealerships' && report.type !== 'dealer') return false;
+              }
+              return (
+                (report.targetTitle || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (report.reporterName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (report.reportReason || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (report.reportCategory || '').toLowerCase().includes(searchTerm.toLowerCase())
+              );
+            });
+            const pendingCount = reports.filter((r: any) => r.status === 'Pending').length;
+            const criticalCount = reports.filter((r: any) => r.severity === 'Critical').length;
+            const resolvedCount = reports.filter((r: any) => r.status === 'Resolved').length;
+            return (
+              <div className="space-y-5">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">Content Moderation</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Review and action user-submitted reports</p>
                   </div>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filter
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Search reports..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9 pr-4 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors w-52"
+                      />
+                    </div>
+                    <button
+                      onClick={handleGenerateModerationReport}
+                      className="flex items-center gap-2 px-3 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-sm text-slate-300 rounded-lg transition-colors"
+                    >
+                      <Download className="h-4 w-4" />
+                      Export
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Moderation Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Total Reports</CardTitle>
-                    <FlagIcon className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{reports.length}</div>
-                    <p className="text-xs text-muted-foreground">
-                      {reports.filter(r => r.status === 'Resolved').length} resolved
-                    </p>
-                  </CardContent>
-                </Card>
+                {/* Stats Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {([
+                    { label: 'Total Reports', value: reports.length, sub: `${resolvedCount} resolved`, Icon: FlagIcon, cls: 'bg-slate-500/10 text-slate-400' },
+                    { label: 'Pending Review', value: pendingCount, sub: 'Requires attention', Icon: ClockIcon, cls: 'bg-amber-500/10 text-amber-400' },
+                    { label: 'Critical Reports', value: criticalCount, sub: 'High priority', Icon: AlertTriangle, cls: 'bg-red-500/10 text-red-400' },
+                    { label: 'Avg Resolution', value: '2.4h', sub: 'Response time', Icon: Activity, cls: 'bg-emerald-500/10 text-emerald-400' },
+                  ] as const).map(({ label, value, sub, Icon, cls }) => (
+                    <div key={label} className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">{label}</span>
+                        <div className={`h-7 w-7 rounded-md ${cls} flex items-center justify-center`}>
+                          <Icon className="h-3.5 w-3.5" />
+                        </div>
+                      </div>
+                      <div className="text-2xl font-bold text-white">{value}</div>
+                      <div className="text-xs text-slate-500 mt-1">{sub}</div>
+                    </div>
+                  ))}
+                </div>
 
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Pending Review</CardTitle>
-                    <ClockIcon className="h-4 w-4 text-yellow-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{reports.filter(r => r.status === 'Pending').length}</div>
-                    <p className="text-xs text-yellow-600">Requires attention</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Critical Reports</CardTitle>
-                    <AlertTriangle className="h-4 w-4 text-red-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{reports.filter(r => r.severity === 'Critical').length}</div>
-                    <p className="text-xs text-red-600">High priority</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Avg Resolution</CardTitle>
-                    <Activity className="h-4 w-4 text-green-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">2.4 hours</div>
-                    <p className="text-xs text-green-600">Response time</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Moderation Filter Tabs */}
-              <div className="border-b border-white/[0.06]">
-                <nav className="-mb-px flex space-x-8">
+                {/* Filter Pills */}
+                <div className="flex items-center gap-2 flex-wrap">
                   {[
-                    { id: 'all', name: 'All Reports', count: reports.length },
-                    { id: 'listings', name: 'Listings', count: reports.filter(r => r.type === 'listing').length },
-                    { id: 'users', name: 'Users', count: reports.filter(r => r.type === 'user').length },
-                    { id: 'dealerships', name: 'Dealerships', count: reports.filter(r => r.type === 'dealer').length }
-                  ].map((tab) => (
+                    { id: 'all', label: 'All Reports', count: reports.length },
+                    { id: 'listings', label: 'Listings', count: reports.filter((r: any) => r.type === 'listing').length },
+                    { id: 'users', label: 'Users', count: reports.filter((r: any) => r.type === 'user').length },
+                    { id: 'dealerships', label: 'Dealerships', count: reports.filter((r: any) => r.type === 'dealer').length },
+                  ].map(tab => (
                     <button
                       key={tab.id}
                       onClick={() => setModerationFilter(tab.id)}
-                      className={`${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                         moderationFilter === tab.id
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-slate-500 hover:text-slate-300 hover:border-white/[0.1]'
-                      } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+                          ? 'bg-[#CB2030] text-white'
+                          : 'bg-white/[0.06] text-slate-400 hover:bg-white/[0.1] hover:text-slate-300'
+                      }`}
                     >
-                      {tab.name}
-                      <span className={`${
-                        moderationFilter === tab.id
-                          ? 'bg-blue-500/10 text-blue-400'
-                          : 'bg-[#111827]/[0.04] text-slate-400'
-                      } py-0.5 px-2.5 rounded-full text-xs font-medium`}>
+                      {tab.label}
+                      <span className={`px-1.5 py-0.5 rounded-full text-xs ${moderationFilter === tab.id ? 'bg-white/20' : 'bg-white/[0.08]'}`}>
                         {tab.count}
                       </span>
                     </button>
                   ))}
-                </nav>
-              </div>
-
-              {/* Reports Table */}
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-[#0D1117]">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Report</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Reporter</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Severity</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Assigned</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
-                        {reports
-                          .filter(report => {
-                            // Filter by tab
-                            if (moderationFilter !== 'all') {
-                              if (moderationFilter === 'listings' && report.type !== 'listing') return false;
-                              if (moderationFilter === 'users' && report.type !== 'user') return false;
-                              if (moderationFilter === 'dealerships' && report.type !== 'dealer') return false;
-                            }
-                            // Filter by search term
-                            return (
-                              report.targetTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              report.reporterName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              report.reportReason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              report.reportCategory.toLowerCase().includes(searchTerm.toLowerCase())
-                            );
-                          })
-                          .map((report) => (
-                          <tr key={report.id} className="hover:bg-[#0D1117]">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="h-10 w-10 rounded-full bg-white/[0.06] flex items-center justify-center mr-3">
-                                  {report.type === 'listing' && <Car className="h-5 w-5 text-slate-500" />}
-                                  {report.type === 'user' && <Users className="h-5 w-5 text-slate-500" />}
-                                  {report.type === 'comment' && <MessageSquare className="h-5 w-5 text-slate-500" />}
-                                </div>
-                                <div>
-                                  <div className="text-sm font-medium text-white">{report.targetTitle}</div>
-                                  <div className="text-sm text-slate-500">{report.reportReason}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-white">{report.targetType}</div>
-                              <div className="text-sm text-slate-500">{report.reportCategory}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-white">{report.reporterName}</div>
-                              <div className="text-sm text-slate-500">{report.reporterEmail}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge className={
-                                report.severity === 'Critical' ? 'bg-red-500/10 text-red-400' :
-                                report.severity === 'High' ? 'bg-orange-500/10 text-orange-400' :
-                                report.severity === 'Medium' ? 'bg-amber-500/10 text-amber-400' :
-                                'bg-blue-500/10 text-blue-400'
-                              }>
-                                {report.severity}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge className={
-                                report.status === 'Pending' ? 'bg-amber-500/10 text-amber-400' :
-                                report.status === 'Under Review' ? 'bg-blue-500/10 text-blue-400' :
-                                'bg-emerald-500/10 text-emerald-400'
-                              }>
-                                {report.status}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-white">
-                                {report.assignedTo || 'Unassigned'}
-                              </div>
-                              {report.actionTaken && (
-                                <div className="text-sm text-slate-500">{report.actionTaken}</div>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-white">
-                                {new Date(report.dateReported).toLocaleDateString()}
-                              </div>
-                              <div className="text-sm text-slate-500">
-                                {new Date(report.lastUpdated).toLocaleDateString()}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <div className="flex space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-blue-400 hover:text-blue-300"
-                                  onClick={() => handleViewReport(report)}
-                                  title="View Details"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                {report.status === 'Pending' && (
-                                  <>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-emerald-400 hover:text-emerald-300"
-                                      onClick={() => handleApproveReport(report.id)}
-                                      title="Take Action"
-                                    >
-                                      <CheckCircle2 className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-red-400 hover:text-red-300"
-                                      onClick={() => handleRejectReport(report.id)}
-                                      title="Reject Report"
-                                    >
-                                      <XCircle className="h-4 w-4" />
-                                    </Button>
-                                  </>
-                                )}
-                                {!report.assignedTo && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-purple-400 hover:text-purple-300"
-                                    onClick={() => handleAssignReport(report.id, 'admin-001')}
-                                    title="Assign to Me"
-                                  >
-                                    <UserCheck2 className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Quick Actions Panel */}
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardHeader>
-                  <CardTitle className="text-lg text-white">Moderation Tools</CardTitle>
-                  <CardDescription className="text-slate-400">Quick actions and batch operations</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                      onClick={handleAutoModerate}
-                    >
-                      <ShieldCheck className="h-4 w-4" />
-                      Auto-Moderate
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                      onClick={handleBulkBanUsers}
-                    >
-                      <Ban className="h-4 w-4" />
-                      Bulk Ban Users
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
+                  {criticalCount > 0 && (
+                    <button
                       onClick={handleFilterHighPriority}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer ml-auto"
                     >
-                      <AlertTriangle className="h-4 w-4" />
-                      High Priority
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                      onClick={handleGenerateModerationReport}
-                    >
-                      <FileText className="h-4 w-4" />
-                      Generate Report
-                    </Button>
+                      <AlertTriangle className="h-3 w-3" />
+                      {criticalCount} Critical Pending
+                    </button>
+                  )}
+                </div>
+
+                {/* Reports Table */}
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+                  {filteredReports.length === 0 ? (
+                    <div className="py-16 text-center">
+                      <div className="h-12 w-12 rounded-xl bg-white/[0.05] flex items-center justify-center mx-auto mb-3">
+                        <ShieldCheck className="h-6 w-6 text-slate-500" />
+                      </div>
+                      <p className="text-slate-400 font-medium">No reports found</p>
+                      <p className="text-slate-600 text-sm mt-1">
+                        {searchTerm ? 'Try a different search term' : 'All clear — no reports in this category'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-[#0D1117]">
+                          <tr>
+                            {['Report', 'Type', 'Reporter', 'Severity', 'Status', 'Assigned', 'Date', 'Actions'].map(h => (
+                              <th key={h} className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.04]">
+                          {filteredReports.map((report: any) => {
+                            const sev = SEV_CFG[report.severity] || SEV_CFG.Low;
+                            return (
+                              <tr key={report.id} className={`hover:bg-white/[0.02] transition-colors border-l-2 ${sev.borderCls}`}>
+                                <td className="px-4 py-3.5">
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-lg bg-white/[0.05] flex items-center justify-center flex-shrink-0">
+                                      {report.type === 'listing' && <Car className="h-4 w-4 text-slate-500" />}
+                                      {report.type === 'user' && <Users className="h-4 w-4 text-slate-500" />}
+                                      {report.type === 'comment' && <MessageSquare className="h-4 w-4 text-slate-500" />}
+                                      {report.type === 'dealer' && <Building2 className="h-4 w-4 text-slate-500" />}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-medium text-white truncate max-w-[160px]">{report.targetTitle}</p>
+                                      <p className="text-xs text-slate-500 truncate max-w-[160px]">{report.reportReason}</p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <p className="text-sm text-slate-300">{report.targetType}</p>
+                                  <p className="text-xs text-slate-500">{report.reportCategory}</p>
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <p className="text-sm text-white">{report.reporterName}</p>
+                                  <p className="text-xs text-slate-500">{report.reporterEmail}</p>
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium border ${sev.cls}`}>
+                                    <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${sev.dot}`} />
+                                    {report.severity}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_CLS[report.status] || 'bg-white/[0.06] text-slate-400'}`}>
+                                    {report.status}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <p className="text-sm text-slate-300">{report.assignedTo || 'Unassigned'}</p>
+                                  {report.actionTaken && <p className="text-xs text-slate-500">{report.actionTaken}</p>}
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <p className="text-xs text-slate-400">{fmtDate(report.dateReported)}</p>
+                                  <p className="text-xs text-slate-600">Upd: {fmtDate(report.lastUpdated)}</p>
+                                </td>
+                                <td className="px-4 py-3.5">
+                                  <div className="flex items-center gap-1">
+                                    <button onClick={() => handleViewReport(report)} title="View Details" className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                                      <Eye className="h-3.5 w-3.5" />
+                                    </button>
+                                    {report.status === 'Pending' && (
+                                      <>
+                                        <button onClick={() => handleApproveReport(report.id)} title="Resolve" className="h-7 w-7 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 flex items-center justify-center text-emerald-400 transition-colors">
+                                          <CheckCircle2 className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button onClick={() => handleRejectReport(report.id)} title="Reject Report" className="h-7 w-7 rounded-md bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-red-400 transition-colors">
+                                          <XCircle className="h-3.5 w-3.5" />
+                                        </button>
+                                      </>
+                                    )}
+                                    {!report.assignedTo && (
+                                      <button onClick={() => handleAssignReport(report.id, 'admin-001')} title="Assign to Me" className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                                        <UserCheck2 className="h-3.5 w-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* Moderation Tools */}
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+                  <div className="px-5 py-4 border-b border-white/[0.06]">
+                    <h3 className="text-sm font-semibold text-white">Moderation Tools</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Quick actions and batch operations</p>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                  <div className="p-5 grid grid-cols-1 md:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Auto-Moderate', sub: 'Resolve all low severity', icon: ShieldCheck, cls: 'text-emerald-400 bg-emerald-500/[0.06] hover:bg-emerald-500/10 border-emerald-500/[0.15]', onClick: handleAutoModerate },
+                      { label: 'Bulk Ban Users', sub: 'Process critical reports', icon: Ban, cls: 'text-red-400 bg-red-500/[0.06] hover:bg-red-500/10 border-red-500/[0.15]', onClick: handleBulkBanUsers },
+                      { label: 'High Priority', sub: 'View urgent reports', icon: AlertTriangle, cls: 'text-amber-400 bg-amber-500/[0.06] hover:bg-amber-500/10 border-amber-500/[0.15]', onClick: handleFilterHighPriority },
+                      { label: 'Generate Report', sub: 'Export CSV of all reports', icon: FileText, cls: 'text-slate-300 bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.08]', onClick: handleGenerateModerationReport },
+                    ].map(({ label, sub, icon: Icon, cls, onClick }) => (
+                      <button
+                        key={label}
+                        onClick={onClick}
+                        className={`flex items-center gap-3 p-3.5 rounded-xl border ${cls} transition-colors text-left cursor-pointer`}
+                      >
+                        <div className="h-8 w-8 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{label}</p>
+                          <p className="text-xs opacity-60 mt-0.5">{sub}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Analytics Tab */}
           {activeTab === 'analytics' && (
@@ -6586,210 +6399,465 @@ function AdminDashboardContent() {
           )}
 
           {/* Featured Requests Tab */}
-          {activeTab === 'featured-requests' && (
+          {activeTab === 'featured-requests' && (() => {
+            const fmtDate = (v: string | null | undefined) => {
+              if (!v) return '—';
+              const d = new Date(v);
+              return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' });
+            };
+            const fmtDateTime = (v: string | null | undefined) => {
+              if (!v) return '—';
+              const d = new Date(v);
+              return isNaN(d.getTime()) ? '—' : d.toLocaleString('en-NA', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            };
+            const statusBadge = (status: string) => {
+              if (status === 'ACTIVE') return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+              if (status === 'PENDING') return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+              if (status === 'APPROVED') return 'bg-[#CB2030]/10 text-[#CB2030] border-[#CB2030]/20';
+              if (status === 'EXPIRED') return 'bg-white/[0.05] text-slate-500 border-white/[0.06]';
+              return 'bg-red-500/10 text-red-400 border-red-500/20';
+            };
+            const pendingCount = featuredRequests.filter(r => r.status === 'PENDING').length;
+            const activeCount = featuredRequests.filter(r => r.status === 'ACTIVE').length;
+            const approvedCount = featuredRequests.filter(r => r.status === 'APPROVED').length;
+            const expiredCount = featuredRequests.filter(r => r.status === 'EXPIRED').length;
+            const rejectedCount = featuredRequests.filter(r => r.status === 'REJECTED').length;
+            const revenue = featuredRequests
+              .filter(r => r.status === 'ACTIVE' || r.status === 'APPROVED' || r.status === 'EXPIRED')
+              .reduce((sum, r) => sum + (r.amount || 0), 0);
+            const filterPills = [
+              { label: 'All', value: 'ALL', count: featuredRequests.length },
+              { label: 'Pending', value: 'PENDING', count: pendingCount },
+              { label: 'Active', value: 'ACTIVE', count: activeCount },
+              { label: 'Approved', value: 'APPROVED', count: approvedCount },
+              { label: 'Expired', value: 'EXPIRED', count: expiredCount },
+              { label: 'Rejected', value: 'REJECTED', count: rejectedCount },
+            ];
+            const filteredRequests = featuredRequests.filter(r => {
+              const matchStatus = statusFilter === 'ALL' || r.status === statusFilter;
+              const q = searchTerm.toLowerCase();
+              const matchSearch = !q ||
+                (r.dealership?.name || '').toLowerCase().includes(q) ||
+                (r.dealership?.city || '').toLowerCase().includes(q) ||
+                (r.status || '').toLowerCase().includes(q);
+              return matchStatus && matchSearch;
+            });
+            return (
             <div className="space-y-6">
+              {/* Header */}
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold flex items-center gap-2">
-                  <Crown className="h-6 w-6 text-yellow-600" />
-                  Featured Dealership Requests
-                </h2>
+                <div>
+                  <h2 className="text-xl font-semibold text-white">Featured Dealership Requests</h2>
+                  <p className="text-sm text-slate-400 mt-0.5">{featuredRequests.length} total requests</p>
+                </div>
+                <button onClick={async () => {
+                  const res = await fetch('/api/admin/featured-requests');
+                  const data = await res.json();
+                  if (data.success) setFeaturedRequests(data.requests);
+                }} className="flex items-center gap-2 px-3 py-2 bg-[#111827] border border-white/[0.06] rounded-lg text-sm text-slate-300 hover:text-white hover:border-white/[0.12] transition-all cursor-pointer">
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh
+                </button>
               </div>
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Total Requests</CardTitle>
-                    <Crown className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{featuredRequests.length}</div>
-                    <p className="text-xs text-muted-foreground">All time</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Pending</CardTitle>
-                    <Clock className="h-4 w-4 text-yellow-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {featuredRequests.filter(r => r.status === 'PENDING').length}
+              {/* Stats Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total</span>
+                    <div className="h-8 w-8 rounded-lg bg-white/[0.05] flex items-center justify-center">
+                      <Crown className="h-4 w-4 text-slate-400" />
                     </div>
-                    <p className="text-xs text-muted-foreground">Awaiting review</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Active</CardTitle>
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {featuredRequests.filter(r => r.status === 'ACTIVE').length}
+                  </div>
+                  <div className="text-2xl font-bold text-white">{featuredRequests.length}</div>
+                  <p className="text-xs text-slate-500 mt-1">{pendingCount} awaiting review</p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Pending</span>
+                    <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <Clock className="h-4 w-4 text-amber-400" />
                     </div>
-                    <p className="text-xs text-muted-foreground">Currently featured</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Revenue</CardTitle>
-                    <DollarSign className="h-4 w-4 text-green-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      N${featuredRequests
-                        .filter(r => r.status === 'ACTIVE' || r.status === 'APPROVED')
-                        .reduce((sum, r) => sum + r.amount, 0)}
+                  </div>
+                  <div className="text-2xl font-bold text-white">{pendingCount}</div>
+                  <p className="text-xs text-amber-500 mt-1">{pendingCount > 0 ? 'Needs action' : 'All clear'}</p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Active</span>
+                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-emerald-400" />
                     </div>
-                    <p className="text-xs text-muted-foreground">From featured placements</p>
-                  </CardContent>
-                </Card>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{activeCount}</div>
+                  <p className="text-xs text-emerald-500 mt-1">Currently featured</p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Revenue</span>
+                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <DollarSign className="h-4 w-4 text-emerald-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">N${revenue.toLocaleString('en-NA')}</div>
+                  <p className="text-xs text-slate-500 mt-1">From placements</p>
+                </div>
+              </div>
+
+              {/* Search + Filter Pills */}
+              <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div className="relative flex-1 w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search by dealership name, city, status…"
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {filterPills.map(pill => (
+                      <button key={pill.value} onClick={() => setStatusFilter(pill.value)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                          statusFilter === pill.value
+                            ? 'bg-[#CB2030] text-white'
+                            : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.1] hover:text-white'
+                        }`}>
+                        {pill.label}
+                        <span className={`${statusFilter === pill.value ? 'bg-white/20' : 'bg-white/[0.08]'} rounded-full px-1.5 py-0.5 text-[10px]`}>{pill.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Requests Table */}
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardContent className="p-0">
+              <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
+                  <span className="text-sm font-medium text-white">
+                    {statusFilter === 'ALL' ? 'All Requests' : `${statusFilter.charAt(0) + statusFilter.slice(1).toLowerCase()} Requests`}
+                  </span>
+                  <span className="text-xs text-slate-500">{filteredRequests.length} result{filteredRequests.length !== 1 ? 's' : ''}</span>
+                </div>
+                {filteredRequests.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="h-12 w-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-3">
+                      <Crown className="h-6 w-6 text-slate-600" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-400">No featured requests found</p>
+                    <p className="text-xs text-slate-600 mt-1">{searchTerm ? 'Try a different search term' : 'Requests will appear here when dealerships apply'}</p>
+                  </div>
+                ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-[#0D1117]">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                            Dealership
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                            Duration
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                            Amount
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                            Requested
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                            Active Period
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                            Actions
-                          </th>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-[#0D1117] border-b border-white/[0.06]">
+                          <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider">Dealership</th>
+                          <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider hidden md:table-cell">Duration</th>
+                          <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider">Amount</th>
+                          <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider">Status</th>
+                          <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider hidden lg:table-cell">Requested</th>
+                          <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider hidden lg:table-cell">Active Period</th>
+                          <th className="px-4 py-3 w-28" />
                         </tr>
                       </thead>
-                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
-                        {featuredRequests.length === 0 ? (
-                          <tr>
-                            <td colSpan={7} className="px-6 py-12 text-center">
-                              <div className="flex flex-col items-center justify-center text-slate-500">
-                                <Crown className="h-12 w-12 mb-4 text-slate-600" />
-                                <p className="font-medium text-white">No featured requests yet</p>
-                                <p className="text-sm mt-1">Requests will appear here when dealerships apply</p>
+                      <tbody className="divide-y divide-white/[0.04]">
+                        {filteredRequests.map((request) => (
+                          <tr key={request.id}
+                            className={`hover:bg-white/[0.02] transition-colors border-l-2 ${
+                              request.status === 'PENDING' ? 'border-l-amber-500/60' :
+                              request.status === 'ACTIVE' ? 'border-l-emerald-500/60' :
+                              'border-l-transparent'
+                            }`}>
+                            <td className="px-4 py-3">
+                              <div className="font-medium text-white">{request.dealership?.name}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">{request.dealership?.city}</div>
+                              <div className="text-xs text-slate-600">{request.dealership?.email}</div>
+                            </td>
+                            <td className="px-4 py-3 hidden md:table-cell">
+                              <span className="text-white font-medium">{request.duration}</span>
+                              <span className="text-slate-500 ml-1 text-xs">days</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="font-semibold text-white tabular-nums">N${(request.amount || 0).toLocaleString('en-NA')}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${statusBadge(request.status)}`}>
+                                {request.status.charAt(0) + request.status.slice(1).toLowerCase()}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 hidden lg:table-cell text-xs text-slate-400">{fmtDate(request.requestedAt)}</td>
+                            <td className="px-4 py-3 hidden lg:table-cell text-xs">
+                              {request.startDate && request.endDate ? (
+                                <div className="text-slate-300">
+                                  {fmtDate(request.startDate)}
+                                  <span className="text-slate-600 mx-1">→</span>
+                                  {fmtDate(request.endDate)}
+                                </div>
+                              ) : <span className="text-slate-600">—</span>}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1 justify-end">
+                                {request.status === 'PENDING' ? (
+                                  <>
+                                    <button title="Approve" onClick={() => { setSelectedFeaturedRequest(request); setApproveDialogOpen(true); }}
+                                      className="h-7 w-7 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center transition-colors cursor-pointer">
+                                      <CheckCircle className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button title="Reject" onClick={() => { setSelectedFeaturedRequest(request); setRejectFeaturedDialogOpen(true); }}
+                                      className="h-7 w-7 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition-colors cursor-pointer">
+                                      <XCircle className="h-3.5 w-3.5" />
+                                    </button>
+                                  </>
+                                ) : null}
+                                <button title="View details" onClick={() => { setSelectedFeaturedRequest(request); setViewFeaturedDialogOpen(true); }}
+                                  className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                                  <Eye className="h-3.5 w-3.5" />
+                                </button>
                               </div>
                             </td>
                           </tr>
-                        ) : (
-                          featuredRequests.map((request) => (
-                            <tr key={request.id} className="hover:bg-[#0D1117]">
-                              <td className="px-6 py-4">
-                                <div>
-                                  <div className="font-medium text-white">{request.dealership.name}</div>
-                                  <div className="text-sm text-slate-500">{request.dealership.city}</div>
-                                  <div className="text-xs text-slate-500">{request.dealership.email}</div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-white">{request.duration} days</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-white">N${request.amount}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <Badge className={`${
-                                  request.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400' :
-                                  request.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
-                                  request.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400' :
-                                  request.status === 'EXPIRED' ? 'bg-[#111827]/[0.04] text-slate-200' :
-                                  'bg-red-500/10 text-red-400'
-                                }`}>
-                                  {request.status}
-                                </Badge>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-white">
-                                  {new Date(request.requestedAt).toLocaleDateString()}
-                                </div>
-                                <div className="text-xs text-slate-500">
-                                  {new Date(request.requestedAt).toLocaleTimeString()}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                {request.startDate && request.endDate ? (
-                                  <div className="text-sm text-white">
-                                    <div>{new Date(request.startDate).toLocaleDateString()}</div>
-                                    <div className="text-xs text-slate-500">
-                                      to {new Date(request.endDate).toLocaleDateString()}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="text-sm text-slate-500">-</div>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                {request.status === 'PENDING' ? (
-                                  <div className="flex gap-2">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20"
-                                      onClick={() => {
-                                        setSelectedFeaturedRequest(request);
-                                        setApproveDialogOpen(true);
-                                      }}
-                                    >
-                                      <CheckCircle className="h-4 w-4 mr-1" />
-                                      Approve
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="bg-red-500/10 text-red-400 hover:bg-red-500/100/20 border-red-500/20"
-                                      onClick={() => {
-                                        setSelectedFeaturedRequest(request);
-                                        setRejectFeaturedDialogOpen(true);
-                                      }}
-                                    >
-                                      <X className="h-4 w-4 mr-1" />
-                                      Reject
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      setSelectedFeaturedRequest(request);
-                                      setViewFeaturedDialogOpen(true);
-                                    }}
-                                  >
-                                    <Eye className="h-4 w-4 mr-1" />
-                                    View
-                                  </Button>
-                                )}
-                              </td>
-                            </tr>
-                          ))
-                        )}
+                        ))}
                       </tbody>
                     </table>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </div>
+
+              {/* Approve Modal */}
+              {approveDialogOpen && selectedFeaturedRequest && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => { setApproveDialogOpen(false); setSelectedFeaturedRequest(null); }}>
+                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                          <Crown className="h-4 w-4 text-emerald-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-semibold text-white">Approve Request</h3>
+                          <p className="text-xs text-slate-500 mt-0.5">Dealership will be featured immediately</p>
+                        </div>
+                      </div>
+                      <button onClick={() => { setApproveDialogOpen(false); setSelectedFeaturedRequest(null); }}
+                        className="h-8 w-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                        <XCircle className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <div className="bg-[#0D1117] rounded-xl p-4 space-y-3">
+                        {[
+                          { label: 'Dealership', value: selectedFeaturedRequest.dealership?.name },
+                          { label: 'Location', value: selectedFeaturedRequest.dealership?.city || '—' },
+                          { label: 'Duration', value: `${selectedFeaturedRequest.duration} days` },
+                          { label: 'Amount', value: `N$${(selectedFeaturedRequest.amount || 0).toLocaleString('en-NA')}`, highlight: true },
+                        ].map(({ label, value, highlight }) => (
+                          <div key={label} className="flex items-center justify-between text-sm">
+                            <span className="text-slate-400">{label}</span>
+                            <span className={highlight ? 'font-semibold text-emerald-400' : 'font-medium text-white'}>{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {selectedFeaturedRequest.notes && (
+                        <div className="bg-[#0D1117] rounded-lg p-3">
+                          <p className="text-xs text-slate-500 mb-1">Notes from dealership</p>
+                          <p className="text-sm text-slate-300">{selectedFeaturedRequest.notes}</p>
+                        </div>
+                      )}
+                      <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3">
+                        <p className="text-xs text-emerald-400">The featured period starts immediately upon approval. The dealership will be notified.</p>
+                      </div>
+                    </div>
+                    <div className="px-6 py-4 border-t border-white/[0.06] flex gap-2 justify-end">
+                      <button onClick={() => { setApproveDialogOpen(false); setSelectedFeaturedRequest(null); }}
+                        className="px-4 py-2 text-sm font-medium bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer">
+                        Cancel
+                      </button>
+                      <button onClick={handleApproveFeaturedRequest}
+                        className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-emerald-600 hover:bg-emerald-700 rounded-lg text-white transition-colors cursor-pointer">
+                        <CheckCircle className="h-4 w-4" />
+                        Approve Request
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Reject Modal */}
+              {rejectFeaturedDialogOpen && selectedFeaturedRequest && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => { setRejectFeaturedDialogOpen(false); setSelectedFeaturedRequest(null); setFeaturedRejectionReason(''); }}>
+                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-lg bg-red-500/10 flex items-center justify-center">
+                          <XCircle className="h-4 w-4 text-red-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-semibold text-white">Reject Request</h3>
+                          <p className="text-xs text-slate-500 mt-0.5">Dealership will be notified with your reason</p>
+                        </div>
+                      </div>
+                      <button onClick={() => { setRejectFeaturedDialogOpen(false); setSelectedFeaturedRequest(null); setFeaturedRejectionReason(''); }}
+                        className="h-8 w-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                        <XCircle className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <div className="bg-[#0D1117] rounded-xl p-4 space-y-3">
+                        {[
+                          { label: 'Dealership', value: selectedFeaturedRequest.dealership?.name },
+                          { label: 'Duration', value: `${selectedFeaturedRequest.duration} days` },
+                          { label: 'Amount', value: `N$${(selectedFeaturedRequest.amount || 0).toLocaleString('en-NA')}` },
+                        ].map(({ label, value }) => (
+                          <div key={label} className="flex items-center justify-between text-sm">
+                            <span className="text-slate-400">{label}</span>
+                            <span className="font-medium text-white">{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5">Reason for rejection <span className="text-red-400">*</span></label>
+                        <textarea
+                          value={featuredRejectionReason}
+                          onChange={e => setFeaturedRejectionReason(e.target.value)}
+                          placeholder="Explain why this request is being rejected…"
+                          rows={4}
+                          className="w-full px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors resize-none"
+                        />
+                        <p className="text-xs text-slate-600 mt-1">This message will be sent to the dealership</p>
+                      </div>
+                    </div>
+                    <div className="px-6 py-4 border-t border-white/[0.06] flex gap-2 justify-end">
+                      <button onClick={() => { setRejectFeaturedDialogOpen(false); setSelectedFeaturedRequest(null); setFeaturedRejectionReason(''); }}
+                        className="px-4 py-2 text-sm font-medium bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer">
+                        Cancel
+                      </button>
+                      <button onClick={handleRejectFeaturedRequest} disabled={!featuredRejectionReason.trim()}
+                        className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 rounded-lg text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                        <XCircle className="h-4 w-4" />
+                        Reject Request
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* View Details Modal */}
+              {viewFeaturedDialogOpen && selectedFeaturedRequest && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => { setViewFeaturedDialogOpen(false); setSelectedFeaturedRequest(null); }}>
+                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-lg bg-[#CB2030]/10 flex items-center justify-center">
+                          <Crown className="h-4 w-4 text-[#CB2030]" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-semibold text-white">Request Details</h3>
+                          <p className="text-xs text-slate-500 mt-0.5">{selectedFeaturedRequest.dealership?.name}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusBadge(selectedFeaturedRequest.status)}`}>
+                          {selectedFeaturedRequest.status.charAt(0) + selectedFeaturedRequest.status.slice(1).toLowerCase()}
+                        </span>
+                        <button onClick={() => { setViewFeaturedDialogOpen(false); setSelectedFeaturedRequest(null); }}
+                          className="h-8 w-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                          <XCircle className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      {/* Dealership Info */}
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Dealership</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { label: 'Name', value: selectedFeaturedRequest.dealership?.name },
+                            { label: 'City', value: selectedFeaturedRequest.dealership?.city || '—' },
+                            { label: 'Email', value: selectedFeaturedRequest.dealership?.email || '—' },
+                            { label: 'Payment', value: selectedFeaturedRequest.paymentStatus || '—' },
+                          ].map(({ label, value }) => (
+                            <div key={label} className="bg-[#0D1117] rounded-lg px-3 py-2.5">
+                              <p className="text-xs text-slate-500 mb-0.5">{label}</p>
+                              <p className="text-sm font-medium text-white truncate">{value}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Request Details */}
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Request</p>
+                        <div className="bg-[#0D1117] rounded-xl p-4 space-y-2.5">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-400">Duration</span>
+                            <span className="font-medium text-white">{selectedFeaturedRequest.duration} days</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-400">Amount</span>
+                            <span className="font-semibold text-emerald-400">N${(selectedFeaturedRequest.amount || 0).toLocaleString('en-NA')}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-400">Requested</span>
+                            <span className="text-white">{fmtDate(selectedFeaturedRequest.requestedAt)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Active Period */}
+                      {selectedFeaturedRequest.startDate && selectedFeaturedRequest.endDate && (
+                        <div>
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Featured Period</p>
+                          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
+                            <div className="flex items-center justify-between text-sm">
+                              <div>
+                                <p className="text-xs text-slate-500 mb-0.5">Start</p>
+                                <p className="font-medium text-white">{fmtDate(selectedFeaturedRequest.startDate)}</p>
+                              </div>
+                              <div className="text-slate-600">→</div>
+                              <div className="text-right">
+                                <p className="text-xs text-slate-500 mb-0.5">End</p>
+                                <p className="font-medium text-white">{fmtDate(selectedFeaturedRequest.endDate)}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {/* Approval / Rejection Details */}
+                      {selectedFeaturedRequest.approvedAt && (
+                        <div className="bg-[#0D1117] rounded-lg p-3 space-y-1.5">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Approved</p>
+                          <p className="text-sm text-slate-300">by {selectedFeaturedRequest.approvedBy || 'Admin'} on {fmtDateTime(selectedFeaturedRequest.approvedAt)}</p>
+                        </div>
+                      )}
+                      {selectedFeaturedRequest.rejectedAt && (
+                        <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-3 space-y-1.5">
+                          <p className="text-xs font-semibold text-red-400 uppercase tracking-wider">Rejected</p>
+                          <p className="text-sm text-slate-300">by {selectedFeaturedRequest.rejectedBy || 'Admin'} on {fmtDateTime(selectedFeaturedRequest.rejectedAt)}</p>
+                          {selectedFeaturedRequest.rejectionReason && (
+                            <p className="text-sm text-slate-400 mt-1 pt-1 border-t border-red-500/10">{selectedFeaturedRequest.rejectionReason}</p>
+                          )}
+                        </div>
+                      )}
+                      {/* Notes */}
+                      {selectedFeaturedRequest.notes && (
+                        <div className="bg-[#0D1117] rounded-lg p-3">
+                          <p className="text-xs text-slate-500 mb-1.5">Notes from dealership</p>
+                          <p className="text-sm text-slate-300">{selectedFeaturedRequest.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end">
+                      <button onClick={() => { setViewFeaturedDialogOpen(false); setSelectedFeaturedRequest(null); }}
+                        className="px-4 py-2 text-sm font-medium bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer">
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+            );
+          })()}
 
           {/* Sell Your Car Tab */}
           {activeTab === 'sell-your-car' && (
@@ -6797,35 +6865,130 @@ function AdminDashboardContent() {
           )}
 
           {/* Invoices Tab */}
-          {activeTab === 'invoices' && (
+          {activeTab === 'invoices' && (() => {
+            const fmtDate = (v: string | null | undefined) => {
+              if (!v) return '—';
+              const d = new Date(v);
+              return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' });
+            };
+            const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const inputCls = 'w-full px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors';
+            const statusBadge = (status: string) => {
+              if (status === 'PAID') return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+              if (status === 'OVERDUE') return 'bg-red-500/10 text-red-400 border-red-500/20';
+              if (status === 'CANCELLED') return 'bg-white/[0.05] text-slate-500 border-white/[0.06]';
+              return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+            };
+            const paidCount = adminInvoices.filter(i => i.status === 'PAID').length;
+            const overdueCount = adminInvoices.filter(i => i.status === 'OVERDUE').length;
+            const pendingCount = adminInvoices.filter(i => i.status === 'PENDING').length;
+            const totalRevenue = adminInvoices.filter(i => i.status === 'PAID').reduce((s, i) => s + (i.totalAmount || 0), 0);
+            const filteredInvoices = adminInvoices.filter(inv => {
+              const matchStatus = invoiceFilter === 'ALL' || inv.status === invoiceFilter;
+              const q = searchTerm.toLowerCase();
+              const matchSearch = !q ||
+                (inv.invoiceNumber || '').toLowerCase().includes(q) ||
+                (inv.dealership?.name || '').toLowerCase().includes(q) ||
+                (inv.status || '').toLowerCase().includes(q);
+              return matchStatus && matchSearch;
+            });
+            const filterPills = [
+              { label: 'All', value: 'ALL', count: adminInvoices.length },
+              { label: 'Pending', value: 'PENDING', count: pendingCount },
+              { label: 'Overdue', value: 'OVERDUE', count: overdueCount },
+              { label: 'Paid', value: 'PAID', count: paidCount },
+              { label: 'Cancelled', value: 'CANCELLED', count: adminInvoices.filter(i => i.status === 'CANCELLED').length },
+            ];
+            return (
             <div className="space-y-6">
+              {/* Header */}
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold flex items-center gap-2">
-                  <FileText className="h-6 w-6 text-blue-600" />
-                  Invoice Management
-                </h2>
-                <div className="flex gap-3">
+                <div>
+                  <h2 className="text-xl font-semibold text-white">Invoice Management</h2>
+                  <p className="text-sm text-slate-400 mt-0.5">{adminInvoices.length} invoices total</p>
+                </div>
+                <button onClick={() => window.open('/api/admin/invoices/export', '_blank')}
+                  className="flex items-center gap-2 px-3 py-2 bg-[#111827] border border-white/[0.06] rounded-lg text-sm text-slate-300 hover:text-white hover:border-white/[0.12] transition-all cursor-pointer">
+                  <Download className="h-4 w-4" />
+                  Export
+                </button>
+              </div>
+
+              {/* Stats Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total</span>
+                    <div className="h-8 w-8 rounded-lg bg-white/[0.05] flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-slate-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{adminInvoices.length}</div>
+                  <p className="text-xs text-slate-500 mt-1">{pendingCount} pending</p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Collected</span>
+                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <DollarSign className="h-4 w-4 text-emerald-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">N${(totalRevenue / 100).toLocaleString('en-NA', { minimumFractionDigits: 0 })}</div>
+                  <p className="text-xs text-emerald-500 mt-1">{paidCount} paid invoices</p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Overdue</span>
+                    <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                      <AlertTriangle className="h-4 w-4 text-red-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{overdueCount}</div>
+                  <p className="text-xs text-red-400 mt-1">{overdueCount > 0 ? 'Needs attention' : 'None overdue'}</p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Paid</span>
+                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-emerald-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{paidCount}</div>
+                  <p className="text-xs text-slate-500 mt-1">{adminInvoices.length > 0 ? Math.round((paidCount / adminInvoices.length) * 100) : 0}% collection rate</p>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Generate Invoices card */}
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-9 w-9 rounded-lg bg-[#CB2030]/10 flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-[#CB2030]" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-white">Generate Invoices</div>
+                      <div className="text-xs text-slate-500">Create invoices for a billing period</div>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-2">
                     <select
                       value={invoiceMonth}
                       onChange={e => setInvoiceMonth(Number(e.target.value))}
-                      className="border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors cursor-pointer"
                     >
-                      {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, i) => (
-                        <option key={i} value={i + 1}>{m}</option>
-                      ))}
+                      {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
                     </select>
                     <input
                       type="number"
                       value={invoiceYear}
                       onChange={e => setInvoiceYear(Number(e.target.value))}
-                      className="border border-white/[0.1] rounded-lg px-3 py-2 text-sm w-24 focus:ring-2 focus:ring-blue-500"
+                      className="w-24 px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors"
                       min={2024}
                       max={2030}
                     />
-                    <Button
-                      size="sm"
-                      className="bg-[#CB2030] hover:bg-[#B01C2A] text-white"
+                    <button
+                      disabled={generatingInvoices}
                       onClick={async () => {
                         setGeneratingInvoices(true);
                         try {
@@ -6838,199 +7001,294 @@ function AdminDashboardContent() {
                           if (res.ok) {
                             showToast({ title: 'Invoices Generated', description: data.message, type: 'success' });
                             setInvoiceFilter('ALL');
-                            // Force re-fetch (filter may already be ALL)
-                            fetch('/api/admin/invoices?page=1&limit=50')
-                              .then(r => r.json())
-                              .then(d => { if (d.invoices) setAdminInvoices(d.invoices); });
-                          } else {
-                            showToast({ title: 'Error', description: data.error, type: 'error' });
-                          }
-                        } catch {
-                          showToast({ title: 'Error', description: 'Failed to generate invoices', type: 'error' });
-                        } finally {
-                          setGeneratingInvoices(false);
-                        }
+                            fetch('/api/admin/invoices?page=1&limit=50').then(r => r.json()).then(d => { if (d.invoices) setAdminInvoices(d.invoices); });
+                          } else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
+                        } catch { showToast({ title: 'Error', description: 'Failed to generate invoices', type: 'error' }); }
+                        finally { setGeneratingInvoices(false); }
                       }}
-                      disabled={generatingInvoices}
+                      className="px-4 py-2 bg-[#CB2030] hover:bg-[#B01C2A] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
                     >
-                      {generatingInvoices ? 'Generating...' : 'Generate Invoices'}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
+                      {generatingInvoices ? 'Generating…' : 'Generate'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Escalation Check card */}
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <AlertTriangle className="h-4 w-4 text-amber-400" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-white">Escalation Check</div>
+                      <div className="text-xs text-slate-500">Flag overdue invoices and notify dealerships</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 text-xs text-slate-500">
+                      {overdueCount > 0
+                        ? <span className="text-amber-400 font-medium">{overdueCount} overdue invoice{overdueCount > 1 ? 's' : ''} require attention</span>
+                        : 'No overdue invoices detected'}
+                    </div>
+                    <button
+                      disabled={runningEscalation}
                       onClick={async () => {
                         setRunningEscalation(true);
                         try {
                           const res = await fetch('/api/admin/invoices/escalate', { method: 'POST' });
                           const data = await res.json();
-                          if (res.ok) {
-                            showToast({ title: 'Escalation Complete', description: data.message, type: 'success' });
-                          } else {
-                            showToast({ title: 'Error', description: data.error, type: 'error' });
-                          }
-                        } catch {
-                          showToast({ title: 'Error', description: 'Escalation check failed', type: 'error' });
-                        } finally {
-                          setRunningEscalation(false);
-                        }
+                          if (res.ok) { showToast({ title: 'Escalation Complete', description: data.message, type: 'success' }); }
+                          else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
+                        } catch { showToast({ title: 'Error', description: 'Escalation check failed', type: 'error' }); }
+                        finally { setRunningEscalation(false); }
                       }}
-                      disabled={runningEscalation}
+                      className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
                     >
-                      {runningEscalation ? 'Running...' : 'Run Escalation Check'}
-                    </Button>
+                      {runningEscalation ? 'Running…' : 'Run Check'}
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* Filter bar */}
-              <div className="flex gap-2">
-                {['ALL','PENDING','OVERDUE','PAID','CANCELLED'].map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setInvoiceFilter(s)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                      invoiceFilter === s
-                        ? 'bg-[#1F3469] text-white border-blue-600'
-                        : 'bg-[#111827] text-slate-400 border-white/[0.1] hover:bg-[#0D1117]'
-                    }`}
-                  >
-                    {s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
-                  </button>
-                ))}
+              {/* Search + Filter Pills */}
+              <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div className="relative flex-1 w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search by invoice #, dealership, status…"
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {filterPills.map(pill => (
+                      <button key={pill.value} onClick={() => setInvoiceFilter(pill.value)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                          invoiceFilter === pill.value
+                            ? 'bg-[#CB2030] text-white'
+                            : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.1] hover:text-white'
+                        }`}>
+                        {pill.label}
+                        <span className={`${invoiceFilter === pill.value ? 'bg-white/20' : 'bg-white/[0.08]'} rounded-full px-1.5 py-0.5 text-[10px]`}>{pill.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardContent className="p-0">
-                  {invoicesLoading ? (
-                    <div className="flex items-center justify-center py-16">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+              {/* Invoices Table */}
+              <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
+                  <span className="text-sm font-medium text-white">
+                    {invoiceFilter === 'ALL' ? 'All Invoices' : `${invoiceFilter.charAt(0) + invoiceFilter.slice(1).toLowerCase()} Invoices`}
+                  </span>
+                  <span className="text-xs text-slate-500">{filteredInvoices.length} result{filteredInvoices.length !== 1 ? 's' : ''}</span>
+                </div>
+                {invoicesLoading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#CB2030]" />
+                  </div>
+                ) : filteredInvoices.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="h-12 w-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-3">
+                      <FileText className="h-6 w-6 text-slate-600" />
                     </div>
-                  ) : adminInvoices.length === 0 ? (
-                    <p className="text-center text-slate-500 py-16">No invoices found.</p>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="bg-[#0D1117] border-b border-white/[0.06]">
-                            <th className="text-left px-4 py-3 font-semibold text-slate-400">Invoice #</th>
-                            <th className="text-left px-4 py-3 font-semibold text-slate-400">Dealership</th>
-                            <th className="text-left px-4 py-3 font-semibold text-slate-400">Period</th>
-                            <th className="text-right px-4 py-3 font-semibold text-slate-400">Total</th>
-                            <th className="text-left px-4 py-3 font-semibold text-slate-400">Due Date</th>
-                            <th className="text-left px-4 py-3 font-semibold text-slate-400">Status</th>
-                            <th className="px-4 py-3" />
+                    <p className="text-sm font-medium text-slate-400">No invoices found</p>
+                    <p className="text-xs text-slate-600 mt-1">{searchTerm ? 'Try a different search term' : 'Generate invoices for a billing period above'}</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-[#0D1117] border-b border-white/[0.06]">
+                          <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider">Invoice #</th>
+                          <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider">Dealership</th>
+                          <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider hidden md:table-cell">Period</th>
+                          <th className="text-right px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider">Amount</th>
+                          <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider hidden lg:table-cell">Due</th>
+                          <th className="text-left px-4 py-3 font-medium text-slate-500 uppercase text-xs tracking-wider">Status</th>
+                          <th className="px-4 py-3 w-40" />
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/[0.04]">
+                        {filteredInvoices.map((inv: any) => (
+                          <tr key={inv.id}
+                            className={`hover:bg-white/[0.02] transition-colors border-l-2 ${
+                              inv.status === 'OVERDUE' ? 'border-l-red-500/60' :
+                              inv.status === 'PENDING' ? 'border-l-amber-500/60' :
+                              'border-l-transparent'
+                            }`}>
+                            <td className="px-4 py-3">
+                              <span className="font-mono text-white font-medium text-xs bg-white/[0.06] px-2 py-1 rounded">{inv.invoiceNumber}</span>
+                            </td>
+                            <td className="px-4 py-3 text-slate-300 font-medium">{inv.dealership?.name ?? '—'}</td>
+                            <td className="px-4 py-3 text-slate-400 hidden md:table-cell">
+                              {MONTHS[(inv.billingMonth || 1) - 1]} {inv.billingYear}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <span className="font-semibold text-white tabular-nums">
+                                N$ {(inv.totalAmount || 0).toLocaleString('en-NA', { minimumFractionDigits: 2 })}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-slate-400 hidden lg:table-cell text-xs">{fmtDate(inv.dueDate)}</td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${statusBadge(inv.status)}`}>
+                                {inv.status.charAt(0) + inv.status.slice(1).toLowerCase()}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1 justify-end">
+                                <button title="View" onClick={async () => {
+                                  const res = await fetch(`/api/admin/invoices/${inv.id}`);
+                                  const data = await res.json();
+                                  if (data.invoice) { setSelectedInvoice(data.invoice); setInvoiceModalMode('view'); }
+                                }} className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                                  <Eye className="h-3.5 w-3.5" />
+                                </button>
+                                <button title="Edit" onClick={async () => {
+                                  const res = await fetch(`/api/admin/invoices/${inv.id}`);
+                                  const data = await res.json();
+                                  if (data.invoice) {
+                                    setSelectedInvoice(data.invoice);
+                                    setEditForm({
+                                      status: data.invoice.status,
+                                      subscriptionAmount: data.invoice.subscriptionAmount,
+                                      stockFeeAmount: data.invoice.stockFeeAmount,
+                                      totalAmount: data.invoice.totalAmount,
+                                      dueDate: new Date(data.invoice.dueDate).toISOString().slice(0, 10),
+                                    });
+                                    setInvoiceModalMode('edit');
+                                  }
+                                }} className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-amber-500/20 text-slate-400 hover:text-amber-400 flex items-center justify-center transition-colors cursor-pointer">
+                                  <Edit className="h-3.5 w-3.5" />
+                                </button>
+                                {inv.status !== 'PAID' && inv.status !== 'CANCELLED' && (
+                                  <button title="Mark Paid" onClick={async () => {
+                                    const res = await fetch(`/api/admin/invoices/${inv.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'mark-paid' }) });
+                                    const data = await res.json();
+                                    if (res.ok) {
+                                      showToast({ title: 'Marked Paid', description: `Invoice ${inv.invoiceNumber} marked as paid.`, type: 'success' });
+                                      setAdminInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: 'PAID' } : i));
+                                    } else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
+                                  }} className="h-7 w-7 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center transition-colors cursor-pointer">
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                  </button>
+                                )}
+                                <button title="Download PDF" onClick={() => window.open(`/api/admin/invoices/${inv.id}/pdf`, '_blank')}
+                                  className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                                  <FileDown className="h-3.5 w-3.5" />
+                                </button>
+                                <button title="Send Email" onClick={() => { setSendEmailInvoiceId(inv.id); setSendEmailTo(inv.dealership?.email || ''); }}
+                                  className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                                  <Send className="h-3.5 w-3.5" />
+                                </button>
+                                <button title="Delete" onClick={() => setDeletingInvoiceId(inv.id)}
+                                  className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-red-500/20 text-slate-400 hover:text-red-400 flex items-center justify-center transition-colors cursor-pointer">
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {adminInvoices.map((inv: any) => (
-                            <tr key={inv.id} className="hover:bg-[#0D1117] transition-colors">
-                              <td className="px-4 py-3 font-mono text-white font-medium">{inv.invoiceNumber}</td>
-                              <td className="px-4 py-3 text-slate-300">{inv.dealership?.name ?? '—'}</td>
-                              <td className="px-4 py-3 text-slate-300">
-                                {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][inv.billingMonth - 1]} {inv.billingYear}
-                              </td>
-                              <td className="px-4 py-3 text-right font-semibold text-white">
-                                N$ {inv.totalAmount.toLocaleString('en-NA', { minimumFractionDigits: 2 })}
-                              </td>
-                              <td className="px-4 py-3 text-slate-400">
-                                {new Date(inv.dueDate).toLocaleDateString('en-NA')}
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${
-                                  inv.status === 'PAID' ? 'bg-emerald-500/10 text-emerald-400 border-green-200' :
-                                  inv.status === 'OVERDUE' ? 'bg-red-500/10 text-red-400 border-red-200' :
-                                  inv.status === 'CANCELLED' ? 'bg-[#111827]/[0.04] text-slate-400 border-white/[0.06]' :
-                                  'bg-amber-500/10 text-amber-400 border-yellow-200'
-                                }`}>
-                                  {inv.status}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex gap-1 justify-end">
-                                  <button title="View" onClick={async () => {
-                                    const res = await fetch(`/api/admin/invoices/${inv.id}`);
-                                    const data = await res.json();
-                                    if (data.invoice) { setSelectedInvoice(data.invoice); setInvoiceModalMode('view'); }
-                                  }} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-blue-600"><Eye className="h-4 w-4" /></button>
-                                  <button title="Edit" onClick={async () => {
-                                    const res = await fetch(`/api/admin/invoices/${inv.id}`);
-                                    const data = await res.json();
-                                    if (data.invoice) {
-                                      setSelectedInvoice(data.invoice);
-                                      setEditForm({
-                                        status: data.invoice.status,
-                                        subscriptionAmount: data.invoice.subscriptionAmount,
-                                        stockFeeAmount: data.invoice.stockFeeAmount,
-                                        totalAmount: data.invoice.totalAmount,
-                                        dueDate: new Date(data.invoice.dueDate).toISOString().slice(0, 10),
-                                      });
-                                      setInvoiceModalMode('edit');
-                                    }
-                                  }} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-yellow-600"><Edit className="h-4 w-4" /></button>
-                                  {inv.status !== 'PAID' && inv.status !== 'CANCELLED' && (
-                                    <button title="Mark Paid" onClick={async () => {
-                                      const res = await fetch(`/api/admin/invoices/${inv.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'mark-paid' }) });
-                                      const data = await res.json();
-                                      if (res.ok) { showToast({ title: 'Marked Paid', description: `Invoice ${inv.invoiceNumber} marked as paid.`, type: 'success' }); setAdminInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: 'PAID' } : i)); }
-                                      else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
-                                    }} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-green-600"><Check className="h-4 w-4" /></button>
-                                  )}
-                                  <button title="Download PDF" onClick={() => { window.open(`/api/admin/invoices/${inv.id}/pdf`, '_blank'); }} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-indigo-600"><FileDown className="h-4 w-4" /></button>
-                                  <button title="Send Email" onClick={() => { setSendEmailInvoiceId(inv.id); setSendEmailTo(inv.dealership?.email || ''); }} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-purple-600"><Send className="h-4 w-4" /></button>
-                                  <button title="Delete" onClick={() => setDeletingInvoiceId(inv.id)} className="p-1.5 rounded hover:bg-[#111827]/[0.04] text-slate-500 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
 
               {/* Invoice View Modal */}
               {invoiceModalMode === 'view' && selectedInvoice && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>
-                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-semibold">Invoice Details</h3>
-                      <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }} className="text-slate-500 hover:text-slate-400"><XCircle className="h-5 w-5" /></button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><p className="text-slate-500">Invoice #</p><p className="font-mono font-semibold">{selectedInvoice.invoiceNumber}</p></div>
-                      <div><p className="text-slate-500">Status</p><span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${selectedInvoice.status === 'PAID' ? 'bg-emerald-500/10 text-emerald-400 border-green-200' : selectedInvoice.status === 'OVERDUE' ? 'bg-red-500/10 text-red-400 border-red-200' : selectedInvoice.status === 'CANCELLED' ? 'bg-[#111827]/[0.04] text-slate-400 border-white/[0.06]' : 'bg-amber-500/10 text-amber-400 border-yellow-200'}`}>{selectedInvoice.status}</span></div>
-                      <div><p className="text-slate-500">Dealership</p><p className="font-medium text-white">{selectedInvoice.dealership?.name}</p></div>
-                      <div><p className="text-slate-500">Contact</p><p>{selectedInvoice.dealership?.contactPerson || '—'}</p></div>
-                      <div><p className="text-slate-500">Period</p><p>{['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][selectedInvoice.billingMonth - 1]} {selectedInvoice.billingYear}</p></div>
-                      <div><p className="text-slate-500">Plan</p><p>{selectedInvoice.planName}</p></div>
-                      <div><p className="text-slate-500">Due Date</p><p>{new Date(selectedInvoice.dueDate).toLocaleDateString('en-NA')}</p></div>
-                      <div><p className="text-slate-500">Vehicle Count</p><p>{selectedInvoice.vehicleCount}</p></div>
-                    </div>
-                    <div className="mt-6 bg-[#0D1117] rounded-lg p-4">
-                      <h4 className="font-semibold text-slate-300 mb-3">Amount Breakdown</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between"><span className="text-slate-400">Subscription Fee</span><span>N$ {selectedInvoice.subscriptionAmount?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
-                        <div className="flex justify-between"><span className="text-slate-400">Stock Value</span><span>N$ {selectedInvoice.stockValue?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
-                        <div className="flex justify-between"><span className="text-slate-400">Stock Fee (0.1%)</span><span>N$ {selectedInvoice.stockFeeAmount?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
-                        <div className="flex justify-between border-t pt-2 font-semibold text-base"><span>Total</span><span>N$ {selectedInvoice.totalAmount?.toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span></div>
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>
+                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                    {/* Modal header */}
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-lg bg-[#CB2030]/10 flex items-center justify-center">
+                          <FileText className="h-4 w-4 text-[#CB2030]" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-semibold text-white">Invoice Details</h3>
+                          <p className="text-xs text-slate-500 font-mono">{selectedInvoice.invoiceNumber}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusBadge(selectedInvoice.status)}`}>
+                          {selectedInvoice.status.charAt(0) + selectedInvoice.status.slice(1).toLowerCase()}
+                        </span>
+                        <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}
+                          className="h-8 w-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                          <XCircle className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
-                    {selectedInvoice.paidAt && (
-                      <div className="mt-4 text-sm text-slate-500">
-                        <p>Paid on {new Date(selectedInvoice.paidAt).toLocaleDateString('en-NA')} by {selectedInvoice.paidBy?.name || 'Admin'}</p>
+                    {/* Modal body */}
+                    <div className="p-6 space-y-5">
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { label: 'Dealership', value: selectedInvoice.dealership?.name },
+                          { label: 'Contact', value: selectedInvoice.dealership?.contactPerson || '—' },
+                          { label: 'Billing Period', value: `${MONTHS[(selectedInvoice.billingMonth || 1) - 1]} ${selectedInvoice.billingYear}` },
+                          { label: 'Plan', value: selectedInvoice.planName || '—' },
+                          { label: 'Due Date', value: fmtDate(selectedInvoice.dueDate) },
+                          { label: 'Vehicle Count', value: selectedInvoice.vehicleCount ?? '—' },
+                        ].map(({ label, value }) => (
+                          <div key={label} className="bg-[#0D1117] rounded-lg px-3 py-2.5">
+                            <p className="text-xs text-slate-500 mb-0.5">{label}</p>
+                            <p className="text-sm font-medium text-white">{value}</p>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                    <div className="mt-6 flex gap-2 justify-end flex-wrap">
-                      <button onClick={() => { window.open(`/api/admin/invoices/${selectedInvoice.id}/pdf`, '_blank'); }} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-white/[0.1] rounded-lg hover:bg-[#0D1117] text-slate-300"><FileDown className="h-4 w-4" /> Download PDF</button>
-                      <Button variant="outline" onClick={() => { setSendEmailInvoiceId(selectedInvoice.id); setSendEmailTo(selectedInvoice.dealership?.email || ''); }}>
-                        <Send className="h-4 w-4 mr-1.5" /> Send Email
-                      </Button>
-                      <Button variant="outline" onClick={() => {
+                      {/* Amount breakdown */}
+                      <div className="bg-[#0D1117] rounded-xl p-4">
+                        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Amount Breakdown</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between text-slate-400">
+                            <span>Subscription Fee</span>
+                            <span className="tabular-nums text-white">N$ {(selectedInvoice.subscriptionAmount || 0).toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div className="flex justify-between text-slate-400">
+                            <span>Stock Value</span>
+                            <span className="tabular-nums text-white">N$ {(selectedInvoice.stockValue || 0).toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div className="flex justify-between text-slate-400">
+                            <span>Stock Fee (0.1%)</span>
+                            <span className="tabular-nums text-white">N$ {(selectedInvoice.stockFeeAmount || 0).toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div className="flex justify-between pt-2 border-t border-white/[0.06] font-semibold text-white">
+                            <span>Total</span>
+                            <span className="tabular-nums text-[#CB2030]">N$ {(selectedInvoice.totalAmount || 0).toLocaleString('en-NA', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                        </div>
+                      </div>
+                      {selectedInvoice.paidAt && (
+                        <p className="text-xs text-slate-500">
+                          Paid on {fmtDate(selectedInvoice.paidAt)} by {selectedInvoice.paidBy?.name || 'Admin'}
+                        </p>
+                      )}
+                    </div>
+                    {/* Modal footer */}
+                    <div className="px-6 py-4 border-t border-white/[0.06] flex gap-2 justify-end flex-wrap">
+                      <button onClick={() => window.open(`/api/admin/invoices/${selectedInvoice.id}/pdf`, '_blank')}
+                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-slate-300 hover:text-white transition-colors cursor-pointer">
+                        <FileDown className="h-4 w-4" /> Download PDF
+                      </button>
+                      <button onClick={() => { setSendEmailInvoiceId(selectedInvoice.id); setSendEmailTo(selectedInvoice.dealership?.email || ''); }}
+                        className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-slate-300 hover:text-white transition-colors cursor-pointer">
+                        <Send className="h-4 w-4" /> Send Email
+                      </button>
+                      <button onClick={() => {
                         setEditForm({ status: selectedInvoice.status, subscriptionAmount: selectedInvoice.subscriptionAmount, stockFeeAmount: selectedInvoice.stockFeeAmount, totalAmount: selectedInvoice.totalAmount, dueDate: new Date(selectedInvoice.dueDate).toISOString().slice(0, 10) });
                         setInvoiceModalMode('edit');
-                      }}>Edit Invoice</Button>
-                      <Button variant="outline" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>Close</Button>
+                      }} className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 rounded-lg text-amber-400 transition-colors cursor-pointer">
+                        <Edit className="h-4 w-4" /> Edit
+                      </button>
+                      <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}
+                        className="px-3 py-2 text-sm font-medium bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer">
+                        Close
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -7038,39 +7296,56 @@ function AdminDashboardContent() {
 
               {/* Invoice Edit Modal */}
               {invoiceModalMode === 'edit' && selectedInvoice && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>
-                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-lg w-full mx-4" onClick={e => e.stopPropagation()}>
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-semibold">Edit Invoice — {selectedInvoice.invoiceNumber}</h3>
-                      <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }} className="text-slate-500 hover:text-slate-400"><XCircle className="h-5 w-5" /></button>
-                    </div>
-                    <div className="space-y-4">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>
+                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
-                        <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} className="w-full border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
-                          {['PENDING', 'PAID', 'OVERDUE', 'CANCELLED'].map(s => <option key={s} value={s}>{s}</option>)}
+                        <h3 className="text-base font-semibold text-white">Edit Invoice</h3>
+                        <p className="text-xs text-slate-500 font-mono mt-0.5">{selectedInvoice.invoiceNumber}</p>
+                      </div>
+                      <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}
+                        className="h-8 w-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                        <XCircle className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5">Status</label>
+                        <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} className={inputCls}>
+                          {['PENDING', 'PAID', 'OVERDUE', 'CANCELLED'].map(s => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
                         </select>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Subscription Amount (NAD)</label>
-                        <input type="number" step="0.01" value={editForm.subscriptionAmount} onChange={e => { const v = Number(e.target.value); setEditForm(f => ({ ...f, subscriptionAmount: v, totalAmount: v + f.stockFeeAmount })); }} className="w-full border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5">Subscription (NAD)</label>
+                          <input type="number" step="0.01" value={editForm.subscriptionAmount}
+                            onChange={e => { const v = Number(e.target.value); setEditForm(f => ({ ...f, subscriptionAmount: v, totalAmount: v + f.stockFeeAmount })); }}
+                            className={inputCls} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5">Stock Fee (NAD)</label>
+                          <input type="number" step="0.01" value={editForm.stockFeeAmount}
+                            onChange={e => { const v = Number(e.target.value); setEditForm(f => ({ ...f, stockFeeAmount: v, totalAmount: f.subscriptionAmount + v })); }}
+                            className={inputCls} />
+                        </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Stock Fee Amount (NAD)</label>
-                        <input type="number" step="0.01" value={editForm.stockFeeAmount} onChange={e => { const v = Number(e.target.value); setEditForm(f => ({ ...f, stockFeeAmount: v, totalAmount: f.subscriptionAmount + v })); }} className="w-full border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+                        <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5">Total Amount (NAD)</label>
+                        <input type="number" step="0.01" value={editForm.totalAmount} readOnly
+                          className="w-full px-3 py-2 bg-[#0D1117]/50 border border-white/[0.06] rounded-lg text-sm text-slate-400 cursor-not-allowed" />
+                        <p className="text-xs text-slate-600 mt-1">Auto-calculated from subscription + stock fee</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Total Amount (NAD)</label>
-                        <input type="number" step="0.01" value={editForm.totalAmount} readOnly className="w-full border border-white/[0.06] rounded-lg px-3 py-2 text-sm bg-[#0D1117] text-slate-300" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Due Date</label>
-                        <input type="date" value={editForm.dueDate} onChange={e => setEditForm(f => ({ ...f, dueDate: e.target.value }))} className="w-full border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" />
+                        <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5">Due Date</label>
+                        <input type="date" value={editForm.dueDate} onChange={e => setEditForm(f => ({ ...f, dueDate: e.target.value }))} className={inputCls} />
                       </div>
                     </div>
-                    <div className="mt-6 flex gap-2 justify-end">
-                      <Button variant="outline" onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}>Cancel</Button>
-                      <Button className="bg-[#CB2030] hover:bg-[#B01C2A] text-white" disabled={savingInvoice} onClick={async () => {
+                    <div className="px-6 py-4 border-t border-white/[0.06] flex gap-2 justify-end">
+                      <button onClick={() => { setInvoiceModalMode(null); setSelectedInvoice(null); }}
+                        className="px-4 py-2 text-sm font-medium bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer">
+                        Cancel
+                      </button>
+                      <button disabled={savingInvoice} onClick={async () => {
                         setSavingInvoice(true);
                         try {
                           const res = await fetch(`/api/admin/invoices/${selectedInvoice.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', ...editForm }) });
@@ -7082,7 +7357,9 @@ function AdminDashboardContent() {
                           } else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
                         } catch { showToast({ title: 'Error', description: 'Failed to update invoice', type: 'error' }); }
                         finally { setSavingInvoice(false); }
-                      }}>{savingInvoice ? 'Saving...' : 'Save Changes'}</Button>
+                      }} className="px-4 py-2 text-sm font-medium bg-[#CB2030] hover:bg-[#B01C2A] rounded-lg text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                        {savingInvoice ? 'Saving…' : 'Save Changes'}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -7090,21 +7367,37 @@ function AdminDashboardContent() {
 
               {/* Delete Confirmation Modal */}
               {deletingInvoiceId && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setDeletingInvoiceId(null)}>
-                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
-                    <h3 className="text-lg font-semibold text-white mb-2">Delete Invoice</h3>
-                    <p className="text-sm text-slate-400 mb-4">Are you sure you want to delete invoice <strong>{adminInvoices.find(i => i.id === deletingInvoiceId)?.invoiceNumber}</strong>? This action cannot be undone.</p>
-                    <div className="flex gap-2 justify-end">
-                      <Button variant="outline" onClick={() => setDeletingInvoiceId(null)}>Cancel</Button>
-                      <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={async () => {
-                        const res = await fetch(`/api/admin/invoices/${deletingInvoiceId}`, { method: 'DELETE' });
-                        const data = await res.json();
-                        if (res.ok) {
-                          showToast({ title: 'Deleted', description: data.message, type: 'success' });
-                          setAdminInvoices(prev => prev.filter(i => i.id !== deletingInvoiceId));
-                        } else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
-                        setDeletingInvoiceId(null);
-                      }}>Delete</Button>
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setDeletingInvoiceId(null)}>
+                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+                    <div className="p-6">
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+                          <Trash2 className="h-5 w-5 text-red-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-semibold text-white">Delete Invoice</h3>
+                          <p className="text-sm text-slate-400 mt-1">
+                            Delete <span className="font-mono text-white font-medium">{adminInvoices.find(i => i.id === deletingInvoiceId)?.invoiceNumber}</span>? This cannot be undone.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <button onClick={() => setDeletingInvoiceId(null)}
+                          className="px-4 py-2 text-sm font-medium bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer">
+                          Cancel
+                        </button>
+                        <button onClick={async () => {
+                          const res = await fetch(`/api/admin/invoices/${deletingInvoiceId}`, { method: 'DELETE' });
+                          const data = await res.json();
+                          if (res.ok) {
+                            showToast({ title: 'Deleted', description: data.message, type: 'success' });
+                            setAdminInvoices(prev => prev.filter(i => i.id !== deletingInvoiceId));
+                          } else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
+                          setDeletingInvoiceId(null);
+                        }} className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 rounded-lg text-white transition-colors cursor-pointer">
+                          Delete Invoice
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -7112,24 +7405,42 @@ function AdminDashboardContent() {
 
               {/* Send Email Modal */}
               {sendEmailInvoiceId && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }}>
-                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-white">Send Invoice Email</h3>
-                      <button onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }} className="text-slate-500 hover:text-slate-400"><XCircle className="h-5 w-5" /></button>
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }}>
+                  <div className="bg-[#111827] border border-white/[0.08] rounded-xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-[#CB2030]/10 flex items-center justify-center">
+                          <Send className="h-4 w-4 text-[#CB2030]" />
+                        </div>
+                        <h3 className="text-base font-semibold text-white">Send Invoice</h3>
+                      </div>
+                      <button onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }}
+                        className="h-8 w-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                        <XCircle className="h-4 w-4" />
+                      </button>
                     </div>
-                    <p className="text-sm text-slate-400 mb-3">Send invoice <strong>{adminInvoices.find(i => i.id === sendEmailInvoiceId)?.invoiceNumber}</strong> to:</p>
-                    <input
-                      type="email"
-                      value={sendEmailTo}
-                      onChange={e => setSendEmailTo(e.target.value)}
-                      placeholder="recipient@example.com"
-                      className="w-full border border-white/[0.1] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 mb-4"
-                      autoFocus
-                    />
-                    <div className="flex gap-2 justify-end">
-                      <Button variant="outline" onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }}>Cancel</Button>
-                      <Button className="bg-[#CB2030] hover:bg-[#B01C2A] text-white" disabled={sendingEmail || !sendEmailTo} onClick={async () => {
+                    <div className="p-6 space-y-4">
+                      <p className="text-sm text-slate-400">
+                        Sending <span className="font-mono text-white font-medium">{adminInvoices.find(i => i.id === sendEmailInvoiceId)?.invoiceNumber}</span> via email
+                      </p>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5">Recipient Email</label>
+                        <input
+                          type="email"
+                          value={sendEmailTo}
+                          onChange={e => setSendEmailTo(e.target.value)}
+                          placeholder="recipient@example.com"
+                          className={inputCls}
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                    <div className="px-6 py-4 border-t border-white/[0.06] flex gap-2 justify-end">
+                      <button onClick={() => { setSendEmailInvoiceId(null); setSendEmailTo(''); }}
+                        className="px-4 py-2 text-sm font-medium bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer">
+                        Cancel
+                      </button>
+                      <button disabled={sendingEmail || !sendEmailTo} onClick={async () => {
                         setSendingEmail(true);
                         try {
                           const res = await fetch(`/api/admin/invoices/${sendEmailInvoiceId}/send`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: sendEmailTo }) });
@@ -7140,453 +7451,406 @@ function AdminDashboardContent() {
                           } else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
                         } catch { showToast({ title: 'Error', description: 'Failed to send email', type: 'error' }); }
                         finally { setSendingEmail(false); }
-                      }}>{sendingEmail ? 'Sending...' : 'Send'}</Button>
+                      }} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-[#CB2030] hover:bg-[#B01C2A] rounded-lg text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                        <Send className="h-3.5 w-3.5" />
+                        {sendingEmail ? 'Sending…' : 'Send Email'}
+                      </button>
                     </div>
                   </div>
                 </div>
               )}
             </div>
-          )}
+            );
+          })()}
 
           {/* Subscriptions Tab */}
-          {activeTab === 'subscriptions' && (
+          {activeTab === 'subscriptions' && (() => {
+            const fmtDate = (v: string | null | undefined) => {
+              if (!v) return '—';
+              const d = new Date(v);
+              return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' });
+            };
+            const activeCount = subscriptions.filter(s => s.status === 'ACTIVE' || s.status === 'Active').length;
+            const overdueCount = subscriptionStats.overdueSubscriptions || 0;
+            const filteredSubs = subscriptions.filter(s => {
+              const q = searchTerm.toLowerCase();
+              return !q ||
+                (s.dealershipName || '').toLowerCase().includes(q) ||
+                (s.plan || '').toLowerCase().includes(q) ||
+                (s.status || '').toLowerCase().includes(q);
+            });
+            const inputCls = 'w-full px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors';
+            return (
             <div className="space-y-6">
+              {/* Header */}
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Subscription Management</h2>
-                <div className="flex gap-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
-                    <input
-                      type="text"
-                      placeholder="Search subscriptions..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                <div>
+                  <h2 className="text-xl font-semibold text-white">Subscription Management</h2>
+                  <p className="text-sm text-slate-400 mt-0.5">{subscriptionStats.totalSubscriptions} dealerships subscribed</p>
+                </div>
+                <Button variant="outline" size="sm" className="border-white/[0.1] text-slate-300 hover:text-white">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </div>
+
+              {/* Stats Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total</span>
+                    <div className="h-8 w-8 rounded-lg bg-white/[0.05] flex items-center justify-center">
+                      <CreditCard className="h-4 w-4 text-slate-400" />
+                    </div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filter
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
+                  <div className="text-2xl font-bold text-white">{subscriptionStats.totalSubscriptions}</div>
+                  <p className="text-xs text-emerald-500 mt-1">{activeCount} active</p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Revenue</span>
+                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <DollarSign className="h-4 w-4 text-emerald-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">N${((subscriptionStats.monthlyRevenue || 0) / 100).toLocaleString()}</div>
+                  <p className="text-xs text-slate-500 mt-1">Monthly recurring</p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Overdue</span>
+                    <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                      <AlertTriangle className="h-4 w-4 text-red-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{overdueCount}</div>
+                  <p className={`text-xs mt-1 ${overdueCount > 0 ? 'text-red-400' : 'text-slate-500'}`}>
+                    {overdueCount > 0 ? 'Requires attention' : 'All current'}
+                  </p>
+                </div>
+                <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Churn</span>
+                    <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <TrendingUp className="h-4 w-4 text-amber-400" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white">{subscriptionStats.churnRate ?? 0}%</div>
+                  <p className="text-xs text-slate-500 mt-1">Cancellation rate</p>
                 </div>
               </div>
 
-              {/* Subscription Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Total Subscriptions</CardTitle>
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{subscriptionStats.totalSubscriptions}</div>
-                    <p className="text-xs text-muted-foreground">
-                      {subscriptionStats.activeSubscriptions} active
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Monthly Revenue</CardTitle>
-                    <DollarSign className="h-4 w-4 text-green-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">N${((subscriptionStats.monthlyRevenue || 0) / 100).toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">From subscription payments</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Overdue Payments</CardTitle>
-                    <AlertTriangle className="h-4 w-4 text-red-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{subscriptionStats.overdueSubscriptions}</div>
-                    <p className="text-xs text-red-600">Requires attention</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-400">Churn Rate</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{subscriptionStats.churnRate}%</div>
-                    <p className="text-xs text-muted-foreground">Cancellation rate</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Subscriptions Table */}
-              <Card className="bg-[#111827] border-white/[0.06]">
+              {/* Search + Subscriptions Table */}
+              <Card className="bg-[#111827] border-white/[0.06] overflow-hidden">
+                <div className="px-5 pt-4 pb-3 border-b border-white/[0.06]">
+                  <div className="relative max-w-sm">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="Search by dealer, plan, status..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className={`${inputCls} pl-9`}
+                    />
+                  </div>
+                </div>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-[#0D1117]">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dealership</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Plan</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Monthly Fee</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Next Billing</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Total Paid</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Auto-Renew</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                      <thead>
+                        <tr className="border-b border-white/[0.04]">
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dealership</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Plan</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fee</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hidden md:table-cell">Next Billing</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hidden lg:table-cell">Total Paid</th>
+                          <th className="px-5 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider hidden xl:table-cell">Auto-Renew</th>
+                          <th className="px-5 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
-                        {subscriptions.length === 0 ? (
+                      <tbody className="divide-y divide-white/[0.04]">
+                        {filteredSubs.length === 0 ? (
                           <tr>
-                            <td colSpan={8} className="px-6 py-12 text-center">
-                              <div className="flex flex-col items-center justify-center text-slate-500">
-                                <CreditCard className="h-12 w-12 mb-3 text-slate-500" />
-                                <p className="text-sm font-medium mb-1">No subscriptions yet</p>
-                                <p className="text-xs">Subscription data will appear here once dealerships subscribe to plans</p>
+                            <td colSpan={8} className="px-5 py-14 text-center">
+                              <CreditCard className="h-8 w-8 text-slate-600 mx-auto mb-3" />
+                              <p className="text-sm text-slate-500">No subscriptions yet</p>
+                              <p className="text-xs text-slate-600 mt-1">Data appears once dealerships subscribe to plans</p>
+                            </td>
+                          </tr>
+                        ) : filteredSubs.map((subscription) => (
+                          <tr key={subscription.id} className={`group hover:bg-white/[0.02] transition-colors ${
+                            subscription.status === 'OVERDUE' || subscription.status === 'PENDING_PAYMENT'
+                              ? 'border-l-2 border-l-red-500/60' : ''
+                          }`}>
+                            <td className="px-5 py-3.5">
+                              <div className="text-sm font-medium text-white">{subscription.dealershipName}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">{subscription.billingEmail}</div>
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <div className="text-sm font-medium text-white">{subscription.plan}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">{subscription.billingCycle}</div>
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <Badge className={`text-xs w-fit ${getStatusBadge(subscription.status)}`}>
+                                {subscription.status}
+                              </Badge>
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <div className="text-sm font-semibold text-white">N${(subscription.monthlyFee / 100).toLocaleString()}</div>
+                            </td>
+                            <td className="px-5 py-3.5 hidden md:table-cell">
+                              <div className="text-sm text-slate-400">{fmtDate(subscription.nextBilling)}</div>
+                            </td>
+                            <td className="px-5 py-3.5 hidden lg:table-cell">
+                              <div className="text-sm text-slate-300">N${(subscription.totalPaid / 100).toLocaleString()}</div>
+                            </td>
+                            <td className="px-5 py-3.5 hidden xl:table-cell">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                subscription.autoRenew
+                                  ? 'bg-emerald-500/10 text-emerald-400'
+                                  : 'bg-white/[0.05] text-slate-500'
+                              }`}>
+                                {subscription.autoRenew ? 'On' : 'Off'}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <button className="h-7 px-2.5 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white text-xs font-medium transition-colors cursor-pointer">View</button>
+                                <button className="h-7 px-2.5 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white text-xs font-medium transition-colors cursor-pointer">Edit</button>
+                                <button className="h-7 px-2.5 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium transition-colors cursor-pointer">Cancel</button>
                               </div>
                             </td>
                           </tr>
-                        ) : (
-                          subscriptions
-                            .filter(subscription =>
-                              subscription.dealershipName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              subscription.plan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              subscription.status.toLowerCase().includes(searchTerm.toLowerCase())
-                            )
-                            .map((subscription) => (
-                            <tr key={subscription.id} className="hover:bg-[#0D1117]">
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div>
-                                  <div className="text-sm font-medium text-white">{subscription.dealershipName}</div>
-                                  <div className="text-sm text-slate-500">{subscription.billingEmail}</div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="text-sm font-medium text-white">{subscription.plan}</span>
-                                <div className="text-xs text-slate-500">{subscription.billingCycle}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <Badge className={getStatusBadge(subscription.status)}>
-                                  {subscription.status}
-                                </Badge>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                                N${(subscription.monthlyFee / 100).toLocaleString()}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                {subscription.nextBilling ? new Date(subscription.nextBilling).toLocaleDateString() : 'N/A'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                                N${(subscription.totalPaid / 100).toLocaleString()}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                {subscription.autoRenew ? (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">
-                                    Yes
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#111827]/[0.04] text-slate-200">
-                                    No
-                                  </span>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                <button className="text-blue-600 hover:text-blue-900">View</button>
-                                <button className="text-green-600 hover:text-green-900">Edit</button>
-                                <button className="text-red-600 hover:text-red-900">Cancel</button>
-                              </td>
-                            </tr>
-                          ))
-                        )}
+                        ))}
                       </tbody>
                     </table>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Plan Pricing Management */}
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardHeader>
-                  <CardTitle className="text-white">Subscription Plans & Pricing</CardTitle>
-                  <CardDescription className="text-slate-400">Manage subscription plans and pricing tiers</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {subscriptionPlans.map((plan) => (
-                      <div key={plan.id} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <h3 className="text-lg font-semibold flex items-center gap-2">
-                              {plan.name}
-                              <Badge className={getStatusBadge(plan.status)}>{plan.status}</Badge>
-                            </h3>
-                            <p className="text-sm text-slate-500">{plan.subscribers} active subscribers</p>
+              {/* Subscription Plans */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-base font-semibold text-white">Subscription Plans & Pricing</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Manage pricing tiers and plan availability</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {subscriptionPlans.map((plan) => (
+                    <div key={plan.id} className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
+                      {/* Plan header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-base font-semibold text-white">{plan.name}</span>
+                            <Badge className={`text-xs ${plan.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
+                              {plan.status}
+                            </Badge>
                           </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-blue-600">
-                              N${(plan.price / 100).toLocaleString()}
-                            </p>
-                            <p className="text-sm text-slate-500">{plan.billingCycle}</p>
-                          </div>
+                          <p className="text-xs text-slate-500">{plan.subscribers ?? 0} active subscriber{plan.subscribers !== 1 ? 's' : ''}</p>
                         </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1">Price (NAD)</label>
-                            <input
-                              type="number"
-                              defaultValue={plan.price / 100}
-                              step="0.01"
-                              className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
+                        <div className="text-right shrink-0">
+                          <div className="text-xl font-bold" style={{ color: '#CB2030' }}>
+                            N${(plan.price / 100).toLocaleString()}
                           </div>
+                          <div className="text-xs text-slate-500">{plan.billingCycle}</div>
+                        </div>
+                      </div>
+
+                      {/* Features */}
+                      <div className="mb-4 min-h-[40px]">
+                        {Array.isArray(plan.features) && plan.features.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {plan.features.map((feature: string, idx: number) => (
+                              <span key={idx} className="px-2 py-0.5 bg-white/[0.05] text-slate-400 text-xs rounded-full">
+                                {feature}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-slate-600">No features defined</p>
+                        )}
+                      </div>
+
+                      {/* Inline edit fields */}
+                      <div className="space-y-2.5 mb-4">
+                        <div>
+                          <label className="block text-xs font-medium text-slate-500 mb-1">Price (NAD)</label>
+                          <input type="number" defaultValue={plan.price / 100} step="0.01" className={inputCls} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1">Billing Cycle</label>
-                            <select
-                              defaultValue={plan.billingCycle}
-                              className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Cycle</label>
+                            <select defaultValue={plan.billingCycle} className={`${inputCls} appearance-none`}>
                               <option value="Monthly">Monthly</option>
                               <option value="Quarterly">Quarterly</option>
                               <option value="Annually">Annually</option>
                             </select>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
-                            <select
-                              defaultValue={plan.status}
-                              className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Status</label>
+                            <select defaultValue={plan.status} className={`${inputCls} appearance-none`}>
                               <option value="Active">Active</option>
                               <option value="Inactive">Inactive</option>
                               <option value="Archived">Archived</option>
                             </select>
                           </div>
                         </div>
-
-                        <div className="mt-3">
-                          <label className="block text-sm font-medium text-slate-300 mb-2">Features</label>
-                          <div className="flex flex-wrap gap-2">
-                            {Array.isArray(plan.features) ? plan.features.map((feature, idx) => (
-                              <span key={idx} className="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs rounded">
-                                {feature}
-                              </span>
-                            )) : (
-                              <span className="text-sm text-slate-500">No features defined</span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2 mt-4">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => handleEditPlan(plan)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit Plan
-                          </Button>
-                        </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
 
-              {/* Promo Codes Management */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <button
+                        onClick={() => handleEditPlan(plan)}
+                        className="w-full h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-white/[0.08]"
+                      >
+                        <Edit className="h-3.5 w-3.5" />
+                        Save Changes
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Promo Codes — Create + List side-by-side */}
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 {/* Create Promo Code */}
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader>
-                    <CardTitle className="text-white">Create Promo Code</CardTitle>
-                    <CardDescription className="text-slate-400">Generate new discount codes</CardDescription>
+                <Card className="bg-[#111827] border-white/[0.06] lg:col-span-2">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold text-white">Create Promo Code</CardTitle>
+                    <CardDescription className="text-xs text-slate-500">Generate new discount codes</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1">Code</label>
+                      <label className="block text-xs font-medium text-slate-400 mb-1">Code</label>
                       <div className="flex gap-2">
                         <input
                           type="text"
                           placeholder="PROMO2024"
                           value={promoFormData.code}
                           onChange={(e) => setPromoFormData({ ...promoFormData, code: e.target.value.toUpperCase() })}
-                          className="flex-1 px-3 py-2 border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                          className={`${inputCls} flex-1 font-mono uppercase`}
                         />
-                        <Button variant="outline" size="sm" onClick={generatePromoCode}>
-                          <RotateCcw className="h-4 w-4 mr-2" />
-                          Generate
-                        </Button>
+                        <button
+                          onClick={generatePromoCode}
+                          className="h-9 w-9 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer border border-white/[0.08] shrink-0"
+                          title="Generate"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Discount Type</label>
-                        <select
-                          value={promoFormData.discountType}
-                          onChange={(e) => setPromoFormData({ ...promoFormData, discountType: e.target.value })}
-                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Type</label>
+                        <select value={promoFormData.discountType} onChange={(e) => setPromoFormData({ ...promoFormData, discountType: e.target.value })} className={`${inputCls} appearance-none`}>
                           <option value="PERCENTAGE">Percentage</option>
                           <option value="FIXED_AMOUNT">Fixed Amount</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Discount Value</label>
-                        <input
-                          type="number"
-                          placeholder="20"
-                          value={promoFormData.discountValue}
-                          onChange={(e) => setPromoFormData({ ...promoFormData, discountValue: e.target.value })}
-                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Value</label>
+                        <input type="number" placeholder="20" value={promoFormData.discountValue} onChange={(e) => setPromoFormData({ ...promoFormData, discountValue: e.target.value })} className={inputCls} />
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Start Date</label>
-                        <input
-                          type="date"
-                          value={promoFormData.startDate}
-                          onChange={(e) => setPromoFormData({ ...promoFormData, startDate: e.target.value })}
-                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Start</label>
+                        <input type="date" value={promoFormData.startDate} onChange={(e) => setPromoFormData({ ...promoFormData, startDate: e.target.value })} className={inputCls} />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">End Date</label>
-                        <input
-                          type="date"
-                          value={promoFormData.endDate}
-                          onChange={(e) => setPromoFormData({ ...promoFormData, endDate: e.target.value })}
-                          className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
+                        <label className="block text-xs font-medium text-slate-400 mb-1">End</label>
+                        <input type="date" value={promoFormData.endDate} onChange={(e) => setPromoFormData({ ...promoFormData, endDate: e.target.value })} className={inputCls} />
                       </div>
                     </div>
-
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1">Usage Limit</label>
-                      <input
-                        type="number"
-                        placeholder="100 (leave empty for unlimited)"
-                        value={promoFormData.usageLimit}
-                        onChange={(e) => setPromoFormData({ ...promoFormData, usageLimit: e.target.value })}
-                        className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                      <label className="block text-xs font-medium text-slate-400 mb-1">Usage Limit <span className="text-slate-600">(optional)</span></label>
+                      <input type="number" placeholder="Unlimited" value={promoFormData.usageLimit} onChange={(e) => setPromoFormData({ ...promoFormData, usageLimit: e.target.value })} className={inputCls} />
                     </div>
-
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">Applicable Plans</label>
-                      <div className="space-y-2">
-                        {subscriptionPlans.length > 0 ? (
-                          subscriptionPlans.map((plan) => (
-                            <label key={plan.id} className="flex items-center">
-                              <input
-                                type="checkbox"
-                                checked={promoFormData.applicablePlans.includes(plan.id)}
-                                onChange={(e) => handlePlanCheckboxChange(plan.id, e.target.checked)}
-                                className="mr-2"
-                              />
-                              <span className="text-sm">{plan.name}</span>
-                            </label>
-                          ))
-                        ) : (
-                          <p className="text-sm text-slate-500">Loading plans...</p>
-                        )}
+                      <label className="block text-xs font-medium text-slate-400 mb-2">Applicable Plans</label>
+                      <div className="flex flex-wrap gap-2">
+                        {subscriptionPlans.length > 0 ? subscriptionPlans.map((plan) => (
+                          <label key={plan.id} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs cursor-pointer border transition-colors ${
+                            promoFormData.applicablePlans.includes(plan.id)
+                              ? 'bg-[#CB2030]/10 border-[#CB2030]/40 text-[#CB2030]'
+                              : 'bg-white/[0.04] border-white/[0.08] text-slate-400 hover:border-white/[0.15]'
+                          }`}>
+                            <input type="checkbox" checked={promoFormData.applicablePlans.includes(plan.id)} onChange={(e) => handlePlanCheckboxChange(plan.id, e.target.checked)} className="sr-only" />
+                            {plan.name}
+                          </label>
+                        )) : <p className="text-xs text-slate-600">Loading plans...</p>}
                       </div>
                     </div>
-
-                    <Button
-                      className="w-full bg-[#CB2030] hover:bg-[#B01C2A] text-white"
-                      onClick={handleCreatePromoCode}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
+                    <Button className="w-full bg-[#CB2030] hover:bg-[#B01C2A] text-white h-9 text-sm" onClick={handleCreatePromoCode}>
+                      <Plus className="h-4 w-4 mr-1.5" />
                       Create Promo Code
                     </Button>
                   </CardContent>
                 </Card>
 
-                {/* Recent Promo Codes */}
-                <Card className="bg-[#111827] border-white/[0.06]">
-                  <CardHeader>
-                    <CardTitle className="text-white">Recent Promo Codes</CardTitle>
-                    <CardDescription className="text-slate-400">Manage existing discount codes</CardDescription>
+                {/* All Promo Codes */}
+                <Card className="bg-[#111827] border-white/[0.06] overflow-hidden lg:col-span-3">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold text-white">All Promo Codes</CardTitle>
+                    <CardDescription className="text-xs text-slate-500">Discount codes and usage tracking</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-0">
                     {promoCodesLoading ? (
-                      <p className="text-sm text-slate-500">Loading promo codes...</p>
+                      <div className="flex items-center justify-center py-10">
+                        <div className="h-6 w-6 border-2 border-[#CB2030]/40 border-t-[#CB2030] rounded-full animate-spin" />
+                      </div>
                     ) : promoCodes.length === 0 ? (
-                      <p className="text-sm text-slate-500">No promo codes created yet</p>
+                      <div className="text-center py-10">
+                        <p className="text-sm text-slate-500">No promo codes yet</p>
+                        <p className="text-xs text-slate-600 mt-1">Create your first code using the form</p>
+                      </div>
                     ) : (
-                      <div className="space-y-3">
-                        {promoCodes.slice(0, 5).map((promo) => (
-                          <div key={promo.id} className="border rounded-lg p-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <code className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded font-mono text-sm font-bold">
+                      <div className="divide-y divide-white/[0.04]">
+                        {promoCodes.map((promo) => (
+                          <div key={promo.id} className="px-5 py-3.5 hover:bg-white/[0.02] transition-colors">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <code className="px-2 py-0.5 bg-white/[0.06] text-white/90 rounded font-mono text-xs font-bold shrink-0">
                                   {promo.code}
                                 </code>
-                                <Badge className={promo.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-400'}>
-                                  {promo.isActive ? 'Active' : 'Inactive'}
+                                <Badge className={`text-xs shrink-0 ${promo.isActive ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-500/10 text-slate-500 border-slate-500/20'}`}>
+                                  {promo.isActive ? 'Active' : 'Off'}
                                 </Badge>
+                                <div className="flex flex-wrap gap-1 min-w-0">
+                                  {promo.applicablePlans.map((planId: string, idx: number) => {
+                                    const plan = subscriptionPlans.find((p: any) => p.id === planId);
+                                    return plan ? (
+                                      <span key={idx} className="px-1.5 py-0.5 bg-white/[0.05] text-slate-500 text-xs rounded-full truncate">{plan.name}</span>
+                                    ) : null;
+                                  })}
+                                </div>
                               </div>
-                              <span className="text-lg font-bold text-blue-600">
-                                {promo.discountType === 'PERCENTAGE'
-                                  ? `${promo.discountValue}%`
-                                  : `N$${(promo.discountValue / 100).toFixed(2)}`
-                                }
-                              </span>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2 text-xs text-slate-400 mb-2">
-                              <div>
-                                <span className="text-slate-500">Used:</span> {promo.usageCount}
-                                {promo.usageLimit && ` / ${promo.usageLimit}`}
+                              <div className="flex items-center gap-3 shrink-0">
+                                <div className="text-right">
+                                  <div className="text-sm font-bold" style={{ color: '#CB2030' }}>
+                                    {promo.discountType === 'PERCENTAGE' ? `${promo.discountValue}%` : `N$${(promo.discountValue / 100).toFixed(0)}`}
+                                  </div>
+                                  <div className="text-xs text-slate-600">{promo.usageCount}{promo.usageLimit ? `/${promo.usageLimit}` : ''} used</div>
+                                </div>
+                                <div className="flex gap-1">
+                                  <button onClick={() => handleEditPromo(promo)} title="Edit" className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                                    <Edit className="h-3 w-3" />
+                                  </button>
+                                  <button onClick={() => handleDeactivatePromo(promo.id)} title={promo.isActive ? 'Deactivate' : 'Activate'} className={`h-7 w-7 rounded-md flex items-center justify-center transition-colors cursor-pointer ${promo.isActive ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400'}`}>
+                                    {promo.isActive ? <Ban className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
+                                  </button>
+                                  <button onClick={() => handleDeletePromoClick(promo)} title="Delete" className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-red-500/10 text-slate-500 hover:text-red-400 flex items-center justify-center transition-colors cursor-pointer">
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </div>
                               </div>
-                              <div>
-                                <span className="text-slate-500">Expires:</span>{' '}
-                                {promo.endDate ? new Date(promo.endDate).toLocaleDateString() : 'Never'}
-                              </div>
                             </div>
-
-                            <div className="flex flex-wrap gap-1 mb-2">
-                              {promo.applicablePlans.map((planId: string, idx: number) => {
-                                const plan = subscriptionPlans.find(p => p.id === planId);
-                                return plan ? (
-                                  <span key={idx} className="px-1.5 py-0.5 bg-[#111827]/[0.04] text-slate-400 text-xs rounded">
-                                    {plan.name}
-                                  </span>
-                                ) : null;
-                              })}
-                            </div>
-
-                            <div className="flex gap-2">
-                              <button
-                                className="text-xs text-blue-400 hover:text-blue-300"
-                                onClick={() => handleEditPromo(promo)}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                className={`text-xs ${promo.isActive ? 'text-orange-400 hover:text-orange-300' : 'text-emerald-400 hover:text-emerald-300'}`}
-                                onClick={() => handleDeactivatePromo(promo.id)}
-                              >
-                                {promo.isActive ? 'Deactivate' : 'Activate'}
-                              </button>
-                              <button
-                                className="text-xs text-red-400 hover:text-red-300"
-                                onClick={() => handleDeletePromoClick(promo)}
-                              >
-                                Delete
-                              </button>
-                            </div>
+                            {promo.endDate && (
+                              <p className="text-xs text-slate-600 mt-1.5">
+                                {promo.startDate ? `${fmtDate(promo.startDate)} → ` : 'Until '}{fmtDate(promo.endDate)}
+                              </p>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -7594,110 +7858,9 @@ function AdminDashboardContent() {
                   </CardContent>
                 </Card>
               </div>
-
-              {/* All Promo Codes Table */}
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardHeader>
-                  <CardTitle className="text-white">All Promo Codes</CardTitle>
-                  <CardDescription className="text-slate-400">Complete list of discount codes and their performance</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-[#0D1117]">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Code</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Discount</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Usage</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Valid Period</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Plans</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
-                        {promoCodesLoading ? (
-                          <tr>
-                            <td colSpan={7} className="px-6 py-4 text-center text-sm text-slate-500">
-                              Loading promo codes...
-                            </td>
-                          </tr>
-                        ) : promoCodes.length === 0 ? (
-                          <tr>
-                            <td colSpan={7} className="px-6 py-4 text-center text-sm text-slate-500">
-                              No promo codes found
-                            </td>
-                          </tr>
-                        ) : (
-                          promoCodes.map((promo) => (
-                            <tr key={promo.id} className="hover:bg-[#0D1117]">
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <code className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded font-mono text-sm font-bold">
-                                  {promo.code}
-                                </code>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="text-sm font-medium text-white">
-                                  {promo.discountType === 'PERCENTAGE'
-                                    ? `${promo.discountValue}%`
-                                    : `N$${(promo.discountValue / 100).toFixed(2)}`
-                                  }
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <Badge className={promo.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-200'}>
-                                  {promo.isActive ? 'Active' : 'Inactive'}
-                                </Badge>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                {promo.usageCount}{promo.usageLimit && ` / ${promo.usageLimit}`}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                {promo.startDate ? new Date(promo.startDate).toLocaleDateString() : 'Immediate'} -
-                                {promo.endDate ? ` ${new Date(promo.endDate).toLocaleDateString()}` : ' No End'}
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="flex flex-wrap gap-1">
-                                  {promo.applicablePlans.map((planId: string, idx: number) => {
-                                    const plan = subscriptionPlans.find(p => p.id === planId);
-                                    return plan ? (
-                                      <span key={idx} className="px-1.5 py-0.5 bg-[#111827]/[0.04] text-slate-400 text-xs rounded">
-                                        {plan.name}
-                                      </span>
-                                    ) : null;
-                                  })}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                <button
-                                  className="text-blue-600 hover:text-blue-900"
-                                  onClick={() => handleEditPromo(promo)}
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  className={promo.isActive ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'}
-                                  onClick={() => handleDeactivatePromo(promo.id)}
-                                >
-                                  {promo.isActive ? 'Deactivate' : 'Activate'}
-                                </button>
-                                <button
-                                  className="text-red-600 hover:text-red-900"
-                                  onClick={() => handleDeletePromoClick(promo)}
-                                >
-                                  Delete
-                                </button>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
-          )}
+            );
+          })()}
 
           {/* Settings Tab */}
           {activeTab === 'settings' && (
@@ -9575,392 +9738,253 @@ function AdminDashboardContent() {
         </div>
       )}
 
-      {/* Report Details Modal */}
       {reportModalOpen && selectedReport && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center z-50 overflow-y-auto pt-20 pb-8"
-          onClick={() => {
-            console.log('Closing modal');
-            setReportModalOpen(false);
-          }}
-        >
-          <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-4xl w-full mx-4 mb-8" onClick={(e) => {
-            console.log('Modal content clicked');
-            e.stopPropagation();
-          }}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Report Details</h2>
-              <Button variant="ghost" size="sm" onClick={() => {
-                console.log('Close button clicked');
-                setReportModalOpen(false);
-              }}>
-                <X className="h-5 w-5" />
-              </Button>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center z-50 overflow-y-auto pt-16 pb-8 px-4" onClick={() => { setReportModalOpen(false); setModerateMenuOpen(false); }}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-2xl w-full max-w-4xl mb-8" onClick={e => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+              <div className="flex items-center gap-3">
+                <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${
+                  selectedReport.severity === 'Critical' ? 'bg-red-500/10' :
+                  selectedReport.severity === 'High' ? 'bg-orange-500/10' :
+                  'bg-amber-500/10'
+                }`}>
+                  <FlagIcon className={`h-4 w-4 ${
+                    selectedReport.severity === 'Critical' ? 'text-red-400' :
+                    selectedReport.severity === 'High' ? 'text-orange-400' :
+                    'text-amber-400'
+                  }`} />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-white">Report Details</h2>
+                  <p className="text-xs text-slate-500 font-mono">{selectedReport.id}</p>
+                </div>
+              </div>
+              <button onClick={() => { setReportModalOpen(false); setModerateMenuOpen(false); }} className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Report Information */}
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <FlagIcon className="h-5 w-5" />
+            <div className="p-6 space-y-5">
+              {/* Grid: Report Info + Reporter Info */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Report Info */}
+                <div className="bg-[#0D1117] rounded-xl p-4 space-y-3">
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+                    <FlagIcon className="h-3.5 w-3.5" />
                     Report Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                  </h3>
                   <div>
-                    <label className="text-sm font-medium text-slate-500">Report ID</label>
-                    <p className="font-mono text-sm">{selectedReport.id}</p>
+                    <p className="text-xs text-slate-500 mb-0.5">Target</p>
+                    <p className="text-sm font-semibold text-white">{selectedReport.targetTitle}</p>
+                    <p className="text-xs text-slate-500">{selectedReport.targetType}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-slate-500">Target</label>
-                    <p className="text-lg font-semibold">{selectedReport.targetTitle}</p>
-                    <p className="text-sm text-slate-500">{selectedReport.targetType}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-sm font-medium text-slate-500">Report Reason</label>
-                      <p>{selectedReport.reportReason}</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Reason</p>
+                      <p className="text-sm text-slate-300">{selectedReport.reportReason}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-slate-500">Category</label>
-                      <p>{selectedReport.reportCategory}</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Category</p>
+                      <p className="text-sm text-slate-300">{selectedReport.reportCategory}</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-sm font-medium text-slate-500">Severity</label>
-                      <Badge className={
-                        selectedReport.severity === 'Critical' ? 'bg-red-500/10 text-red-400' :
-                        selectedReport.severity === 'High' ? 'bg-orange-500/10 text-orange-400' :
-                        selectedReport.severity === 'Medium' ? 'bg-amber-500/10 text-amber-400' :
-                        'bg-blue-500/10 text-blue-400'
-                      }>
-                        {selectedReport.severity}
-                      </Badge>
+                      <p className="text-xs text-slate-500 mb-1">Severity</p>
+                      <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium border ${
+                        selectedReport.severity === 'Critical' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                        selectedReport.severity === 'High' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                        selectedReport.severity === 'Medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                        'bg-white/[0.06] text-slate-400 border-white/[0.1]'
+                      }`}>{selectedReport.severity}</span>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-slate-500">Status</label>
-                      <Badge className={
+                      <p className="text-xs text-slate-500 mb-1">Status</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                         selectedReport.status === 'Pending' ? 'bg-amber-500/10 text-amber-400' :
-                        selectedReport.status === 'Under Review' ? 'bg-blue-500/10 text-blue-400' :
+                        selectedReport.status === 'Under Review' ? 'bg-white/[0.07] text-slate-300' :
                         'bg-emerald-500/10 text-emerald-400'
-                      }>
-                        {selectedReport.status}
-                      </Badge>
+                      }`}>{selectedReport.status}</span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3 pt-1 border-t border-white/[0.06]">
                     <div>
-                      <label className="text-sm font-medium text-slate-500">Date Reported</label>
-                      <p>{new Date(selectedReport.dateReported).toLocaleString()}</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Reported</p>
+                      <p className="text-xs text-slate-300">{new Date(selectedReport.dateReported).toLocaleString()}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-slate-500">Last Updated</label>
-                      <p>{new Date(selectedReport.lastUpdated).toLocaleString()}</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Updated</p>
+                      <p className="text-xs text-slate-300">{new Date(selectedReport.lastUpdated).toLocaleString()}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* Reporter Information */}
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <Users className="h-5 w-5" />
+                {/* Reporter Info */}
+                <div className="bg-[#0D1117] rounded-xl p-4 space-y-3">
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5" />
                     Reporter Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                  </h3>
                   <div>
-                    <label className="text-sm font-medium text-slate-500">Reporter Name</label>
-                    <p className="text-lg font-semibold">{selectedReport.reporterName}</p>
+                    <p className="text-xs text-slate-500 mb-0.5">Name</p>
+                    <p className="text-sm font-semibold text-white">{selectedReport.reporterName}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-500">Email</label>
-                    <p>{selectedReport.reporterEmail}</p>
+                    <p className="text-xs text-slate-500 mb-0.5">Email</p>
+                    <p className="text-sm text-slate-300">{selectedReport.reporterEmail}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-500">Reporter ID</label>
-                    <p className="font-mono text-sm">{selectedReport.reportedBy}</p>
+                    <p className="text-xs text-slate-500 mb-0.5">Reporter ID</p>
+                    <p className="text-xs font-mono text-slate-400">{selectedReport.reportedBy}</p>
                   </div>
                   {selectedReport.dealerName && (
                     <div>
-                      <label className="text-sm font-medium text-slate-500">Associated Dealer</label>
-                      <p>{selectedReport.dealerName}</p>
+                      <p className="text-xs text-slate-500 mb-0.5">Associated Dealer</p>
+                      <p className="text-sm text-slate-300">{selectedReport.dealerName}</p>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-
-              {/* Moderation Status */}
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <ShieldCheck className="h-5 w-5" />
-                    Moderation Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-slate-500">Assigned To</label>
-                    <p>{selectedReport.assignedTo || 'Unassigned'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-slate-500">Action Taken</label>
-                    <p>{selectedReport.actionTaken || 'No action yet'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-slate-500">Resolution</label>
-                    <p>{selectedReport.resolution || 'Pending review'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-slate-500">Evidence Files</label>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedReport.evidence.map((file: string, index: number) => (
-                        <Badge key={index} variant="outline" className="text-sm">
-                          <ImageIcon className="h-3 w-3 mr-1" />
-                          {file}
-                        </Badge>
-                      ))}
+                  {/* Moderation Status */}
+                  <div className="pt-2 border-t border-white/[0.06] space-y-2">
+                    <div>
+                      <p className="text-xs text-slate-500 mb-0.5">Assigned To</p>
+                      <p className="text-sm text-slate-300">{selectedReport.assignedTo || 'Unassigned'}</p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Review Notes */}
-              <Card className="bg-[#111827] border-white/[0.06]">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <MessageSquare className="h-5 w-5" />
-                    Review Notes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-slate-500">Admin Notes</label>
-                    <p className="text-sm bg-[#0D1117] p-3 rounded">
-                      {selectedReport.reviewNotes || 'No review notes yet.'}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-slate-500">Add Note</label>
-                    <textarea
-                      className="w-full p-3 border border-white/[0.1] rounded-lg resize-none"
-                      rows={3}
-                      placeholder="Add your review notes here..."
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Description */}
-            <Card className="mt-6 bg-[#111827] border-white/[0.06]">
-              <CardHeader>
-                <CardTitle className="text-white">Report Description</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-slate-300">{selectedReport.description}</p>
-              </CardContent>
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="flex justify-between items-center mt-6 pt-6 border-t">
-              <div className="flex space-x-3">
-                {selectedReport.status === 'Pending' && (
-                  <>
-                    <Button
-                      onClick={() => {
-                        handleApproveReport(selectedReport.id);
-                        setReportModalOpen(false);
-                      }}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Take Action
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        handleRejectReport(selectedReport.id);
-                        setReportModalOpen(false);
-                      }}
-                      className="border-red-500/20 text-red-400 hover:bg-red-500/10"
-                    >
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Reject Report
-                    </Button>
-                  </>
-                )}
-                {!selectedReport.assignedTo && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      handleAssignReport(selectedReport.id, 'admin-001');
-                      setReportModalOpen(false);
-                    }}
-                    className="border-purple-500/20 text-purple-400 hover:bg-purple-500/10"
-                  >
-                    <UserCheck2 className="h-4 w-4 mr-2" />
-                    Assign to Me
-                  </Button>
-                )}
-                <div className="relative">
-                  <Button
-                    variant="outline"
-                    className="border-white/[0.1] text-slate-400 hover:bg-[#0D1117]"
-                    onClick={() => setModerateMenuOpen(!moderateMenuOpen)}
-                  >
-                    <Ban className="h-4 w-4 mr-2" />
-                    Moderate
-                    <ChevronDown className="h-4 w-4 ml-2" />
-                  </Button>
-                  {moderateMenuOpen && (
-                    <div className="absolute left-0 mt-2 w-64 bg-[#111827] rounded-lg shadow-lg border border-white/[0.06] z-10">
-                      <div className="py-2">
-                        {selectedReport.type === 'listing' && (
-                          <>
-                            <button
-                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
-                              onClick={() => {
-                                handleApproveReport(selectedReport.id);
-                                showToast({
-                                  title: 'Listing Removed',
-                                  description: 'The reported listing has been removed',
-                                  type: 'success',
-                                });
-                                setModerateMenuOpen(false);
-                                setReportModalOpen(false);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                              <span className="text-red-600">Remove Listing</span>
-                            </button>
-                            <button
-                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
-                              onClick={() => {
-                                handleApproveReport(selectedReport.id);
-                                showToast({
-                                  title: 'Warning Issued',
-                                  description: 'Dealer has been warned about the listing',
-                                  type: 'success',
-                                });
-                                setModerateMenuOpen(false);
-                                setReportModalOpen(false);
-                              }}
-                            >
-                              <AlertTriangle className="h-4 w-4 text-orange-600" />
-                              <span className="text-orange-600">Warn Dealer</span>
-                            </button>
-                          </>
-                        )}
-                        {selectedReport.type === 'user' && (
-                          <>
-                            <button
-                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
-                              onClick={() => {
-                                handleApproveReport(selectedReport.id);
-                                showToast({
-                                  title: 'User Suspended',
-                                  description: 'The reported user has been suspended',
-                                  type: 'success',
-                                });
-                                setModerateMenuOpen(false);
-                                setReportModalOpen(false);
-                              }}
-                            >
-                              <UserX className="h-4 w-4 text-red-600" />
-                              <span className="text-red-600">Suspend User</span>
-                            </button>
-                            <button
-                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
-                              onClick={() => {
-                                handleApproveReport(selectedReport.id);
-                                showToast({
-                                  title: 'User Banned',
-                                  description: 'The reported user has been permanently banned',
-                                  type: 'success',
-                                });
-                                setModerateMenuOpen(false);
-                                setReportModalOpen(false);
-                              }}
-                            >
-                              <Ban className="h-4 w-4 text-red-600" />
-                              <span className="text-red-600">Ban User Permanently</span>
-                            </button>
-                            <button
-                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
-                              onClick={() => {
-                                handleApproveReport(selectedReport.id);
-                                showToast({
-                                  title: 'Warning Sent',
-                                  description: 'User has been warned',
-                                  type: 'success',
-                                });
-                                setModerateMenuOpen(false);
-                                setReportModalOpen(false);
-                              }}
-                            >
-                              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                              <span className="text-yellow-600">Send Warning</span>
-                            </button>
-                          </>
-                        )}
-                        {selectedReport.type === 'comment' && (
-                          <>
-                            <button
-                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
-                              onClick={() => {
-                                handleApproveReport(selectedReport.id);
-                                showToast({
-                                  title: 'Comment Removed',
-                                  description: 'The reported comment has been removed',
-                                  type: 'success',
-                                });
-                                setModerateMenuOpen(false);
-                                setReportModalOpen(false);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                              <span className="text-red-600">Remove Comment</span>
-                            </button>
-                            <button
-                              className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
-                              onClick={() => {
-                                handleApproveReport(selectedReport.id);
-                                showToast({
-                                  title: 'Warning Issued',
-                                  description: 'User has been warned about the comment',
-                                  type: 'success',
-                                });
-                                setModerateMenuOpen(false);
-                                setReportModalOpen(false);
-                              }}
-                            >
-                              <AlertTriangle className="h-4 w-4 text-orange-600" />
-                              <span className="text-orange-600">Warn User</span>
-                            </button>
-                          </>
-                        )}
-                        <div className="border-t border-white/[0.06] my-2"></div>
-                        <button
-                          className="w-full text-left px-4 py-2 hover:bg-[#0D1117] text-sm flex items-center gap-2"
-                          onClick={() => {
-                            setModerateMenuOpen(false);
-                          }}
-                        >
-                          <X className="h-4 w-4 text-slate-400" />
-                          <span className="text-slate-400">Cancel</span>
-                        </button>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-0.5">Action Taken</p>
+                      <p className="text-sm text-slate-300">{selectedReport.actionTaken || 'No action yet'}</p>
+                    </div>
+                    {(selectedReport.evidence || []).length > 0 && (
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1.5">Evidence Files</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(selectedReport.evidence || []).map((file: string, index: number) => (
+                            <span key={index} className="flex items-center gap-1 text-xs px-2 py-0.5 bg-white/[0.06] border border-white/[0.08] rounded text-slate-400">
+                              <ImageIcon className="h-3 w-3" />
+                              {file}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
-              <Button variant="outline" onClick={() => setReportModalOpen(false)}>
-                Close
-              </Button>
+
+              {/* Description */}
+              {selectedReport.description && (
+                <div className="bg-[#0D1117] rounded-xl p-4">
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Report Description</h3>
+                  <p className="text-sm text-slate-300 leading-relaxed">{selectedReport.description}</p>
+                </div>
+              )}
+
+              {/* Review Notes */}
+              <div className="bg-[#0D1117] rounded-xl p-4 space-y-3">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  Review Notes
+                </h3>
+                {selectedReport.reviewNotes && (
+                  <div className="bg-[#111827] rounded-lg p-3 text-sm text-slate-300">{selectedReport.reviewNotes}</div>
+                )}
+                <textarea
+                  className="w-full px-3 py-2 bg-[#111827] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors resize-none"
+                  rows={3}
+                  placeholder="Add review notes here..."
+                />
+              </div>
+
+              {/* Action Footer */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
+                <div className="flex items-center gap-2">
+                  {selectedReport.status === 'Pending' && (
+                    <>
+                      <button
+                        onClick={() => { handleApproveReport(selectedReport.id); setReportModalOpen(false); }}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-sm text-white font-medium transition-colors"
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        Take Action
+                      </button>
+                      <button
+                        onClick={() => { handleRejectReport(selectedReport.id); setReportModalOpen(false); }}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 text-sm text-red-400 transition-colors"
+                      >
+                        <XCircle className="h-4 w-4" />
+                        Reject Report
+                      </button>
+                    </>
+                  )}
+                  {!selectedReport.assignedTo && (
+                    <button
+                      onClick={() => { handleAssignReport(selectedReport.id, 'admin-001'); setReportModalOpen(false); }}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.08] bg-white/[0.05] hover:bg-white/[0.1] text-sm text-slate-300 transition-colors"
+                    >
+                      <UserCheck2 className="h-4 w-4" />
+                      Assign to Me
+                    </button>
+                  )}
+
+                  {/* Moderate Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setModerateMenuOpen(!moderateMenuOpen)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.08] bg-white/[0.05] hover:bg-white/[0.1] text-sm text-slate-300 transition-colors"
+                    >
+                      <Ban className="h-4 w-4" />
+                      Moderate
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </button>
+                    {moderateMenuOpen && (
+                      <div className="absolute left-0 bottom-full mb-1 w-56 bg-[#111827] rounded-xl shadow-xl border border-white/[0.08] z-10 overflow-hidden">
+                        <div className="py-1.5">
+                          {selectedReport.type === 'listing' && (
+                            <>
+                              <button className="w-full text-left px-4 py-2.5 hover:bg-white/[0.05] text-sm flex items-center gap-2.5 transition-colors" onClick={() => { handleApproveReport(selectedReport.id); showToast({ title: 'Listing Removed', description: 'The reported listing has been removed', type: 'success' }); setModerateMenuOpen(false); setReportModalOpen(false); }}>
+                                <Trash2 className="h-4 w-4 text-red-400" /><span className="text-red-400">Remove Listing</span>
+                              </button>
+                              <button className="w-full text-left px-4 py-2.5 hover:bg-white/[0.05] text-sm flex items-center gap-2.5 transition-colors" onClick={() => { handleApproveReport(selectedReport.id); showToast({ title: 'Warning Issued', description: 'Dealer has been warned about the listing', type: 'success' }); setModerateMenuOpen(false); setReportModalOpen(false); }}>
+                                <AlertTriangle className="h-4 w-4 text-amber-400" /><span className="text-amber-400">Warn Dealer</span>
+                              </button>
+                            </>
+                          )}
+                          {selectedReport.type === 'user' && (
+                            <>
+                              <button className="w-full text-left px-4 py-2.5 hover:bg-white/[0.05] text-sm flex items-center gap-2.5 transition-colors" onClick={() => { handleApproveReport(selectedReport.id); showToast({ title: 'User Suspended', description: 'The reported user has been suspended', type: 'success' }); setModerateMenuOpen(false); setReportModalOpen(false); }}>
+                                <UserX className="h-4 w-4 text-red-400" /><span className="text-red-400">Suspend User</span>
+                              </button>
+                              <button className="w-full text-left px-4 py-2.5 hover:bg-white/[0.05] text-sm flex items-center gap-2.5 transition-colors" onClick={() => { handleApproveReport(selectedReport.id); showToast({ title: 'User Banned', description: 'The reported user has been permanently banned', type: 'success' }); setModerateMenuOpen(false); setReportModalOpen(false); }}>
+                                <Ban className="h-4 w-4 text-red-400" /><span className="text-red-400">Ban Permanently</span>
+                              </button>
+                              <button className="w-full text-left px-4 py-2.5 hover:bg-white/[0.05] text-sm flex items-center gap-2.5 transition-colors" onClick={() => { handleApproveReport(selectedReport.id); showToast({ title: 'Warning Sent', description: 'User has been warned', type: 'success' }); setModerateMenuOpen(false); setReportModalOpen(false); }}>
+                                <AlertTriangle className="h-4 w-4 text-amber-400" /><span className="text-amber-400">Send Warning</span>
+                              </button>
+                            </>
+                          )}
+                          {selectedReport.type === 'comment' && (
+                            <>
+                              <button className="w-full text-left px-4 py-2.5 hover:bg-white/[0.05] text-sm flex items-center gap-2.5 transition-colors" onClick={() => { handleApproveReport(selectedReport.id); showToast({ title: 'Comment Removed', description: 'The reported comment has been removed', type: 'success' }); setModerateMenuOpen(false); setReportModalOpen(false); }}>
+                                <Trash2 className="h-4 w-4 text-red-400" /><span className="text-red-400">Remove Comment</span>
+                              </button>
+                              <button className="w-full text-left px-4 py-2.5 hover:bg-white/[0.05] text-sm flex items-center gap-2.5 transition-colors" onClick={() => { handleApproveReport(selectedReport.id); showToast({ title: 'Warning Issued', description: 'User has been warned about the comment', type: 'success' }); setModerateMenuOpen(false); setReportModalOpen(false); }}>
+                                <AlertTriangle className="h-4 w-4 text-amber-400" /><span className="text-amber-400">Warn User</span>
+                              </button>
+                            </>
+                          )}
+                          <div className="border-t border-white/[0.06] my-1" />
+                          <button className="w-full text-left px-4 py-2.5 hover:bg-white/[0.05] text-sm flex items-center gap-2.5 transition-colors" onClick={() => setModerateMenuOpen(false)}>
+                            <X className="h-4 w-4 text-slate-500" /><span className="text-slate-500">Cancel</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button onClick={() => { setReportModalOpen(false); setModerateMenuOpen(false); }} className="px-4 py-2 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-sm text-slate-300 transition-colors">
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -10865,97 +10889,68 @@ function AdminDashboardContent() {
 
       {/* Banner Preview Modal */}
       {previewBanner && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setPreviewBanner(null)}>
-          <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Banner Preview</h2>
-              <button
-                onClick={() => setPreviewBanner(null)}
-                className="text-slate-500 hover:text-slate-400"
-              >
-                <X className="h-6 w-6" />
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setPreviewBanner(null)}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-white/[0.06] flex items-center justify-center">
+                  <Eye className="h-4 w-4 text-slate-400" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-white">Banner Preview</h2>
+                  <p className="text-xs text-slate-500">{previewBanner.position} position</p>
+                </div>
+              </div>
+              <button onClick={() => setPreviewBanner(null)} className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                <X className="h-4 w-4" />
               </button>
             </div>
-
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">{previewBanner.title}</h3>
-                <Badge className={previewBanner.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-200'}>
+            <div className="p-6 space-y-5">
+              {/* Title + Status */}
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-lg font-semibold text-white">{previewBanner.title}</h3>
+                <span className={'text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0 ' + (previewBanner.isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/[0.06] text-slate-400')}>
                   {previewBanner.isActive ? 'Active' : 'Inactive'}
-                </Badge>
+                </span>
               </div>
-
-              {/* Banner Image Preview */}
-              <div className="aspect-video bg-[#111827]/[0.04] rounded-lg overflow-hidden">
+              {/* Image */}
+              <div className="aspect-video bg-white/[0.04] rounded-xl overflow-hidden">
                 {previewBanner.imageUrl ? (
-                  <img
-                    src={previewBanner.imageUrl}
-                    alt={previewBanner.title}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={previewBanner.imageUrl} alt={previewBanner.title} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="flex items-center justify-center h-full text-center text-slate-500">
-                    <div>
-                      <Image className="h-12 w-12 mx-auto mb-2" />
-                      <p className="text-sm">No image available</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center h-full text-slate-600">
+                    <Image className="h-12 w-12 mb-2" />
+                    <p className="text-sm">No image available</p>
                   </div>
                 )}
               </div>
-
-              {/* Banner Details */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-[#0D1117] rounded-lg">
-                <div>
-                  <p className="text-sm text-slate-500">Position</p>
-                  <p className="font-medium text-white">{previewBanner.position}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Priority</p>
-                  <p className="font-medium text-white">{previewBanner.priority || 0}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Link URL</p>
-                  <p className="font-medium text-blue-600 truncate">{previewBanner.linkUrl || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Status</p>
-                  <p className="font-medium text-white">{previewBanner.isActive ? 'Active' : 'Inactive'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Start Date</p>
-                  <p className="font-medium text-white">{previewBanner.startDate ? new Date(previewBanner.startDate).toLocaleDateString() : 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">End Date</p>
-                  <p className="font-medium text-white">{previewBanner.endDate ? new Date(previewBanner.endDate).toLocaleDateString() : 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Clicks</p>
-                  <p className="font-medium text-blue-600">{(previewBanner.clicks || 0).toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Impressions</p>
-                  <p className="font-medium text-green-600">{(previewBanner.impressions || 0).toLocaleString()}</p>
-                </div>
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Position', value: previewBanner.position },
+                  { label: 'Priority', value: previewBanner.priority || 0 },
+                  { label: 'Link URL', value: previewBanner.linkUrl || 'Not set' },
+                  { label: 'Status', value: previewBanner.isActive ? 'Active' : 'Inactive' },
+                  { label: 'Clicks', value: (previewBanner.clicks || 0).toLocaleString() },
+                  { label: 'Impressions', value: (previewBanner.impressions || 0).toLocaleString() },
+                  { label: 'Start Date', value: previewBanner.startDate ? new Date(previewBanner.startDate).toLocaleDateString() : 'N/A' },
+                  { label: 'End Date', value: previewBanner.endDate ? new Date(previewBanner.endDate).toLocaleDateString() : 'N/A' },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-[#0D1117] rounded-lg px-4 py-3">
+                    <p className="text-xs text-slate-500 mb-0.5">{label}</p>
+                    <p className="text-sm font-medium text-white truncate">{String(value)}</p>
+                  </div>
+                ))}
               </div>
-
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => setPreviewBanner(null)}
-                >
+              {/* Actions */}
+              <div className="flex justify-end gap-2 pt-2 border-t border-white/[0.06]">
+                <button onClick={() => setPreviewBanner(null)} className="px-4 py-2 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-sm text-slate-300 transition-colors">
                   Close
-                </Button>
-                <Button
-                  onClick={() => {
-                    setEditingBanner(previewBanner);
-                    setPreviewBanner(null);
-                  }}
-                  className="bg-[#CB2030] hover:bg-[#B01C2A]"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
+                </button>
+                <button onClick={() => { setEditingBanner(previewBanner); setPreviewBanner(null); }} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#CB2030] hover:bg-[#B01C2A] text-sm text-white font-medium transition-colors">
+                  <Edit className="h-4 w-4" />
                   Edit Banner
-                </Button>
+                </button>
               </div>
             </div>
           </div>
@@ -10964,105 +10959,135 @@ function AdminDashboardContent() {
 
       {/* Banner Edit Modal */}
       {editingBanner && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setEditingBanner(null)}>
-          <div className="bg-[#111827] border border-white/[0.08] rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Edit Banner</h2>
-              <button
-                onClick={() => setEditingBanner(null)}
-                className="text-slate-500 hover:text-slate-400"
-              >
-                <X className="h-6 w-6" />
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => { setEditingBanner(null); setBannerFormError(''); }}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <Edit className="h-4 w-4 text-amber-400" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-white">{editingBanner.id ? 'Edit Banner' : 'New Banner'}</h2>
+                  <p className="text-xs text-slate-500">{editingBanner.id ? editingBanner.position + ' position' : 'Create a new advertisement banner'}</p>
+                </div>
+              </div>
+              <button onClick={() => { setEditingBanner(null); setBannerFormError(''); }} className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                <X className="h-4 w-4" />
               </button>
             </div>
+            <div className="p-6 space-y-4">
+              {bannerFormError && (
+                <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  {bannerFormError}
+                </div>
+              )}
 
-            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Banner Title</label>
-                <Input
+                <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Banner Title</label>
+                <input
                   value={editingBanner.title}
                   onChange={(e) => setEditingBanner({...editingBanner, title: e.target.value})}
                   placeholder="Enter banner title"
+                  className="w-full px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Position</label>
-                <div className="w-full border border-white/[0.1] bg-[#0D1117] rounded-lg px-3 py-2 text-slate-400">
-                  {editingBanner.position} (Fixed)
+              {editingBanner.id ? (
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Position</label>
+                  <div className="w-full border border-white/[0.06] bg-[#0D1117] rounded-lg px-3 py-2 text-sm text-slate-500">
+                    {editingBanner.position} <span className="text-slate-600">(fixed — cannot be changed)</span>
+                  </div>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Banner position cannot be changed. This slot is fixed on the website.</p>
-              </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Position</label>
+                  <select
+                    value={editingBanner.position}
+                    onChange={(e) => setEditingBanner({...editingBanner, position: e.target.value})}
+                    className="w-full px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors"
+                  >
+                    <option value="HERO">HERO — Top banner · Vehicles page</option>
+                    <option value="MAIN">MAIN — Main banner · Homepage</option>
+                    <option value="SIDEBAR">SIDEBAR — Sidebar · Vehicles (desktop)</option>
+                  </select>
+                </div>
+              )}
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Image URL</label>
-                <Input
-                  value={editingBanner.imageUrl}
+                <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Image URL</label>
+                <input
+                  value={editingBanner.imageUrl || ''}
                   onChange={(e) => setEditingBanner({...editingBanner, imageUrl: e.target.value})}
-                  placeholder="https://example.com/image.jpg"
+                  placeholder="https://example.com/banner.jpg"
+                  className="w-full px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors"
                 />
+                {editingBanner.imageUrl && (
+                  <div className="mt-2 aspect-video bg-white/[0.04] rounded-lg overflow-hidden max-h-32">
+                    <img src={editingBanner.imageUrl} alt="preview" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.opacity = '0'; }} />
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Link URL</label>
-                <Input
+                <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Link URL</label>
+                <input
                   value={editingBanner.linkUrl || ''}
                   onChange={(e) => setEditingBanner({...editingBanner, linkUrl: e.target.value})}
-                  placeholder="/vehicles"
+                  placeholder="/vehicles or https://example.com"
+                  className="w-full px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Priority</label>
-                  <Input
+                  <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Priority</label>
+                  <input
                     type="number"
                     value={editingBanner.priority || 0}
                     onChange={(e) => setEditingBanner({...editingBanner, priority: parseInt(e.target.value) || 0})}
+                    className="w-full px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors"
                   />
+                  <p className="text-xs text-slate-600 mt-1">Higher = shown first</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Status</label>
-                  <select
-                    className="w-full border border-white/[0.1] rounded-lg px-3 py-2"
-                    value={editingBanner.isActive ? 'active' : 'inactive'}
-                    onChange={(e) => setEditingBanner({...editingBanner, isActive: e.target.value === 'active'})}
+                  <label className="block text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Status</label>
+                  <button
+                    onClick={() => setEditingBanner({...editingBanner, isActive: !editingBanner.isActive})}
+                    className={'w-full flex items-center justify-between px-3 py-2 rounded-lg border text-sm transition-colors ' + (editingBanner.isActive ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-white/[0.08] bg-[#0D1117] text-slate-400')}
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
+                    <span>{editingBanner.isActive ? 'Active' : 'Inactive'}</span>
+                    <div className={'h-5 w-9 rounded-full transition-colors relative ' + (editingBanner.isActive ? 'bg-emerald-500' : 'bg-white/[0.1]')}>
+                      <div className={'absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ' + (editingBanner.isActive ? 'translate-x-4' : 'translate-x-0.5')} />
+                    </div>
+                  </button>
                 </div>
               </div>
 
-              {/* Banner Size Info */}
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
-                  <Image className="h-4 w-4 mr-2" />
-                  Recommended Banner Sizes & Formats
-                </h4>
-                <div className="text-xs text-blue-800 space-y-1">
-                  <p><strong>HERO:</strong> 1200x600px (2:1 ratio) - Full width banner</p>
-                  <p><strong>MAIN:</strong> 1200x600px (2:1 ratio) - Full width banner</p>
-                  <p><strong>SIDEBAR:</strong> 800x600px (4:3 ratio) - Vertical banner</p>
-                  <p className="mt-2"><strong>Formats:</strong> JPG, PNG, WebP • Max size: 2MB • Use high-quality images</p>
-                </div>
+              {/* Size reference */}
+              <div className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-3 text-xs text-slate-500 space-y-0.5">
+                <p className="font-medium text-slate-400 mb-1">Recommended sizes:</p>
+                <p><span className="text-slate-300">HERO / MAIN:</span> 1200x600px (2:1) · JPG/PNG/WebP · Max 2MB</p>
+                <p><span className="text-slate-300">SIDEBAR:</span> 800x600px (4:3) · JPG/PNG/WebP · Max 2MB</p>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => setEditingBanner(null)}
-                >
+              <div className="flex justify-end gap-2 pt-2 border-t border-white/[0.06]">
+                <button onClick={() => { setEditingBanner(null); setBannerFormError(''); }} className="px-4 py-2 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-sm text-slate-300 transition-colors">
                   Cancel
-                </Button>
-                <Button
+                </button>
+                <button
+                  disabled={bannerSaving}
                   onClick={async () => {
+                    if (!editingBanner.title.trim()) { setBannerFormError('Banner title is required.'); return; }
+                    setBannerSaving(true);
+                    setBannerFormError('');
                     try {
-                      const response = await fetch(`/api/admin/banners/${editingBanner.id}`, {
-                        method: 'PUT',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
+                      const method = editingBanner.id ? 'PUT' : 'POST';
+                      const url = editingBanner.id ? '/api/admin/banners/' + editingBanner.id : '/api/admin/banners';
+                      const response = await fetch(url, {
+                        method,
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                           title: editingBanner.title,
                           subtitle: editingBanner.subtitle,
@@ -11077,26 +11102,59 @@ function AdminDashboardContent() {
                           endDate: editingBanner.endDate,
                           backgroundColor: editingBanner.backgroundColor,
                           textColor: editingBanner.textColor,
-                          overlayOpacity: editingBanner.overlayOpacity
+                          overlayOpacity: editingBanner.overlayOpacity,
                         }),
                       });
-
                       if (response.ok) {
-                        alert('Banner updated successfully! Changes will appear on the site immediately.');
                         setEditingBanner(null);
-                        fetchBanners(); // Refresh the list
+                        setBannerFormError('');
+                        fetchBanners();
                       } else {
-                        alert('Failed to update banner. Please try again.');
+                        setBannerFormError('Failed to save banner. Please try again.');
                       }
-                    } catch (error) {
-                      console.error('Error updating banner:', error);
-                      alert('An error occurred while updating the banner.');
+                    } catch {
+                      setBannerFormError('An error occurred while saving.');
                     }
+                    setBannerSaving(false);
                   }}
-                  className="bg-[#CB2030] hover:bg-[#B01C2A]"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#CB2030] hover:bg-[#B01C2A] text-sm text-white font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Save Changes
-                </Button>
+                  {bannerSaving && <div className="h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  {editingBanner.id ? 'Save Changes' : 'Create Banner'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Banner Delete Confirmation Modal */}
+      {deletingBanner && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setDeletingBanner(null)}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                  <Trash2 className="h-4 w-4 text-red-400" />
+                </div>
+                <h2 className="text-base font-semibold text-white">Delete Banner</h2>
+              </div>
+              <button onClick={() => setDeletingBanner(null)} className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-slate-300 mb-1">Are you sure you want to delete:</p>
+              <p className="text-base font-semibold text-white mb-1">"{deletingBanner.title}"</p>
+              <p className="text-xs text-slate-500 mb-5">{deletingBanner.position} position · This action cannot be undone.</p>
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setDeletingBanner(null)} className="px-4 py-2 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-sm text-slate-300 transition-colors">
+                  Cancel
+                </button>
+                <button onClick={handleConfirmDeleteBanner} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-sm text-white font-medium transition-colors">
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete Banner
+                </button>
               </div>
             </div>
           </div>
@@ -11625,141 +11683,123 @@ function AdminDashboardContent() {
         </DialogContent>
       </Dialog>
 
-      {/* High Priority Reports Modal */}
-      <Dialog open={highPriorityModalOpen} onOpenChange={setHighPriorityModalOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-600" />
-              High Priority Reports
-            </DialogTitle>
-            <DialogDescription>
-              Urgent reports requiring immediate attention (High & Critical severity)
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-[#0D1117] border-b border-white/[0.06]">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Report</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Reporter</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Severity</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-[#111827] divide-y divide-white/[0.06]">
-                  {reports
-                    .filter(r =>
-                      (r.severity === 'High' || r.severity === 'Critical') &&
-                      (r.status === 'Pending' || r.status === 'Under Review')
-                    )
-                    .map((report) => (
-                      <tr key={report.id} className="hover:bg-[#0D1117]">
-                        <td className="px-4 py-3">
-                          <div className="text-sm font-medium text-white">{report.targetTitle}</div>
-                          <div className="text-xs text-slate-500">{report.reportReason}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-white">{report.targetType}</div>
-                          <div className="text-xs text-slate-500">{report.reportCategory}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-white">{report.reporterName}</div>
-                          <div className="text-xs text-slate-500">{report.reporterEmail}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge className={
-                            report.severity === 'Critical' ? 'bg-red-500/10 text-red-400' :
-                            'bg-orange-500/10 text-orange-400'
-                          }>
-                            {report.severity}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge className={
-                            report.status === 'Pending' ? 'bg-amber-500/10 text-amber-400' :
-                            'bg-blue-500/10 text-blue-400'
-                          }>
-                            {report.status}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-blue-400 hover:text-blue-300"
-                              onClick={() => {
-                                setSelectedReport(report);
-                                setHighPriorityModalOpen(false);
-                                setReportModalOpen(true);
-                              }}
-                              title="View Details"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-emerald-400 hover:text-emerald-300"
-                              onClick={() => {
-                                handleApproveReport(report.id);
-                              }}
-                              title="Resolve"
-                            >
-                              <CheckCircle2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-400 hover:text-red-300"
-                              onClick={() => {
-                                handleRejectReport(report.id);
-                              }}
-                              title="Reject"
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+      {highPriorityModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center z-50 overflow-y-auto pt-16 pb-8 px-4" onClick={() => setHighPriorityModalOpen(false)}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-2xl w-full max-w-5xl mb-8" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                  <AlertTriangle className="h-4 w-4 text-red-400" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-white">High Priority Reports</h2>
+                  <p className="text-xs text-slate-500">Urgent reports requiring immediate attention</p>
+                </div>
+              </div>
+              <button onClick={() => setHighPriorityModalOpen(false)} className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
-            {reports.filter(r =>
-              (r.severity === 'High' || r.severity === 'Critical') &&
-              (r.status === 'Pending' || r.status === 'Under Review')
-            ).length === 0 && (
-              <div className="text-center py-8 text-slate-500">
-                <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-slate-500" />
-                <p>No high priority reports found</p>
-              </div>
-            )}
-          </div>
+            <div className="p-6">
+              {reports.filter((r: any) => (r.severity === 'High' || r.severity === 'Critical') && (r.status === 'Pending' || r.status === 'Under Review')).length === 0 ? (
+                <div className="py-12 text-center">
+                  <AlertTriangle className="h-10 w-10 mx-auto mb-3 text-slate-600" />
+                  <p className="text-slate-500">No high priority reports found</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-white/[0.06] overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-[#0D1117]">
+                      <tr>
+                        {['Report', 'Type', 'Reporter', 'Severity', 'Status', 'Actions'].map(h => (
+                          <th key={h} className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.04]">
+                      {reports
+                        .filter((r: any) => (r.severity === 'High' || r.severity === 'Critical') && (r.status === 'Pending' || r.status === 'Under Review'))
+                        .map((report: any) => (
+                          <tr key={report.id} className={`hover:bg-white/[0.02] transition-colors border-l-2 ${report.severity === 'Critical' ? 'border-l-red-500/70' : 'border-l-orange-500/70'}`}>
+                            <td className="px-4 py-3.5">
+                              <p className="text-sm font-medium text-white">{report.targetTitle}</p>
+                              <p className="text-xs text-slate-500">{report.reportReason}</p>
+                            </td>
+                            <td className="px-4 py-3.5">
+                              <p className="text-sm text-slate-300">{report.targetType}</p>
+                              <p className="text-xs text-slate-500">{report.reportCategory}</p>
+                            </td>
+                            <td className="px-4 py-3.5">
+                              <p className="text-sm text-white">{report.reporterName}</p>
+                              <p className="text-xs text-slate-500">{report.reporterEmail}</p>
+                            </td>
+                            <td className="px-4 py-3.5">
+                              <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium border ${
+                                report.severity === 'Critical' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                              }`}>
+                                <span className={`h-1.5 w-1.5 rounded-full ${report.severity === 'Critical' ? 'bg-red-500' : 'bg-orange-500'}`} />
+                                {report.severity}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3.5">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                report.status === 'Pending' ? 'bg-amber-500/10 text-amber-400' : 'bg-white/[0.07] text-slate-300'
+                              }`}>{report.status}</span>
+                            </td>
+                            <td className="px-4 py-3.5">
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => { setSelectedReport(report); setHighPriorityModalOpen(false); setReportModalOpen(true); }}
+                                  title="View Details"
+                                  className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleApproveReport(report.id)}
+                                  title="Resolve"
+                                  className="h-7 w-7 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 flex items-center justify-center text-emerald-400 transition-colors"
+                                >
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleRejectReport(report.id)}
+                                  title="Reject"
+                                  className="h-7 w-7 rounded-md bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-red-400 transition-colors"
+                                >
+                                  <XCircle className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setHighPriorityModalOpen(false)}>
-              Close
-            </Button>
-            <Button
-              onClick={() => {
-                handleBulkBanUsers();
-                setHighPriorityModalOpen(false);
-              }}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              <Ban className="h-4 w-4 mr-2" />
-              Resolve All Critical
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <div className="flex justify-between items-center mt-5 pt-4 border-t border-white/[0.06]">
+                <p className="text-xs text-slate-500">
+                  {reports.filter((r: any) => (r.severity === 'High' || r.severity === 'Critical') && (r.status === 'Pending' || r.status === 'Under Review')).length} reports requiring attention
+                </p>
+                <div className="flex gap-2">
+                  <button onClick={() => setHighPriorityModalOpen(false)} className="px-4 py-2 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-sm text-slate-300 transition-colors">
+                    Close
+                  </button>
+                  <button
+                    onClick={() => { handleBulkBanUsers(); setHighPriorityModalOpen(false); }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-sm text-white font-medium transition-colors"
+                  >
+                    <Ban className="h-4 w-4" />
+                    Resolve All Critical
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Custom Reports Modal */}
       <Dialog open={customReportModalOpen} onOpenChange={setCustomReportModalOpen}>
@@ -12134,294 +12174,6 @@ function AdminDashboardContent() {
         </DialogContent>
       </Dialog>
 
-      {/* Approve Featured Request Dialog */}
-      <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Crown className="h-5 w-5 text-yellow-600" />
-              Approve Featured Request
-            </DialogTitle>
-            <DialogDescription>
-              Approve this dealership's request to be featured on the homepage?
-            </DialogDescription>
-          </DialogHeader>
-          {selectedFeaturedRequest && (
-            <div className="space-y-4 py-4">
-              <div className="bg-[#0D1117] rounded-lg p-4 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-slate-300">Dealership:</span>
-                  <span className="text-sm text-white">{selectedFeaturedRequest.dealership.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-slate-300">Duration:</span>
-                  <span className="text-sm text-white">{selectedFeaturedRequest.duration} days</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-slate-300">Amount:</span>
-                  <span className="text-sm font-bold text-green-600">N${selectedFeaturedRequest.amount}</span>
-                </div>
-              </div>
-              {selectedFeaturedRequest.notes && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Notes:</label>
-                  <p className="text-sm text-slate-400 bg-[#0D1117] rounded p-3">{selectedFeaturedRequest.notes}</p>
-                </div>
-              )}
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-                <p className="text-sm text-blue-800">
-                  <strong>Note:</strong> Upon approval, the dealership will be featured immediately and the featured period will start today.
-                </p>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setApproveDialogOpen(false);
-                setSelectedFeaturedRequest(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleApproveFeaturedRequest}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Approve Request
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reject Featured Request Dialog */}
-      <Dialog open={rejectFeaturedDialogOpen} onOpenChange={setRejectFeaturedDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-red-600">Reject Featured Request</DialogTitle>
-            <DialogDescription>
-              Reject this dealership's request to be featured. Please provide a reason.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedFeaturedRequest && (
-            <div className="space-y-4 py-4">
-              <div className="bg-[#0D1117] rounded-lg p-4 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-slate-300">Dealership:</span>
-                  <span className="text-sm text-white">{selectedFeaturedRequest.dealership.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-slate-300">Duration:</span>
-                  <span className="text-sm text-white">{selectedFeaturedRequest.duration} days</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-slate-300">Amount:</span>
-                  <span className="text-sm text-white">N${selectedFeaturedRequest.amount}</span>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Reason for rejection
-                </label>
-                <Textarea
-                  value={featuredRejectionReason}
-                  onChange={(e) => setFeaturedRejectionReason(e.target.value)}
-                  placeholder="Please explain why this request is being rejected..."
-                  rows={4}
-                  className="w-full"
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setRejectFeaturedDialogOpen(false);
-                setSelectedFeaturedRequest(null);
-                setFeaturedRejectionReason('');
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleRejectFeaturedRequest}
-              className="bg-red-600 hover:bg-red-700"
-              disabled={!featuredRejectionReason.trim()}
-            >
-              <X className="h-4 w-4 mr-2" />
-              Reject Request
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* View Featured Request Dialog */}
-      <Dialog open={viewFeaturedDialogOpen} onOpenChange={setViewFeaturedDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5 text-blue-600" />
-              Featured Request Details
-            </DialogTitle>
-            <DialogDescription>
-              View the complete details of this featured dealership request
-            </DialogDescription>
-          </DialogHeader>
-          {selectedFeaturedRequest && (
-            <div className="space-y-4 py-4">
-              {/* Dealership Information */}
-              <div className="bg-blue-500/10 rounded-lg p-4 space-y-3 border border-blue-500/20">
-                <h3 className="font-semibold text-white mb-2">Dealership Information</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-sm font-medium text-slate-300">Name:</span>
-                    <p className="text-sm text-white mt-1">{selectedFeaturedRequest.dealership.name}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-slate-300">Location:</span>
-                    <p className="text-sm text-white mt-1">{selectedFeaturedRequest.dealership.city}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-slate-300">Email:</span>
-                    <p className="text-sm text-white mt-1">{selectedFeaturedRequest.dealership.email}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-slate-300">Status:</span>
-                    <Badge className={`mt-1 ${
-                      selectedFeaturedRequest.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400' :
-                      selectedFeaturedRequest.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
-                      selectedFeaturedRequest.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400' :
-                      selectedFeaturedRequest.status === 'EXPIRED' ? 'bg-[#111827]/[0.04] text-slate-200' :
-                      'bg-red-500/10 text-red-400'
-                    }`}>
-                      {selectedFeaturedRequest.status}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* Request Details */}
-              <div className="bg-[#0D1117] rounded-lg p-4 space-y-3">
-                <h3 className="font-semibold text-white mb-2">Request Details</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-sm font-medium text-slate-300">Duration:</span>
-                    <p className="text-sm text-white mt-1">{selectedFeaturedRequest.duration} days</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-slate-300">Amount:</span>
-                    <p className="text-sm font-bold text-green-600 mt-1">N${selectedFeaturedRequest.amount}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-slate-300">Requested:</span>
-                    <p className="text-sm text-white mt-1">
-                      {new Date(selectedFeaturedRequest.requestedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-slate-300">Payment Status:</span>
-                    <Badge className={`mt-1 ${
-                      selectedFeaturedRequest.paymentStatus === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400' :
-                      selectedFeaturedRequest.paymentStatus === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
-                      'bg-red-500/10 text-red-400'
-                    }`}>
-                      {selectedFeaturedRequest.paymentStatus}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* Active Period (if approved) */}
-              {selectedFeaturedRequest.startDate && selectedFeaturedRequest.endDate && (
-                <div className="bg-emerald-500/10 rounded-lg p-4 space-y-2 border border-emerald-500/20">
-                  <h3 className="font-semibold text-white mb-2">Featured Period</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <span className="text-sm font-medium text-slate-300">Start Date:</span>
-                      <p className="text-sm text-white mt-1">
-                        {new Date(selectedFeaturedRequest.startDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-slate-300">End Date:</span>
-                      <p className="text-sm text-white mt-1">
-                        {new Date(selectedFeaturedRequest.endDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Approval/Rejection Details */}
-              {selectedFeaturedRequest.approvedAt && (
-                <div className="bg-blue-500/10 rounded-lg p-4 space-y-2 border border-blue-500/20">
-                  <h3 className="font-semibold text-white mb-2">Approval Details</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <span className="text-sm font-medium text-slate-300">Approved By:</span>
-                      <p className="text-sm text-white mt-1">{selectedFeaturedRequest.approvedBy || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-slate-300">Approved At:</span>
-                      <p className="text-sm text-white mt-1">
-                        {new Date(selectedFeaturedRequest.approvedAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {selectedFeaturedRequest.rejectedAt && (
-                <div className="bg-red-50 rounded-lg p-4 space-y-2">
-                  <h3 className="font-semibold text-white mb-2">Rejection Details</h3>
-                  <div className="space-y-2">
-                    <div>
-                      <span className="text-sm font-medium text-slate-300">Rejected By:</span>
-                      <p className="text-sm text-white mt-1">{selectedFeaturedRequest.rejectedBy || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-slate-300">Rejected At:</span>
-                      <p className="text-sm text-white mt-1">
-                        {new Date(selectedFeaturedRequest.rejectedAt).toLocaleString()}
-                      </p>
-                    </div>
-                    {selectedFeaturedRequest.rejectionReason && (
-                      <div>
-                        <span className="text-sm font-medium text-slate-300">Reason:</span>
-                        <p className="text-sm text-white mt-1">{selectedFeaturedRequest.rejectionReason}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Notes */}
-              {selectedFeaturedRequest.notes && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Notes from Dealership:</label>
-                  <p className="text-sm text-slate-400 bg-[#0D1117] rounded p-3 border border-white/[0.06]">
-                    {selectedFeaturedRequest.notes}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setViewFeaturedDialogOpen(false);
-                setSelectedFeaturedRequest(null);
-              }}
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
@@ -12441,6 +12193,9 @@ function EventsAdminPanel() {
   const [deleting, setDeleting] = useState<any>(null);
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [eventsSearch, setEventsSearch] = useState('');
+  const [eventsFilter, setEventsFilter] = useState('ALL');
 
   // Sub-panel tabs
   const [subTab, setSubTab] = useState<'events' | 'inquiries'>('events');
@@ -12484,13 +12239,14 @@ function EventsAdminPanel() {
         body: JSON.stringify({ id, status }),
       });
       await fetchInquiries();
-    } catch { alert('Failed to update status.'); }
+    } catch { /* silent fail — UI stays consistent */ }
     finally { setUpdatingStatus(null); }
   };
 
-  const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setShowForm(true); };
+  const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setFormError(''); setShowForm(true); };
   const openEdit = (ev: any) => {
     setEditing(ev);
+    setFormError('');
     setForm({
       title: ev.title,
       description: ev.description || '',
@@ -12506,10 +12262,12 @@ function EventsAdminPanel() {
     });
     setShowForm(true);
   };
-  const closeForm = () => { setShowForm(false); setEditing(null); setForm(EMPTY_FORM); };
+  const closeForm = () => { setShowForm(false); setEditing(null); setForm(EMPTY_FORM); setFormError(''); };
 
   const handleSave = async () => {
-    if (!form.title || !form.date) return alert('Title and date are required.');
+    if (!form.title.trim()) { setFormError('Title is required.'); return; }
+    if (!form.date) { setFormError('Start date & time is required.'); return; }
+    setFormError('');
     setSaving(true);
     try {
       const url = editing ? `/api/events/${editing.id}` : '/api/events';
@@ -12518,7 +12276,7 @@ function EventsAdminPanel() {
       if (!res.ok) throw new Error('Failed');
       closeForm();
       await fetchEvents();
-    } catch { alert('Failed to save event. Please try again.'); }
+    } catch { setFormError('Failed to save event. Please try again.'); }
     finally { setSaving(false); }
   };
 
@@ -12529,24 +12287,48 @@ function EventsAdminPanel() {
       if (!res.ok) throw new Error('Failed');
       setDeleting(null);
       await fetchEvents();
-    } catch { alert('Failed to delete event.'); }
+    } catch { setDeleting(null); }
   };
 
-  const upcomingCount = events.filter(e => new Date(e.date) >= new Date()).length;
+  const now = new Date();
+  const upcomingCount = events.filter(e => new Date(e.date) >= now).length;
   const publishedCount = events.filter(e => e.isPublished).length;
   const featuredCount = events.filter(e => e.isFeatured).length;
+  const pastCount = events.filter(e => new Date(e.date) < now).length;
+  const draftCount = events.filter(e => !e.isPublished).length;
 
-  const inputCls = 'w-full h-9 px-3 rounded-md border border-white/[0.1] text-sm text-white focus:outline-none focus:border-[#CB2030] focus:ring-2 focus:ring-[#CB2030]/10 bg-[#111827]';
-  const labelCls = 'block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1';
+  const pendingInquiryCount = inquiries.filter(i => i.status === 'PENDING').length;
 
-  const INQUIRY_STATUS_COLORS: Record<string, string> = {
-    PENDING: 'bg-amber-500/10 text-amber-400',
-    REVIEWED: 'bg-blue-500/10 text-blue-400',
-    APPROVED: 'bg-emerald-500/10 text-emerald-400',
-    REJECTED: 'bg-red-500/10 text-red-400',
+  const filteredEvents = events.filter(ev => {
+    const q = eventsSearch.toLowerCase();
+    const matchSearch = !q || (ev.title || '').toLowerCase().includes(q) || (ev.location || '').toLowerCase().includes(q) || (ev.category || '').toLowerCase().includes(q);
+    const isPast = new Date(ev.date) < now;
+    const matchFilter =
+      eventsFilter === 'ALL' ? true :
+      eventsFilter === 'UPCOMING' ? !isPast :
+      eventsFilter === 'PAST' ? isPast :
+      eventsFilter === 'FEATURED' ? ev.isFeatured :
+      eventsFilter === 'DRAFT' ? !ev.isPublished : true;
+    return matchSearch && matchFilter;
+  });
+
+  const inputCls = 'w-full px-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors';
+  const labelCls = 'block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5';
+
+  const INQUIRY_STATUS_CFG: Record<string, { badge: string; btn: string }> = {
+    PENDING:  { badge: 'bg-amber-500/10 text-amber-400 border-amber-500/20',   btn: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+    REVIEWED: { badge: 'bg-white/[0.07] text-slate-300 border-white/[0.1]',    btn: 'bg-white/[0.07] text-slate-300 border-white/[0.1]' },
+    APPROVED: { badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', btn: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+    REJECTED: { badge: 'bg-red-500/10 text-red-400 border-red-500/20',         btn: 'bg-red-500/10 text-red-400 border-red-500/20' },
   };
 
-  const pendingCount = inquiries.filter(i => i.status === 'PENDING').length;
+  const filterPills = [
+    { label: 'All', value: 'ALL', count: events.length },
+    { label: 'Upcoming', value: 'UPCOMING', count: upcomingCount },
+    { label: 'Past', value: 'PAST', count: pastCount },
+    { label: 'Featured', value: 'FEATURED', count: featuredCount },
+    { label: 'Drafts', value: 'DRAFT', count: draftCount },
+  ];
 
   return (
     <div className="space-y-6">
@@ -12554,10 +12336,8 @@ function EventsAdminPanel() {
       <div className="flex items-center gap-1 border-b border-white/[0.06]">
         <button
           onClick={() => setSubTab('events')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
-            subTab === 'events'
-              ? 'border-[#CB2030] text-[#CB2030]'
-              : 'border-transparent text-slate-500 hover:text-slate-300'
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors cursor-pointer ${
+            subTab === 'events' ? 'border-[#CB2030] text-[#CB2030]' : 'border-transparent text-slate-500 hover:text-slate-300'
           }`}
         >
           <Calendar className="w-4 h-4" />
@@ -12565,17 +12345,15 @@ function EventsAdminPanel() {
         </button>
         <button
           onClick={() => setSubTab('inquiries')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
-            subTab === 'inquiries'
-              ? 'border-[#CB2030] text-[#CB2030]'
-              : 'border-transparent text-slate-500 hover:text-slate-300'
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors cursor-pointer ${
+            subTab === 'inquiries' ? 'border-[#CB2030] text-[#CB2030]' : 'border-transparent text-slate-500 hover:text-slate-300'
           }`}
         >
           <Megaphone className="w-4 h-4" />
           Advertising Inquiries
-          {pendingCount > 0 && (
-            <span className="ml-1 bg-[#CB2030] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-              {pendingCount}
+          {pendingInquiryCount > 0 && (
+            <span className="ml-0.5 bg-[#CB2030] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+              {pendingInquiryCount}
             </span>
           )}
         </button>
@@ -12583,121 +12361,139 @@ function EventsAdminPanel() {
 
       {/* ── Inquiries panel ── */}
       {subTab === 'inquiries' && (
-        <div className="space-y-4">
+        <div className="space-y-5">
+          {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-semibold text-white">Event Advertising Inquiries</h3>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Companies requesting to list or promote their events on Cars.na
-              </p>
+              <h3 className="text-base font-semibold text-white">Advertising Inquiries</h3>
+              <p className="text-sm text-slate-500 mt-0.5">Companies requesting to promote their events on Cars.na</p>
             </div>
-            <Button size="sm" variant="outline" onClick={fetchInquiries} disabled={inquiriesLoading}>
-              {inquiriesLoading ? 'Refreshing…' : 'Refresh'}
-            </Button>
+            <button onClick={fetchInquiries} disabled={inquiriesLoading}
+              className="flex items-center gap-2 px-3 py-2 bg-[#111827] border border-white/[0.06] rounded-lg text-sm text-slate-300 hover:text-white hover:border-white/[0.12] transition-all disabled:opacity-50 cursor-pointer">
+              <RefreshCw className={`h-4 w-4 ${inquiriesLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
           </div>
 
+          {/* Stats pills */}
+          {inquiries.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {(['PENDING','REVIEWED','APPROVED','REJECTED'] as const).map(s => {
+                const cnt = inquiries.filter(i => i.status === s).length;
+                return cnt > 0 ? (
+                  <span key={s} className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${INQUIRY_STATUS_CFG[s].badge}`}>
+                    {s.charAt(0) + s.slice(1).toLowerCase()}
+                    <span className="bg-white/10 rounded-full px-1.5 py-0.5 text-[10px]">{cnt}</span>
+                  </span>
+                ) : null;
+              })}
+            </div>
+          )}
+
           {inquiriesLoading ? (
-            <div className="text-center py-10 text-slate-500 text-sm">Loading inquiries…</div>
+            <div className="flex items-center justify-center py-16">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#CB2030]" />
+            </div>
           ) : inquiries.length === 0 ? (
-            <Card className="bg-[#111827] border-white/[0.06]">
-              <CardContent className="py-12 text-center">
-                <Megaphone className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-500 font-medium">No inquiries yet</p>
-                <p className="text-sm text-slate-500 mt-1">
-                  Inquiries submitted via <strong>/events/advertise</strong> will appear here.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="bg-[#111827] border border-white/[0.06] rounded-xl flex flex-col items-center justify-center py-16 text-center">
+              <div className="h-12 w-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-3">
+                <Megaphone className="w-6 h-6 text-slate-600" />
+              </div>
+              <p className="text-sm font-medium text-slate-400">No inquiries yet</p>
+              <p className="text-xs text-slate-600 mt-1">Submitted via <span className="font-mono">/events/advertise</span> will appear here</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {inquiries.map((inq: any) => {
                 const isExpanded = expandedInquiry === inq.id;
+                const cfg = INQUIRY_STATUS_CFG[inq.status] ?? INQUIRY_STATUS_CFG.REVIEWED;
                 return (
-                  <Card key={inq.id} className="overflow-hidden">
-                    <CardContent className="p-0">
-                      {/* Summary row */}
-                      <div className="flex items-center gap-4 p-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-white text-sm">{inq.eventName}</span>
-                            {inq.eventCategory && (
-                              <span className="text-xs bg-white/[0.06] text-slate-400 px-2 py-0.5 rounded-full font-medium">
-                                {inq.eventCategory}
-                              </span>
-                            )}
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${INQUIRY_STATUS_COLORS[inq.status] ?? 'bg-[#111827]/[0.04] text-slate-400'}`}>
-                              {inq.status}
+                  <div key={inq.id} className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+                    {/* Summary row */}
+                    <div className="flex items-center gap-4 px-4 py-3.5">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-white text-sm">{inq.eventName}</span>
+                          {inq.eventCategory && (
+                            <span className="text-xs bg-white/[0.06] text-slate-400 px-2 py-0.5 rounded-full border border-white/[0.06]">
+                              {inq.eventCategory}
                             </span>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            {inq.companyName} · {inq.contactName} · {inq.email}
-                          </p>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            {inq.eventDate} · {inq.eventLocation}
-                            {inq.expectedAttendees && ` · ${inq.expectedAttendees} expected`}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <button
-                            onClick={() => setExpandedInquiry(isExpanded ? null : inq.id)}
-                            className="text-xs text-[#1F3469] font-semibold hover:underline"
-                          >
-                            {isExpanded ? 'Collapse' : 'Details'}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Expanded details */}
-                      {isExpanded && (
-                        <div className="border-t border-white/[0.06] p-4 bg-[#0D1117] space-y-4">
-                          <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Contact</p>
-                              <p className="text-slate-200">{inq.contactName}</p>
-                              <p className="text-slate-400">{inq.email}</p>
-                              <p className="text-slate-400">{inq.phone}</p>
-                              {inq.website && <p className="text-blue-600 text-xs mt-0.5">{inq.website}</p>}
-                            </div>
-                            <div>
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Event Info</p>
-                              <p className="text-slate-200 font-medium">{inq.eventName}</p>
-                              <p className="text-slate-400">{inq.eventDate} · {inq.eventLocation}</p>
-                              {inq.expectedAttendees && <p className="text-slate-400">Attendance: {inq.expectedAttendees}</p>}
-                              {inq.budget && <p className="text-slate-400">Budget: {inq.budget}</p>}
-                            </div>
-                          </div>
-                          {inq.description && (
-                            <div>
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Description</p>
-                              <p className="text-sm text-slate-300 whitespace-pre-wrap">{inq.description}</p>
-                            </div>
                           )}
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${cfg.badge}`}>
+                            {inq.status.charAt(0) + inq.status.slice(1).toLowerCase()}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5 truncate">
+                          {inq.companyName} · {inq.contactName} · {inq.email}
+                        </p>
+                        <p className="text-xs text-slate-600 mt-0.5">
+                          {inq.eventDate}{inq.eventLocation ? ` · ${inq.eventLocation}` : ''}
+                          {inq.expectedAttendees ? ` · ${inq.expectedAttendees} expected` : ''}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setExpandedInquiry(isExpanded ? null : inq.id)}
+                        className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer flex-shrink-0">
+                        {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+
+                    {/* Expanded details */}
+                    {isExpanded && (
+                      <div className="border-t border-white/[0.06] p-4 bg-[#0D1117] space-y-4">
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          <div className="bg-[#111827] rounded-lg p-3">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Contact</p>
+                            <p className="text-sm font-medium text-white">{inq.contactName}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">{inq.email}</p>
+                            {inq.phone && <p className="text-xs text-slate-400">{inq.phone}</p>}
+                            {inq.website && (
+                              <a href={inq.website} target="_blank" rel="noopener noreferrer"
+                                className="text-xs text-[#CB2030] hover:underline mt-0.5 flex items-center gap-1">
+                                <ExternalLink className="w-3 h-3" />{inq.website}
+                              </a>
+                            )}
+                          </div>
+                          <div className="bg-[#111827] rounded-lg p-3">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Event Info</p>
+                            <p className="text-sm font-medium text-white">{inq.eventName}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">{inq.eventDate}{inq.eventLocation ? ` · ${inq.eventLocation}` : ''}</p>
+                            {inq.expectedAttendees && <p className="text-xs text-slate-400">Attendance: {inq.expectedAttendees}</p>}
+                            {inq.budget && <p className="text-xs text-slate-400">Budget: {inq.budget}</p>}
+                          </div>
+                        </div>
+                        {inq.description && (
                           <div>
-                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Update Status</p>
-                            <div className="flex flex-wrap gap-2">
-                              {(['PENDING', 'REVIEWED', 'APPROVED', 'REJECTED'] as const).map(s => (
-                                <button
-                                  key={s}
-                                  disabled={inq.status === s || updatingStatus === inq.id}
+                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Description</p>
+                            <p className="text-sm text-slate-300 whitespace-pre-wrap bg-[#111827] rounded-lg p-3">{inq.description}</p>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Update Status</p>
+                          <div className="flex flex-wrap gap-2">
+                            {(['PENDING', 'REVIEWED', 'APPROVED', 'REJECTED'] as const).map(s => {
+                              const isActive = inq.status === s;
+                              const scfg = INQUIRY_STATUS_CFG[s];
+                              return (
+                                <button key={s}
+                                  disabled={isActive || updatingStatus === inq.id}
                                   onClick={() => updateInquiryStatus(inq.id, s)}
-                                  className={`text-xs px-3 py-1.5 rounded-md font-semibold border transition-all disabled:opacity-50 ${
-                                    inq.status === s
-                                      ? `${INQUIRY_STATUS_COLORS[s]} border-current`
-                                      : 'bg-[#111827] border-white/[0.1] text-slate-400 hover:border-gray-400'
+                                  className={`text-xs px-3 py-1.5 rounded-lg font-medium border transition-all disabled:opacity-60 cursor-pointer ${
+                                    isActive ? scfg.btn : 'bg-white/[0.04] border-white/[0.08] text-slate-400 hover:bg-white/[0.08] hover:text-white'
                                   }`}
                                 >
-                                  {s}
+                                  {updatingStatus === inq.id ? '…' : s.charAt(0) + s.slice(1).toLowerCase()}
                                 </button>
-                              ))}
-                            </div>
+                              );
+                            })}
                           </div>
-                          <p className="text-xs text-slate-500">
-                            Submitted {new Date(inq.createdAt).toLocaleDateString('en-NA', { dateStyle: 'medium' })}
-                          </p>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                        <p className="text-xs text-slate-600">
+                          Submitted {new Date(inq.createdAt).toLocaleDateString('en-NA', { dateStyle: 'medium' })}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -12706,205 +12502,340 @@ function EventsAdminPanel() {
       )}
 
       {/* ── Manage Events panel ── */}
-      {subTab === 'events' && <>
+      {subTab === 'events' && (
+        <div className="space-y-5">
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Events', value: events.length, icon: Calendar },
-          { label: 'Upcoming', value: upcomingCount, icon: Clock },
-          { label: 'Published', value: publishedCount, icon: CheckCircle },
-          { label: 'Featured', value: featuredCount, icon: Star },
-        ].map(({ label, value, icon: Icon }) => (
-          <Card key={label}>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#CB2030' }}>
-                <Icon className="w-4 h-4 text-white" />
+          {/* Stats Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total</span>
+                <div className="h-8 w-8 rounded-lg bg-white/[0.05] flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-slate-400" />
+                </div>
               </div>
-              <div>
-                <p className="text-xl font-extrabold text-white">{value}</p>
-                <p className="text-xs text-slate-500">{label}</p>
+              <div className="text-2xl font-bold text-white">{events.length}</div>
+              <p className="text-xs text-slate-500 mt-1">{upcomingCount} upcoming</p>
+            </div>
+            <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Upcoming</span>
+                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <Clock className="h-4 w-4 text-amber-400" />
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Table card */}
-      <Card className="bg-[#111827] border-white/[0.06]">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-bold">All Events</CardTitle>
-            <Button size="sm" style={{ background: '#CB2030' }} className="text-white hover:opacity-90" onClick={openCreate}>
-              <Plus className="w-4 h-4 mr-1.5" /> New Event
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-8 text-center text-sm text-slate-500">Loading events…</div>
-          ) : events.length === 0 ? (
-            <div className="p-12 text-center">
-              <Calendar className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-slate-500 mb-1">No events yet</p>
-              <p className="text-xs text-slate-500 mb-4">Create your first event to display it in the nav and events page.</p>
-              <Button size="sm" style={{ background: '#CB2030' }} className="text-white hover:opacity-90" onClick={openCreate}>
-                <Plus className="w-4 h-4 mr-1.5" /> Create Event
-              </Button>
+              <div className="text-2xl font-bold text-white">{upcomingCount}</div>
+              <p className="text-xs text-amber-500 mt-1">{pastCount} past</p>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-white/[0.06] bg-[#0D1117]">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Event</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Location</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Category</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {events.map(ev => {
-                    const isPast = new Date(ev.date) < new Date();
-                    return (
-                      <tr key={ev.id} className="hover:bg-[#0D1117] transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="font-semibold text-white truncate max-w-[200px]">{ev.title}</div>
-                          {ev.isFeatured && (
-                            <span className="text-[10px] font-bold text-amber-600 uppercase">Featured</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-slate-400 whitespace-nowrap">
-                          {new Date(ev.date).toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          {isPast && <span className="ml-1.5 text-[10px] text-slate-500 font-semibold uppercase">Past</span>}
-                        </td>
-                        <td className="px-4 py-3 text-slate-500 max-w-[140px] truncate">{ev.location || '—'}</td>
-                        <td className="px-4 py-3">
-                          {ev.category ? (
-                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#111827]/[0.04] text-slate-400">{ev.category}</span>
-                          ) : '—'}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${ev.isPublished ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#111827]/[0.04] text-slate-500'}`}>
-                            {ev.isPublished ? 'Published' : 'Draft'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => openEdit(ev)} className="p-1.5 rounded-md text-slate-500 hover:text-slate-300 hover:bg-[#111827]/[0.04] transition-colors">
-                              <Edit className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => setDeleting(ev)} className="p-1.5 rounded-md text-slate-500 hover:text-red-600 hover:bg-red-500/10 transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Create / Edit Dialog */}
-      <Dialog open={showForm} onOpenChange={open => { if (!open) closeForm(); }}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editing ? 'Edit Event' : 'New Event'}</DialogTitle>
-            <DialogDescription>Fill in the details below. Title and date are required.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div>
-              <label className={labelCls}>Title *</label>
-              <input className={inputCls} value={form.title} onChange={e => setForm((f: any) => ({ ...f, title: e.target.value }))} placeholder="e.g. Windhoek Classic Car Show 2026" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelCls}>Start Date & Time *</label>
-                <input type="datetime-local" className={inputCls} value={form.date} onChange={e => setForm((f: any) => ({ ...f, date: e.target.value }))} />
+            <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Published</span>
+                <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                  <CheckCircle className="h-4 w-4 text-emerald-400" />
+                </div>
               </div>
-              <div>
-                <label className={labelCls}>End Date & Time</label>
-                <input type="datetime-local" className={inputCls} value={form.endDate} onChange={e => setForm((f: any) => ({ ...f, endDate: e.target.value }))} />
+              <div className="text-2xl font-bold text-white">{publishedCount}</div>
+              <p className="text-xs text-slate-500 mt-1">{draftCount} drafts</p>
+            </div>
+            <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Featured</span>
+                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <Star className="h-4 w-4 text-amber-400" />
+                </div>
               </div>
-            </div>
-            <div>
-              <label className={labelCls}>Category</label>
-              <select className={inputCls} value={form.category} onChange={e => setForm((f: any) => ({ ...f, category: e.target.value }))}>
-                <option value="">— Select category —</option>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelCls}>Venue / Venue Name</label>
-                <input className={inputCls} value={form.venue} onChange={e => setForm((f: any) => ({ ...f, venue: e.target.value }))} placeholder="e.g. NWR Showgrounds" />
-              </div>
-              <div>
-                <label className={labelCls}>City / Location</label>
-                <input className={inputCls} value={form.location} onChange={e => setForm((f: any) => ({ ...f, location: e.target.value }))} placeholder="e.g. Windhoek" />
-              </div>
-            </div>
-            <div>
-              <label className={labelCls}>Description</label>
-              <textarea
-                rows={3}
-                className={`${inputCls} h-auto py-2 resize-none`}
-                value={form.description}
-                onChange={e => setForm((f: any) => ({ ...f, description: e.target.value }))}
-                placeholder="Short description shown on the events page…"
-              />
-            </div>
-            <div>
-              <label className={labelCls}>Image URL</label>
-              <input className={inputCls} value={form.imageUrl} onChange={e => setForm((f: any) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://..." />
-            </div>
-            <div>
-              <label className={labelCls}>External URL (tickets / more info)</label>
-              <input className={inputCls} value={form.externalUrl} onChange={e => setForm((f: any) => ({ ...f, externalUrl: e.target.value }))} placeholder="https://..." />
-            </div>
-            <div className="flex items-center gap-6 pt-1">
-              <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer select-none">
-                <input type="checkbox" checked={form.isPublished} onChange={e => setForm((f: any) => ({ ...f, isPublished: e.target.checked }))} className="accent-[#CB2030] w-4 h-4" />
-                Published (visible on site)
-              </label>
-              <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer select-none">
-                <input type="checkbox" checked={form.isFeatured} onChange={e => setForm((f: any) => ({ ...f, isFeatured: e.target.checked }))} className="accent-[#CB2030] w-4 h-4" />
-                Featured (highlighted)
-              </label>
+              <div className="text-2xl font-bold text-white">{featuredCount}</div>
+              <p className="text-xs text-slate-500 mt-1">Highlighted events</p>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={closeForm} disabled={saving}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving} style={{ background: '#CB2030' }} className="text-white hover:opacity-90">
-              {saving ? 'Saving…' : editing ? 'Save Changes' : 'Create Event'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      </> }
+          {/* Search + Filter + New Event */}
+          <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search events by title, location, category…"
+                  value={eventsSearch}
+                  onChange={e => setEventsSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-[#0D1117] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#CB2030]/30 focus:border-[#CB2030]/50 transition-colors"
+                />
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {filterPills.map(pill => (
+                  <button key={pill.value} onClick={() => setEventsFilter(pill.value)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                      eventsFilter === pill.value
+                        ? 'bg-[#CB2030] text-white'
+                        : 'bg-white/[0.05] text-slate-400 hover:bg-white/[0.1] hover:text-white'
+                    }`}>
+                    {pill.label}
+                    <span className={`${eventsFilter === pill.value ? 'bg-white/20' : 'bg-white/[0.08]'} rounded-full px-1.5 py-0.5 text-[10px]`}>{pill.count}</span>
+                  </button>
+                ))}
+              </div>
+              <button onClick={openCreate}
+                className="flex items-center gap-1.5 px-4 py-2 bg-[#CB2030] hover:bg-[#B01C2A] text-white text-sm font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap flex-shrink-0">
+                <Plus className="w-4 h-4" /> New Event
+              </button>
+            </div>
+          </div>
 
-      {/* Delete confirmation */}
-      <Dialog open={!!deleting} onOpenChange={open => { if (!open) setDeleting(null); }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Delete Event</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete <strong>{deleting?.title}</strong>? This cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleting(null)}>Cancel</Button>
-            <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white">Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          {/* Events Table */}
+          <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
+              <span className="text-sm font-medium text-white">
+                {eventsFilter === 'ALL' ? 'All Events' : filterPills.find(p => p.value === eventsFilter)?.label + ' Events'}
+              </span>
+              <span className="text-xs text-slate-500">{filteredEvents.length} result{filteredEvents.length !== 1 ? 's' : ''}</span>
+            </div>
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#CB2030]" />
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="h-12 w-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-3">
+                  <Calendar className="w-6 h-6 text-slate-600" />
+                </div>
+                <p className="text-sm font-medium text-slate-400">
+                  {events.length === 0 ? 'No events yet' : 'No events match your filters'}
+                </p>
+                <p className="text-xs text-slate-600 mt-1 mb-4">
+                  {events.length === 0 ? 'Create your first event to display it on the site' : 'Try a different filter or search term'}
+                </p>
+                {events.length === 0 && (
+                  <button onClick={openCreate}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-[#CB2030] hover:bg-[#B01C2A] text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
+                    <Plus className="w-4 h-4" /> Create Event
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#0D1117] border-b border-white/[0.06]">
+                      <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Event</th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider hidden md:table-cell">Date</th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider hidden lg:table-cell">Location</th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider hidden md:table-cell">Category</th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 w-24" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/[0.04]">
+                    {filteredEvents.map(ev => {
+                      const isPast = new Date(ev.date) < now;
+                      return (
+                        <tr key={ev.id}
+                          className={`hover:bg-white/[0.02] transition-colors border-l-2 ${
+                            ev.isFeatured ? 'border-l-amber-500/60' :
+                            !isPast && ev.isPublished ? 'border-l-emerald-500/40' :
+                            isPast ? 'border-l-slate-700/60' :
+                            'border-l-transparent'
+                          }`}>
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-white truncate max-w-[200px]">{ev.title}</div>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              {ev.isFeatured && (
+                                <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-wide">Featured</span>
+                              )}
+                              {isPast && (
+                                <span className="text-[10px] font-semibold text-slate-500 bg-white/[0.05] px-1.5 py-0.5 rounded-full uppercase tracking-wide">Past</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-slate-400 whitespace-nowrap text-xs hidden md:table-cell">
+                            {new Date(ev.date).toLocaleDateString('en-NA', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </td>
+                          <td className="px-4 py-3 text-slate-500 text-xs hidden lg:table-cell truncate max-w-[140px]">
+                            {ev.venue ? `${ev.venue}${ev.location ? ', ' + ev.location : ''}` : ev.location || '—'}
+                          </td>
+                          <td className="px-4 py-3 hidden md:table-cell">
+                            {ev.category ? (
+                              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/[0.06] text-slate-400 border border-white/[0.06]">{ev.category}</span>
+                            ) : <span className="text-slate-600">—</span>}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${ev.isPublished ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/[0.05] text-slate-500 border-white/[0.06]'}`}>
+                              {ev.isPublished ? 'Published' : 'Draft'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1 justify-end">
+                              {ev.externalUrl && (
+                                <a href={ev.externalUrl} target="_blank" rel="noopener noreferrer" title="View external page"
+                                  className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+                              <button title="Edit" onClick={() => openEdit(ev)}
+                                className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-amber-500/20 text-slate-400 hover:text-amber-400 flex items-center justify-center transition-colors cursor-pointer">
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                              <button title="Delete" onClick={() => setDeleting(ev)}
+                                className="h-7 w-7 rounded-md bg-white/[0.05] hover:bg-red-500/20 text-slate-400 hover:text-red-400 flex items-center justify-center transition-colors cursor-pointer">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Create / Edit Modal ── */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={e => { if (e.target === e.currentTarget) closeForm(); }}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-[#CB2030]/10 flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-[#CB2030]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-white">{editing ? 'Edit Event' : 'New Event'}</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Title and start date are required</p>
+                </div>
+              </div>
+              <button onClick={closeForm}
+                className="h-8 w-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                <XCircle className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              {formError && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  {formError}
+                </div>
+              )}
+              <div>
+                <label className={labelCls}>Title <span className="text-[#CB2030]">*</span></label>
+                <input className={inputCls} value={form.title} onChange={e => setForm((f: any) => ({ ...f, title: e.target.value }))} placeholder="e.g. Windhoek Classic Car Show 2026" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Start Date & Time <span className="text-[#CB2030]">*</span></label>
+                  <input type="datetime-local" className={inputCls} value={form.date} onChange={e => setForm((f: any) => ({ ...f, date: e.target.value }))} />
+                </div>
+                <div>
+                  <label className={labelCls}>End Date & Time</label>
+                  <input type="datetime-local" className={inputCls} value={form.endDate} onChange={e => setForm((f: any) => ({ ...f, endDate: e.target.value }))} />
+                </div>
+              </div>
+              <div>
+                <label className={labelCls}>Category</label>
+                <select className={inputCls} value={form.category} onChange={e => setForm((f: any) => ({ ...f, category: e.target.value }))}>
+                  <option value="">— Select category —</option>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Venue Name</label>
+                  <input className={inputCls} value={form.venue} onChange={e => setForm((f: any) => ({ ...f, venue: e.target.value }))} placeholder="e.g. NWR Showgrounds" />
+                </div>
+                <div>
+                  <label className={labelCls}>City / Location</label>
+                  <input className={inputCls} value={form.location} onChange={e => setForm((f: any) => ({ ...f, location: e.target.value }))} placeholder="e.g. Windhoek" />
+                </div>
+              </div>
+              <div>
+                <label className={labelCls}>Description</label>
+                <textarea rows={3} className={`${inputCls} h-auto py-2 resize-none`}
+                  value={form.description}
+                  onChange={e => setForm((f: any) => ({ ...f, description: e.target.value }))}
+                  placeholder="Short description shown on the events page…" />
+              </div>
+              <div>
+                <label className={labelCls}>Image URL</label>
+                <input className={inputCls} value={form.imageUrl} onChange={e => setForm((f: any) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://..." />
+              </div>
+              <div>
+                <label className={labelCls}>External URL (tickets / more info)</label>
+                <input className={inputCls} value={form.externalUrl} onChange={e => setForm((f: any) => ({ ...f, externalUrl: e.target.value }))} placeholder="https://..." />
+              </div>
+              {/* Toggle switches */}
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="bg-[#0D1117] rounded-lg px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-white">Published</p>
+                    <p className="text-xs text-slate-500">Visible on site</p>
+                  </div>
+                  <button onClick={() => setForm((f: any) => ({ ...f, isPublished: !f.isPublished }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${form.isPublished ? 'bg-emerald-500' : 'bg-white/[0.1]'}`}>
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.isPublished ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                <div className="bg-[#0D1117] rounded-lg px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-white">Featured</p>
+                    <p className="text-xs text-slate-500">Highlighted</p>
+                  </div>
+                  <button onClick={() => setForm((f: any) => ({ ...f, isFeatured: !f.isFeatured }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${form.isFeatured ? 'bg-amber-500' : 'bg-white/[0.1]'}`}>
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.isFeatured ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-white/[0.06] flex gap-2 justify-end">
+              <button onClick={closeForm} disabled={saving}
+                className="px-4 py-2 text-sm font-medium bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer disabled:opacity-50">
+                Cancel
+              </button>
+              <button onClick={handleSave} disabled={saving}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-[#CB2030] hover:bg-[#B01C2A] rounded-lg text-white transition-colors cursor-pointer disabled:opacity-50">
+                {saving ? (
+                  <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</>
+                ) : (
+                  <><Check className="w-3.5 h-3.5" /> {editing ? 'Save Changes' : 'Create Event'}</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete confirmation ── */}
+      {deleting && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setDeleting(null)}>
+          <div className="bg-[#111827] border border-white/[0.08] rounded-xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                  <Trash2 className="h-5 w-5 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-white">Delete Event</h3>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Delete <span className="font-medium text-white">{deleting.title}</span>? This cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => setDeleting(null)}
+                  className="px-4 py-2 text-sm font-medium bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer">
+                  Cancel
+                </button>
+                <button onClick={handleDelete}
+                  className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 rounded-lg text-white transition-colors cursor-pointer">
+                  Delete Event
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
