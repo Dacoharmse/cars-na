@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Outfit, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import { Providers } from "@/components/Providers";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -44,6 +45,7 @@ export default function RootLayout({
           <main id="main-content">
             {children}
           </main>
+          <SpeedInsights />
         </Providers>
       </body>
     </html>
