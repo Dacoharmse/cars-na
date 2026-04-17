@@ -80,7 +80,6 @@ export async function PATCH(
         data: {
           status: 'PAID',
           paidAt: new Date(),
-          ...(session.user.id ? { paidById: session.user.id } : {}),
         },
       });
 
