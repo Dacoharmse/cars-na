@@ -74,7 +74,7 @@ export async function PATCH(
         return NextResponse.json({ error: 'Invoice is already marked as paid' }, { status: 400 });
       }
 
-      // Mark invoice as paid
+      // Mark invoice as paid — this is the critical step
       const updated = await prisma.invoice.update({
         where: { id },
         data: {
@@ -84,28 +84,35 @@ export async function PATCH(
         },
       });
 
-      // Clear access restriction on dealership
-      await prisma.dealership.update({
-        where: { id: invoice.dealershipId },
-        data: {
-          accessRestrictedAt: null,
-          // Restore APPROVED status if it was SUSPENDED due to invoice
-          ...(invoice.dealership.status === 'SUSPENDED' ? { status: 'APPROVED' } : {}),
-        },
-      });
-
-      // Notify dealer principal
-      for (const user of invoice.dealership.users) {
-        await prisma.notification.create({
+      // Clear access restriction — best-effort (column may not exist in all envs)
+      try {
+        await prisma.dealership.update({
+          where: { id: invoice.dealershipId },
           data: {
-            userId: user.id,
-            type: 'INVOICE_PAID',
-            title: 'Invoice Marked as Paid',
-            message: `Invoice ${invoice.invoiceNumber} has been marked as paid. Your account access has been fully restored. Thank you!`,
-            link: '/dealer/invoices',
-            metadata: { invoiceId: id, invoiceNumber: invoice.invoiceNumber },
+            accessRestrictedAt: null,
+            ...(invoice.dealership.status === 'SUSPENDED' ? { status: 'APPROVED' } : {}),
           },
         });
+      } catch (e) {
+        console.error('Non-fatal: could not clear accessRestrictedAt:', e);
+      }
+
+      // Notify dealer principal — best-effort
+      try {
+        for (const user of invoice.dealership.users) {
+          await prisma.notification.create({
+            data: {
+              userId: user.id,
+              type: 'INVOICE_PAID',
+              title: 'Invoice Marked as Paid',
+              message: `Invoice ${invoice.invoiceNumber} has been marked as paid. Your account access has been fully restored. Thank you!`,
+              link: '/dealer/invoices',
+              metadata: { invoiceId: id, invoiceNumber: invoice.invoiceNumber },
+            },
+          });
+        }
+      } catch (e) {
+        console.error('Non-fatal: could not send invoice paid notification:', e);
       }
 
       return NextResponse.json({ success: true, invoice: updated });

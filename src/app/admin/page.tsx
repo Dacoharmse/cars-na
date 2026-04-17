@@ -7211,7 +7211,7 @@ function AdminDashboardContent() {
                                     if (res.ok) {
                                       showToast({ title: 'Marked Paid', description: `Invoice ${inv.invoiceNumber} marked as paid.`, type: 'success' });
                                       setAdminInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: 'PAID' } : i));
-                                    } else { showToast({ title: 'Error', description: data.error, type: 'error' }); }
+                                    } else { showToast({ title: 'Error', description: data.detail || data.error, variant: 'error', duration: 8000 }); }
                                   }} className="h-7 w-7 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center transition-colors cursor-pointer">
                                     <CheckCircle className="h-3.5 w-3.5" />
                                   </button>
