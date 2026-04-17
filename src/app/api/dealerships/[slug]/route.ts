@@ -17,6 +17,11 @@ export async function GET(
           },
           orderBy: {
             createdAt: 'desc'
+          },
+          include: {
+            images: {
+              orderBy: { displayOrder: 'asc' }
+            }
           }
         },
         _count: {

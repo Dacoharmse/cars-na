@@ -1799,6 +1799,11 @@ function AdminDashboardContent() {
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
 
+  // Free access modal state
+  const [freeAccessModalOpen, setFreeAccessModalOpen] = useState(false);
+  const [freeMonths, setFreeMonths] = useState(1);
+  const [isGrantingAccess, setIsGrantingAccess] = useState(false);
+
   // Banner management state
   const [previewBanner, setPreviewBanner] = useState<any>(null);
   const [editingBanner, setEditingBanner] = useState<any>(null);
@@ -2110,6 +2115,36 @@ function AdminDashboardContent() {
     }
 
     setSubscriptionModalOpen(true);
+  };
+
+  const handleGrantFreeAccess = (dealer: any) => {
+    setSelectedDealer(dealer);
+    setFreeMonths(1);
+    setFreeAccessModalOpen(true);
+  };
+
+  const handleConfirmFreeAccess = async () => {
+    if (!selectedDealer) return;
+    setIsGrantingAccess(true);
+    try {
+      const res = await fetch(`/api/admin/dealerships/${selectedDealer.id}/grant-free-access`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ months: freeMonths }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast({ title: 'Access Granted', description: `${freeMonths} free month(s) granted to ${selectedDealer.name}. Restriction lifted.`, type: 'success' });
+        setFreeAccessModalOpen(false);
+        setSelectedDealer(null);
+      } else {
+        showToast({ title: 'Error', description: data.error || 'Failed to grant access', variant: 'error', duration: 5000 });
+      }
+    } catch {
+      showToast({ title: 'Error', description: 'Failed to grant access', variant: 'error', duration: 5000 });
+    } finally {
+      setIsGrantingAccess(false);
+    }
   };
 
   const handleUpdateSubscription = async () => {
@@ -3329,7 +3364,7 @@ function AdminDashboardContent() {
     }
 
     // Check if user is admin
-    const isAdmin = (session?.user as any)?.role === 'ADMIN' || session?.user?.email === 'admin@cars.na';
+    const isAdmin = (session?.user as any)?.role === 'ADMIN';
     if (!isAdmin) {
       router.push('/admin/login');
       return;
@@ -4934,6 +4969,10 @@ function AdminDashboardContent() {
                                     <DropdownMenuItem onClick={() => handleManageSubscription(dealer)}>
                                       <CreditCard className="mr-2 h-4 w-4" />
                                       Manage Subscription
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleGrantFreeAccess(dealer)} className="text-emerald-400 focus:text-emerald-400">
+                                      <HandCoins className="mr-2 h-4 w-4" />
+                                      Grant Free Access
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     {dealer.status === 'APPROVED' && (
@@ -11255,6 +11294,58 @@ function AdminDashboardContent() {
               className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Delete Permanently
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Grant Free Access Dialog */}
+      <Dialog open={freeAccessModalOpen} onOpenChange={setFreeAccessModalOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Grant Free Access</DialogTitle>
+            <DialogDescription>
+              {selectedDealer && (
+                <span>Extend subscription for <strong>{selectedDealer.name}</strong> at no charge and lift any access restriction.</span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">Number of free months</label>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setFreeMonths(m => Math.max(1, m - 1))}
+                  className="h-9 w-9 rounded-lg border border-white/[0.1] bg-white/[0.04] text-white hover:bg-white/[0.08] flex items-center justify-center text-lg font-bold transition-colors"
+                >−</button>
+                <span className="text-2xl font-bold text-white w-12 text-center">{freeMonths}</span>
+                <button
+                  onClick={() => setFreeMonths(m => Math.min(24, m + 1))}
+                  className="h-9 w-9 rounded-lg border border-white/[0.1] bg-white/[0.04] text-white hover:bg-white/[0.08] flex items-center justify-center text-lg font-bold transition-colors"
+                >+</button>
+                <span className="text-sm text-slate-400">month{freeMonths > 1 ? 's' : ''}</span>
+              </div>
+            </div>
+            <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-300 space-y-1">
+              <p>This will:</p>
+              <ul className="list-disc list-inside space-y-0.5 text-emerald-400/80">
+                <li>Extend subscription end date by {freeMonths} month{freeMonths > 1 ? 's' : ''}</li>
+                <li>Clear any access restriction immediately</li>
+                <li>Cancel outstanding unpaid invoices</li>
+                <li>Notify the dealer via in-app notification</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setFreeAccessModalOpen(false); setSelectedDealer(null); }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmFreeAccess}
+              disabled={isGrantingAccess}
+              className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {isGrantingAccess ? 'Granting…' : `Grant ${freeMonths} Month${freeMonths > 1 ? 's' : ''}`}
             </Button>
           </DialogFooter>
         </DialogContent>

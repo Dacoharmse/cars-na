@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
     // Compilation succeeds; type issues should be addressed gradually.
     ignoreBuildErrors: true,
   },
+  // pdfkit must not be bundled by webpack — it uses native fs to load font data
+  serverExternalPackages: ['pdfkit'],
   // pdfkit font data needs to be traced for invoice PDF generation
   outputFileTracingIncludes: {
     '/api/admin/invoices/[id]/pdf': ['./node_modules/pdfkit/js/data/**/*'],
