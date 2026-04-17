@@ -30,6 +30,10 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   title: "Cars.na - Buy and Sell Cars in Namibia",
   description: "Find your perfect car in Namibia. Browse thousands of new and used vehicles from trusted dealers across the country.",
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+  },
 };
 
 export default function RootLayout({
