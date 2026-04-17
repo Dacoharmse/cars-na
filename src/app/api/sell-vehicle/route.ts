@@ -189,7 +189,7 @@ export async function POST(req: NextRequest) {
           type: 'NEW_LISTING',
           title: 'New Private Vehicle Listing',
           message: `A new ${year} ${make} ${model} has been listed for sale${city ? ` in ${city}` : ''} by a private seller for N$ ${parseFloat(price).toLocaleString()}.`,
-          link: `/admin?tab=sell-your-car`,
+          link: `/dealer/dashboard`,
           metadata: {
             listingId: listing.id,
             category: category,
