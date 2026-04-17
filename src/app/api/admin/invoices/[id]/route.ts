@@ -80,7 +80,7 @@ export async function PATCH(
         data: {
           status: 'PAID',
           paidAt: new Date(),
-          paidById: session.user.id,
+          ...(session.user.id ? { paidById: session.user.id } : {}),
         },
       });
 
@@ -147,7 +147,10 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid action. Use mark-paid, cancel, or update.' }, { status: 400 });
   } catch (error) {
     console.error('Error updating invoice:', error);
-    return NextResponse.json({ error: 'Failed to update invoice' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Failed to update invoice',
+      detail: error instanceof Error ? error.message : String(error),
+    }, { status: 500 });
   }
 }
 
