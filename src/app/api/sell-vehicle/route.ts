@@ -182,32 +182,30 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Create notifications for all dealer users
-      const notificationPromises = dealerships.flatMap(dealership =>
-        dealership.users.map(user =>
-          prisma.notification.create({
-            data: {
-              userId: user.id,
-              type: 'NEW_LISTING',
-              title: 'New Private Vehicle Listing',
-              message: `A new ${year} ${make} ${model} has been listed for sale${city ? ` in ${city}` : ''} by a private seller for N$ ${parseFloat(price).toLocaleString()}.`,
-              link: `/dealer/vehicle-listings`,
-              metadata: {
-                listingId: listing.id,
-                category: category,
-                make: make,
-                model: model,
-                year: year,
-                price: price,
-                sellerName: userName,
-                sellerLocation: city || region || 'Unknown',
-              },
-            },
-          })
-        )
+      // Create notifications for all dealer users (batch insert to avoid N+1)
+      const notificationData = dealerships.flatMap(dealership =>
+        dealership.users.map(user => ({
+          userId: user.id,
+          type: 'NEW_LISTING',
+          title: 'New Private Vehicle Listing',
+          message: `A new ${year} ${make} ${model} has been listed for sale${city ? ` in ${city}` : ''} by a private seller for N$ ${parseFloat(price).toLocaleString()}.`,
+          link: `/admin?tab=sell-your-car`,
+          metadata: {
+            listingId: listing.id,
+            category: category,
+            make: make,
+            model: model,
+            year: year,
+            price: price,
+            sellerName: userName,
+            sellerLocation: city || region || 'Unknown',
+          },
+        }))
       );
 
-      await Promise.all(notificationPromises);
+      if (notificationData.length > 0) {
+        await prisma.notification.createMany({ data: notificationData, skipDuplicates: true });
+      }
 
       // Send email notifications to all dealerships
       const smtpHost = process.env.SMTP_HOST || 'localhost';
@@ -301,7 +299,7 @@ export async function POST(req: NextRequest) {
                     </div>
 
                     <div style="margin-top: 25px; text-align: center;">
-                      <a href="${process.env.NEXTAUTH_URL || 'https://cars.na'}/dealer/vehicle-listings"
+                      <a href="${process.env.NEXTAUTH_URL || 'https://cars.na'}/admin?tab=sell-your-car"
                          style="display: inline-block; background: linear-gradient(135deg, #1F3469 0%, #3B4F86 100%); color: white; padding: 14px 35px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
                         View All Private Listings
                       </a>
