@@ -229,16 +229,6 @@ export default function AdminLogin() {
               </div>
             </div>
 
-            {/* Demo Credentials Info */}
-            <div className="mt-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-              <div className="text-center">
-                <p className="text-xs text-blue-200 mb-2">Demo Admin Credentials:</p>
-                <div className="font-mono text-xs text-blue-100">
-                  <p>Email: admin@cars.na</p>
-                  <p>Password: admin@cars2025</p>
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
